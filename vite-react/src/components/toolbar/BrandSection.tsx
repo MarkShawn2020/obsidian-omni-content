@@ -71,7 +71,7 @@ export const BrandSection: React.FC = () => {
 								textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
 							}}
 						>
-							LovePen
+							Lovpen
 						</div>
 						<div
 							className="version-container"
