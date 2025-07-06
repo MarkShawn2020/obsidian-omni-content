@@ -3,12 +3,12 @@ import {FRONT_MATTER_REGEX, VIEW_TYPE_NOTE_PREVIEW} from "src/constants";
 
 import AssetsManager from "./assets";
 import InlineCSS from "./inline-css";
-import {CardDataManager} from "./rehype-plugins/code-blocks";
-import {MDRendererCallback} from "./remark-plugins/rehype-plugin";
-import {LocalImageManager} from "./remark-plugins/local-file";
-import {MarkedParser} from "./remark-plugins/parser";
-import {initializePlugins, RemarkPluginManager} from "./rehype-plugins";
-import {RehypePluginManager} from "./remark-plugins/rehype-plugin-manager";
+import {CardDataManager} from "./remark-plugins/code-blocks";
+import {MDRendererCallback} from "./rehype-plugins/rehype-plugin";
+import {LocalImageManager} from "./rehype-plugins/local-file";
+import {MarkedParser} from "./rehype-plugins/parser";
+import {UnifiedPluginManager} from "./shared/unified-plugin-system";
+import {initializePluginSystem} from "./shared/plugin-registry";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {logger, uevent} from "./utils";
@@ -37,7 +37,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		this.assetsManager = AssetsManager.getInstance();
 		this.markedParser = new MarkedParser(this.app, this);
 
-		initializePlugins();
+		// 插件系统已通过MarkedParser初始化，无需单独初始化
 	}
 
 	get currentTheme() {
@@ -281,7 +281,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			let articleHTML = await this.markedParser.parse(md);
 			articleHTML = this.wrapArticleContent(articleHTML);
 
-			const pluginManager = RemarkPluginManager.getInstance();
+			const pluginManager = UnifiedPluginManager.getInstance();
 			articleHTML = pluginManager.processContent(articleHTML, this.settings);
 			return articleHTML;
 		} catch (error) {
@@ -389,16 +389,14 @@ ${customCSS}`;
 			};
 
 
-			// 获取插件和扩展数据
-			const rehypePlugins = this.getRehypePlugins();
-			const remarkPlugins = this.getRemarkPlugins();
+			// 获取统一插件数据
+			const plugins = this.getUnifiedPlugins();
 
 			const props = {
 				settings: externalSettings,
 				articleHTML: this.articleHTML || "",
 				cssContent: this.getCSS(),
-				rehypePlugins: rehypePlugins,
-				remarkPlugins: remarkPlugins,
+				plugins: plugins,
 				onRefresh: async () => {
 					await this.renderMarkdown();
 					uevent("refresh");
@@ -452,17 +450,11 @@ ${customCSS}`;
 				onUpdateCSSVariables: () => {
 					this.updateCSSVariables();
 				},
-				onExtensionToggle: (extensionName: string, enabled: boolean) => {
-					this.handleExtensionToggle(extensionName, enabled);
-				},
 				onPluginToggle: (pluginName: string, enabled: boolean) => {
-					this.handlePluginToggle(pluginName, enabled);
-				},
-				onExtensionConfigChange: (extensionName: string, key: string, value: string | boolean) => {
-					this.handleExtensionConfigChange(extensionName, key, value);
+					this.handleUnifiedPluginToggle(pluginName, enabled);
 				},
 				onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
-					this.handlePluginConfigChange(pluginName, key, value);
+					this.handleUnifiedPluginConfigChange(pluginName, key, value);
 				},
 				onExpandedSectionsChange: (sections: string[]) => {
 					this.settings.expandedAccordionSections = sections;
@@ -488,65 +480,29 @@ ${customCSS}`;
 		}
 	}
 
-	private getRehypePlugins() {
+	private getUnifiedPlugins() {
 		try {
-			const pluginManager = RehypePluginManager.getInstance();
-			if (!pluginManager) return [];
-
-			const plugins = pluginManager.getPlugins();
-			return plugins.map((ext: any) => ({
-				name: ext.getName ? ext.getName() : 'Unknown Extension',
-				description: ext.getDescription ? ext.getDescription() : '',
-				enabled: ext.isEnabled ? ext.isEnabled() : true,
-				config: ext.getConfig ? ext.getConfig() : {},
-				metaConfig: ext.getMetaConfig ? ext.getMetaConfig() : {}
-			}));
-		} catch (error) {
-			logger.warn("无法获取扩展数据:", error);
-			return [];
-		}
-	}
-
-	private getRemarkPlugins() {
-		try {
-			const pluginManager = RemarkPluginManager.getInstance();
+			const pluginManager = UnifiedPluginManager.getInstance();
 			if (!pluginManager) return [];
 
 			const plugins = pluginManager.getPlugins();
 			return plugins.map((plugin: any) => ({
 				name: plugin.getName ? plugin.getName() : 'Unknown Plugin',
+				type: plugin.getType ? plugin.getType() : 'unknown',
 				description: plugin.getDescription ? plugin.getDescription() : '',
 				enabled: plugin.isEnabled ? plugin.isEnabled() : true,
 				config: plugin.getConfig ? plugin.getConfig() : {},
 				metaConfig: plugin.getMetaConfig ? plugin.getMetaConfig() : {}
 			}));
 		} catch (error) {
-			logger.warn("无法获取插件数据:", error);
+			logger.warn("无法获取统一插件数据:", error);
 			return [];
 		}
 	}
 
-	private handleExtensionToggle(extensionName: string, enabled: boolean) {
+	private handleUnifiedPluginToggle(pluginName: string, enabled: boolean) {
 		try {
-			const extensionManager = RehypePluginManager.getInstance();
-			if (extensionManager) {
-				const extension = extensionManager.getPlugins().find((ext: any) =>
-					ext.getName && ext.getName() === extensionName
-				);
-				if (extension && extension.setEnabled) {
-					extension.setEnabled(enabled);
-					this.saveSettingsToPlugin();
-					this.renderMarkdown();
-				}
-			}
-		} catch (error) {
-			logger.error("切换扩展状态失败:", error);
-		}
-	}
-
-	private handlePluginToggle(pluginName: string, enabled: boolean) {
-		try {
-			const pluginManager = RemarkPluginManager.getInstance();
+			const pluginManager = UnifiedPluginManager.getInstance();
 			if (pluginManager) {
 				const plugin = pluginManager.getPlugins().find((p: any) =>
 					p.getName && p.getName() === pluginName
@@ -555,6 +511,7 @@ ${customCSS}`;
 					plugin.setEnabled(enabled);
 					this.saveSettingsToPlugin();
 					this.renderMarkdown();
+					logger.info(`已${enabled ? '启用' : '禁用'}插件: ${pluginName}`);
 				}
 			}
 		} catch (error) {
@@ -562,28 +519,9 @@ ${customCSS}`;
 		}
 	}
 
-	private handleExtensionConfigChange(extensionName: string, key: string, value: string | boolean) {
+	private handleUnifiedPluginConfigChange(pluginName: string, key: string, value: string | boolean) {
 		try {
-			const extensionManager = RehypePluginManager.getInstance();
-			if (extensionManager) {
-				const extension = extensionManager.getPlugins().find((ext: any) =>
-					ext.getName && ext.getName() === extensionName
-				);
-				if (extension && extension.updateConfig) {
-					extension.updateConfig({[key]: value});
-					this.saveSettingsToPlugin();
-					this.renderMarkdown();
-					logger.info(`已更新扩展 ${extensionName} 的配置: ${key} = ${value}`);
-				}
-			}
-		} catch (error) {
-			logger.error("更新扩展配置失败:", error);
-		}
-	}
-
-	private handlePluginConfigChange(pluginName: string, key: string, value: string | boolean) {
-		try {
-			const pluginManager = RemarkPluginManager.getInstance();
+			const pluginManager = UnifiedPluginManager.getInstance();
 			if (pluginManager) {
 				const plugin = pluginManager.getPlugins().find((p: any) =>
 					p.getName && p.getName() === pluginName

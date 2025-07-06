@@ -1,4 +1,4 @@
-import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
+import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
@@ -6,8 +6,8 @@ import {logger} from "src/utils";
  * 列表处理插件 - 处理微信公众号中的列表格式，特别是嵌套列表
  * 微信公众号编辑器对嵌套列表支持不好，需要特殊处理
  */
-export class Lists extends RemarkPlugin {
-	getName(): string {
+export class Lists extends UnifiedRemarkPlugin {
+	getPluginName(): string {
 		return "列表处理插件";
 	}
 

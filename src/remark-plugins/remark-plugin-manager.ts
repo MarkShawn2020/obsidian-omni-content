@@ -1,4 +1,4 @@
-import {IRemarkPlugin} from "src/rehype-plugins/remark-plugin";
+import {IRemarkPlugin} from "src/remark-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 import {BasePluginManager} from "src/shared/base-plugin-manager";

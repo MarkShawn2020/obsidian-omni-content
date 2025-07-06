@@ -1,4 +1,5 @@
-import {RemarkPlugin, RemarkPluginMetaConfig} from "src/rehype-plugins/remark-plugin";
+import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
+import {UniversalPluginMetaConfig} from "src/shared/plugin-config-manager";
 import {logger} from "src/utils";
 
 /**
@@ -7,8 +8,8 @@ import {logger} from "src/utils";
  * 1. 添加序号: 当启用时，将标题序号作为标题内容插入
  * 2. 分隔符换行: 当启用时，遇到逗号等分隔符自动换行
  */
-export class Headings extends RemarkPlugin {
-	getName(): string {
+export class Headings extends UnifiedRemarkPlugin {
+	getPluginName(): string {
 		return "标题处理插件";
 	}
 
@@ -16,7 +17,7 @@ export class Headings extends RemarkPlugin {
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据
 	 */
-	getMetaConfig(): RemarkPluginMetaConfig {
+	getMetaConfig(): UniversalPluginMetaConfig {
 		return {
 			enableHeadingNumber: {
 				type: "switch",

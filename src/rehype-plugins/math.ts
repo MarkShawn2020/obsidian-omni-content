@@ -1,7 +1,8 @@
 import {MarkedExtension, Token, Tokens} from "marked";
 import {requestUrl} from "obsidian";
 import {NMPSettings} from "src/settings";
-import {RehypePlugin, MDRendererCallback} from "./rehype-plugin";
+import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
+import {MDRendererCallback} from "./parser";
 
 const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1/;
 const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
@@ -130,9 +131,9 @@ export class MathRendererQueue {
 }
 
 
-export class MathRenderer extends RehypePlugin {
+export class MathRenderer extends UnifiedRehypePlugin {
 
-	getName(): string {
+	getPluginName(): string {
 		return "MathRenderer";
 	}
 

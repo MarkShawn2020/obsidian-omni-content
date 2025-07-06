@@ -7,8 +7,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  settings,
 																	  articleHTML,
 																	  cssContent,
-																	  rehypePlugins,
-																	  remarkPlugins,
+																	  plugins,
 																	  onCopy,
 																	  onDistribute,
 																	  onTemplateChange,
@@ -19,9 +18,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onRenderArticle,
 																	  onSaveSettings,
 																	  onUpdateCSSVariables,
-																	  onExtensionToggle,
 																	  onPluginToggle,
-																	  onExtensionConfigChange,
 																	  onPluginConfigChange,
 																	  onExpandedSectionsChange,
 																  }) => {
@@ -180,8 +177,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 			>
 				<Toolbar
 					settings={settings}
-					rehypePlugins={rehypePlugins}
-					remarkPlugins={remarkPlugins}
+					plugins={plugins}
 					onCopy={onCopy}
 					onDistribute={onDistribute}
 					onTemplateChange={onTemplateChange}
@@ -191,9 +187,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 					onThemeColorChange={onThemeColorChange}
 					onRenderArticle={onRenderArticle}
 					onSaveSettings={onSaveSettings}
-					onExtensionToggle={onExtensionToggle}
 					onPluginToggle={onPluginToggle}
-					onExtensionConfigChange={onExtensionConfigChange}
 					onPluginConfigChange={onPluginConfigChange}
 					onExpandedSectionsChange={onExpandedSectionsChange}
 				/>

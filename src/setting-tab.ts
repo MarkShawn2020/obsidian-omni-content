@@ -1,6 +1,6 @@
 import {App, FileSystemAdapter, Notice, PluginSettingTab, Setting, TextAreaComponent,} from "obsidian";
 import OmniContentPlugin from "./main";
-import {cleanMathCache} from "./remark-plugins/math";
+import {cleanMathCache} from "./rehype-plugins/math";
 import {LinkDescriptionMode, NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {logger} from "./utils";

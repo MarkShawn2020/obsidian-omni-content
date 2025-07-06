@@ -1,4 +1,4 @@
-import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
+import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
@@ -6,8 +6,8 @@ import {logger} from "src/utils";
  * 引用块处理插件 - 处理微信公众号中的引用块格式
  * 微信公众号编辑器对blockquote有固定样式，需要强制设置样式以覆盖
  */
-export class Blockquotes extends RemarkPlugin {
-	getName(): string {
+export class Blockquotes extends UnifiedRemarkPlugin {
+	getPluginName(): string {
 		return "引用块处理插件";
 	}
 

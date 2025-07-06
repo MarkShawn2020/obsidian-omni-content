@@ -34,7 +34,17 @@ export interface ConfigMetaCollection {
 	[key: string]: ConfigMeta;
 }
 
-// Extension/Plugin interfaces
+// Unified Plugin interfaces
+export interface UnifiedPluginData {
+	name: string;
+	type: 'remark' | 'rehype';
+	description?: string;
+	enabled: boolean;
+	config: any;
+	metaConfig: ConfigMetaCollection;
+}
+
+// Legacy interfaces (for backward compatibility)
 export interface PluginData {
 	name: string;
 	description?: string;
@@ -56,8 +66,7 @@ export interface OmniContentReactProps {
 	settings: ViteReactSettings;
 	articleHTML: string;
 	cssContent: string;
-	remarkPlugins: PluginData[];
-	rehypePlugins: PluginData[];
+	plugins: UnifiedPluginData[];
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;
@@ -68,9 +77,7 @@ export interface OmniContentReactProps {
 	onRenderArticle: () => void;
 	onSaveSettings: () => void;
 	onUpdateCSSVariables: () => void;
-	onExtensionToggle?: (extensionName: string, enabled: boolean) => void;
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
-	onExtensionConfigChange?: (extensionName: string, key: string, value: string | boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 	onExpandedSectionsChange?: (sections: string[]) => void;
 }

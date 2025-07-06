@@ -1,12 +1,12 @@
-import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
+import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
 /**
  * 表格处理插件 - 处理微信公众号中的表格格式
  */
-export class Tables extends RemarkPlugin {
-	getName(): string {
+export class Tables extends UnifiedRemarkPlugin {
+	getPluginName(): string {
 		return "表格处理插件";
 	}
 

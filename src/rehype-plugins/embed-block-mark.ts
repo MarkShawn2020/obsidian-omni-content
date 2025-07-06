@@ -1,16 +1,16 @@
 import {MarkedExtension, Tokens} from "marked";
-import {RehypePlugin} from "./rehype-plugin";
+import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
 
 const BlockMarkRegex = /^\^[0-9A-Za-z-]+$/;
 
-export class EmbedBlockMark extends RehypePlugin {
+export class EmbedBlockMark extends UnifiedRehypePlugin {
 	allLinks: string[] = [];
 
 	async prepare() {
 		this.allLinks = [];
 	}
 
-	getName(): string {
+	getPluginName(): string {
 		return "EmbedBlockMark";
 	}
 

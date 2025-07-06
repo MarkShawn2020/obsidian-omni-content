@@ -1,10 +1,10 @@
 import {MarkedExtension, Tokens} from "marked";
 import {logger} from "../utils";
-import {RehypePlugin} from "./rehype-plugin";
+import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
 
-export class LinkRenderer extends RehypePlugin {
+export class LinkRenderer extends UnifiedRehypePlugin {
 
-	getName(): string {
+	getPluginName(): string {
 		return "LinkRenderer";
 	}
 

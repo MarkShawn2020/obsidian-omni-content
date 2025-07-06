@@ -2,19 +2,15 @@ import {Marked} from "marked";
 import {App, Vault} from "obsidian";
 import {NMPSettings} from "src/settings";
 import AssetsManager from "../assets";
-import {CalloutRenderer} from "./callouts";
-import {CodeRenderer} from "./code";
-import {CodeHighlight} from "./code-highlight";
-import {EmbedBlockMark} from "./embed-block-mark";
-import {RehypePlugin, MDRendererCallback} from "./rehype-plugin";
-import {FootnoteRenderer} from "./footnote";
-import {SVGIcon} from "./icons";
-import {LinkRenderer} from "./link";
-import {LocalFile} from "./local-file";
-import {MathRenderer} from "./math";
-import {TextHighlight} from "./text-highlight";
 import {logger} from "src/utils";
-import {RehypePluginManager} from "./rehype-plugin-manager";
+import {UnifiedPluginManager, IRehypePlugin} from "src/shared/unified-plugin-system";
+import {initializePluginSystem} from "src/shared/plugin-registry";
+import {FootnoteRenderer} from "./footnote";
+
+export interface MDRendererCallback {
+	settings: NMPSettings;
+	updateElementByID(id: string, html: string): void;
+}
 
 const markedOptions = {
 	gfm: true,
@@ -35,10 +31,10 @@ const customRenderer = {
 };
 
 export class MarkedParser {
-	extensions: RehypePlugin[] = [];
 	marked: Marked;
 	app: App;
 	vault: Vault;
+	private pluginManager: UnifiedPluginManager;
 
 	constructor(app: App, callback: MDRendererCallback) {
 		this.app = app;
@@ -47,59 +43,27 @@ export class MarkedParser {
 		const settings = NMPSettings.getInstance();
 		const assetsManager = AssetsManager.getInstance();
 
-		this.extensions.push(
-			new LocalFile(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new CalloutRenderer(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new CodeHighlight(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new EmbedBlockMark(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new SVGIcon(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new LinkRenderer(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new FootnoteRenderer(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new TextHighlight(app, settings, assetsManager, callback)
-		);
-		this.extensions.push(
-			new CodeRenderer(app, settings, assetsManager, callback)
-		);
-		if (settings.isAuthKeyVaild()) {
-			this.extensions.push(
-				new MathRenderer(app, settings, assetsManager, callback)
-			);
-		}
+		// 初始化统一插件系统
+		this.pluginManager = initializePluginSystem(app, settings, assetsManager, callback);
 
-		logger.debug(`初始化了 ${this.extensions.length} 个markdown扩展插件`);
-
-		// 设置ExtensionManager实例
-		RehypePluginManager.getInstance().setParser(this);
+		const rehypePlugins = this.pluginManager.getRehypePlugins();
+		logger.debug(`初始化了 ${rehypePlugins.length} 个markdown扩展插件`);
 	}
 
 	/**
 	 * 获取所有已注册的扩展插件
 	 * @returns 扩展插件数组
 	 */
-	getExtensions(): RehypePlugin[] {
-		return [...this.extensions];
+	getExtensions(): IRehypePlugin[] {
+		return this.pluginManager.getRehypePlugins();
 	}
 
 	/**
 	 * 获取所有启用的扩展插件
 	 * @returns 启用的扩展插件数组
 	 */
-	getEnabledExtensions(): RehypePlugin[] {
-		return this.extensions.filter(ext => ext.isEnabled());
+	getEnabledExtensions(): IRehypePlugin[] {
+		return this.pluginManager.getRehypePlugins().filter(ext => ext.isEnabled());
 	}
 
 	/**
@@ -107,8 +71,8 @@ export class MarkedParser {
 	 * @param name 插件名称
 	 * @returns 扩展插件实例或null
 	 */
-	getExtensionByName(name: string): RehypePlugin | null {
-		return this.extensions.find(ext => ext.getName() === name) || null;
+	getExtensionByName(name: string): IRehypePlugin | null {
+		return this.pluginManager.getRehypePlugins().find(ext => ext.getName() === name) || null;
 	}
 
 	/**
@@ -134,11 +98,15 @@ export class MarkedParser {
 
 		// 只对启用的扩展应用marked扩展
 		const enabledExtensions = this.getEnabledExtensions();
-		logger.debug(`构建marked实例，使用 ${enabledExtensions.length}/${this.extensions.length} 个启用的扩展插件`);
+		const allExtensions = this.getExtensions();
+		logger.debug(`构建marked实例，使用 ${enabledExtensions.length}/${allExtensions.length} 个启用的扩展插件`);
 
 		for (const ext of enabledExtensions) {
 			this.marked.use(ext.markedExtension());
-			ext.marked = this.marked;
+			// 设置marked实例到插件中
+			if ('marked' in ext) {
+				(ext as any).marked = this.marked;
+			}
 			await ext.prepare();
 		}
 		this.marked.use({renderer: customRenderer});
@@ -168,9 +136,9 @@ export class MarkedParser {
 
 		// 预处理 Markdown 内容，处理脚注定义
 		let processedContent = content;
-		const footnoteRenderer = this.extensions.find(ext => ext instanceof FootnoteRenderer) as FootnoteRenderer | undefined;
-		if (footnoteRenderer) {
-			processedContent = footnoteRenderer.preprocessText(content);
+		const footnoteRenderer = this.getExtensions().find(ext => ext.getName() === 'FootnoteRenderer') as FootnoteRenderer | undefined;
+		if (footnoteRenderer && 'preprocessText' in footnoteRenderer) {
+			processedContent = (footnoteRenderer as any).preprocessText(content);
 		}
 
 		// 解析处理后的内容
@@ -178,8 +146,8 @@ export class MarkedParser {
 		html = await this.postprocess(html);
 
 		// 如果有脚注处理器，在发布前确保脚注引用正确
-		if (footnoteRenderer) {
-			await footnoteRenderer.beforePublish();
+		if (footnoteRenderer && 'beforePublish' in footnoteRenderer) {
+			await (footnoteRenderer as any).beforePublish();
 		}
 
 		return html;

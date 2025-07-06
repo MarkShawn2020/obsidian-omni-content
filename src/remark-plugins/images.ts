@@ -1,6 +1,7 @@
-import {RemarkPlugin, RemarkPluginMetaConfig} from "src/rehype-plugins/remark-plugin";
+import {RemarkPlugin as UnifiedRemarkPlugin, PluginType, PluginMetadata} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
+import {UniversalPluginMetaConfig} from "src/shared/plugin-config-manager";
 
 /**
  * 图片处理插件 - 处理微信公众号中的图片格式
@@ -9,8 +10,8 @@ import {logger} from "src/utils";
  * 2. 添加data-src属性: 微信编辑器需要
  * 3. 设置图片样式和对齐方式
  */
-export class Images extends RemarkPlugin {
-	getName(): string {
+export class Images extends UnifiedRemarkPlugin {
+	getPluginName(): string {
 		return "图片处理插件";
 	}
 
@@ -18,7 +19,7 @@ export class Images extends RemarkPlugin {
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据
 	 */
-	getMetaConfig(): RemarkPluginMetaConfig {
+	getMetaConfig(): UniversalPluginMetaConfig {
 		return {
 			showImageCaption: {
 				type: "switch",

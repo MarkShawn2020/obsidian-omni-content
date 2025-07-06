@@ -4,12 +4,11 @@ import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
 import {Accordion} from "../ui/Accordion";
 import {ConfigComponent} from "./PluginConfigComponent";
-import {PluginData, ViteReactSettings} from "../../types";
+import {UnifiedPluginData, ViteReactSettings} from "../../types";
 
 interface ToolbarProps {
 	settings: ViteReactSettings;
-	rehypePlugins: PluginData[];
-	remarkPlugins: PluginData[];
+	plugins: UnifiedPluginData[];
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;
@@ -19,17 +18,14 @@ interface ToolbarProps {
 	onThemeColorChange: (color: string) => void;
 	onRenderArticle: () => void;
 	onSaveSettings: () => void;
-	onExtensionToggle?: (extensionName: string, enabled: boolean) => void;
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
-	onExtensionConfigChange?: (extensionName: string, key: string, value: string | boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 	onExpandedSectionsChange?: (sections: string[]) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
 													settings,
-													rehypePlugins,
-													remarkPlugins,
+													plugins,
 													onCopy,
 													onDistribute,
 													onTemplateChange,
@@ -39,9 +35,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onThemeColorChange,
 													onRenderArticle,
 													onSaveSettings,
-													onExtensionToggle,
 													onPluginToggle,
-													onExtensionConfigChange,
 													onPluginConfigChange,
 													onExpandedSectionsChange,
 												}) => {
@@ -72,6 +66,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		}
 		onSaveSettings();
 	};
+
+	// 分离不同类型的插件
+	const remarkPlugins = plugins.filter(plugin => plugin.type === 'remark');
+	const rehypePlugins = plugins.filter(plugin => plugin.type === 'rehype');
 
 	return (
 		<div
@@ -134,108 +132,100 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							</Accordion>
 						)}
 
-						{/* Remark 插件 */}
+						{/* 统一插件管理 */}
 						<Accordion
-							title="Remark 插件"
-							sectionId="accordion-remark-插件"
+							title="插件管理"
+							sectionId="accordion-plugins"
 							expandedSections={expandedSections}
 							onToggle={handleAccordionToggle}
 						>
-							<div className="remark-plugins-container" style={{width: "100%"}}>
-								{rehypePlugins.length > 0 ? (
-									rehypePlugins.map((extension) => (
-										<ConfigComponent
-											key={extension.name}
-											item={extension}
-											type="extension"
-											expandedSections={expandedSections}
-											onToggle={(sectionId, isExpanded) => {
-												handleAccordionToggle(sectionId, isExpanded);
-											}}
-											onEnabledChange={(extensionName, enabled) => onExtensionToggle?.(extensionName, enabled)}
-											onConfigChange={async (extensionName, key, value) => {
-												console.log(`[Toolbar] 扩展配置变更: ${extensionName}.${key} = ${value}`);
-												console.log(`[Toolbar] onExtensionConfigChange 存在:`, !!onExtensionConfigChange);
+							<div className="plugins-container" style={{width: "100%"}}>
+								{plugins.length > 0 ? (
+									<>
+										{/* Remark 插件部分 */}
+										{remarkPlugins.length > 0 && (
+											<div className="plugin-section">
+												<h4 style={{margin: "8px 0 4px 0", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase"}}>
+													Remark 插件 ({remarkPlugins.length})
+												</h4>
+												{remarkPlugins.map((plugin) => (
+													<ConfigComponent
+														key={plugin.name}
+														item={plugin}
+														type="plugin"
+														expandedSections={expandedSections}
+														onToggle={(sectionId, isExpanded) => {
+															handleAccordionToggle(sectionId, isExpanded);
+														}}
+														onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+														onConfigChange={async (pluginName, key, value) => {
+															console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
 
-												// 调用外部配置变更回调
-												if (onExtensionConfigChange) {
-													try {
-														const result = onExtensionConfigChange(extensionName, key, value) as any;
-														// 无论是否为 Promise 都等待
-														if (result && typeof result?.then === 'function') {
-															await result;
-														}
-														console.log(`[Toolbar] 后端扩展配置更新完成: ${extensionName}.${key}`);
-													} catch (error) {
-														console.error(`[Toolbar] 扩展配置更新失败:`, error);
-													}
-												} else {
-													console.warn(`[Toolbar] onExtensionConfigChange 未定义`);
-												}
+															if (onPluginConfigChange) {
+																try {
+																	const result = onPluginConfigChange(pluginName, key, value) as any;
+																	if (result && typeof result?.then === 'function') {
+																		await result;
+																	}
+																	console.log(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
+																} catch (error) {
+																	console.error(`[Toolbar] Remark插件配置更新失败:`, error);
+																}
+															}
 
-												// 等待配置更新完成后触发重新渲染
-												setTimeout(() => {
-													console.log(`[Toolbar] 触发重新渲染: ${extensionName}.${key}`);
-													onRenderArticle();
-												}, 200); // 增加延迟到200ms
-											}}
-										/>
-									))
+															setTimeout(() => {
+																console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
+																onRenderArticle();
+															}, 200);
+														}}
+													/>
+												))}
+											</div>
+										)}
+
+										{/* Rehype 插件部分 */}
+										{rehypePlugins.length > 0 && (
+											<div className="plugin-section">
+												<h4 style={{margin: "8px 0 4px 0", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase"}}>
+													Rehype 插件 ({rehypePlugins.length})
+												</h4>
+												{rehypePlugins.map((plugin) => (
+													<ConfigComponent
+														key={plugin.name}
+														item={plugin}
+														type="plugin"
+														expandedSections={expandedSections}
+														onToggle={(sectionId, isExpanded) => {
+															handleAccordionToggle(sectionId, isExpanded);
+														}}
+														onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+														onConfigChange={async (pluginName, key, value) => {
+															console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
+
+															if (onPluginConfigChange) {
+																try {
+																	const result = onPluginConfigChange(pluginName, key, value) as any;
+																	if (result && typeof result?.then === 'function') {
+																		await result;
+																	}
+																	console.log(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
+																} catch (error) {
+																	console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
+																}
+															}
+
+															setTimeout(() => {
+																console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
+																onRenderArticle();
+															}, 200);
+														}}
+													/>
+												))}
+											</div>
+										)}
+									</>
 								) : (
-									<p className="no-plugins-message">未找到任何Remark插件</p>
-								)}
-							</div>
-						</Accordion>
-
-						{/* Rehype 插件 */}
-						<Accordion
-							title="Rehype 插件"
-							sectionId="accordion-rehype-插件"
-							expandedSections={expandedSections}
-							onToggle={handleAccordionToggle}
-						>
-							<div className="rehype-plugins-container" style={{width: "100%"}}>
-								{remarkPlugins.length > 0 ? (
-									remarkPlugins.map((plugin) => (
-										<ConfigComponent
-											key={plugin.name}
-											item={plugin}
-											type="plugin"
-											expandedSections={expandedSections}
-											onToggle={(sectionId, isExpanded) => {
-												handleAccordionToggle(sectionId, isExpanded);
-											}}
-											onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-											onConfigChange={async (pluginName, key, value) => {
-												console.log(`[Toolbar] 配置变更: ${pluginName}.${key} = ${value}`);
-												console.log(`[Toolbar] onPluginConfigChange 存在:`, !!onPluginConfigChange);
-
-												// 调用外部配置变更回调
-												if (onPluginConfigChange) {
-													try {
-														const result = onPluginConfigChange(pluginName, key, value) as any;
-														// 无论是否为 Promise 都等待
-														if (result && typeof result?.then === 'function') {
-															await result;
-														}
-														console.log(`[Toolbar] 后端配置更新完成: ${pluginName}.${key}`);
-													} catch (error) {
-														console.error(`[Toolbar] 配置更新失败:`, error);
-													}
-												} else {
-													console.warn(`[Toolbar] onPluginConfigChange 未定义`);
-												}
-
-												// 等待配置更新完成后触发重新渲染
-												setTimeout(() => {
-													console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
-													onRenderArticle();
-												}, 200); // 增加延迟到200ms
-											}}
-										/>
-									))
-								) : (
-									<p className="no-plugins-message">未找到任何Rehype插件</p>
+									<p className="no-plugins-message">未找到任何插件</p>
 								)}
 							</div>
 						</Accordion>

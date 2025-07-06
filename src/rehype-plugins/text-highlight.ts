@@ -1,10 +1,10 @@
 import {Lexer, MarkedExtension, Token, Tokens} from "marked";
-import {RehypePlugin} from "./rehype-plugin";
+import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
 
 const highlightRegex = /^==(.*?)==/;
 
-export class TextHighlight extends RehypePlugin {
-	getName(): string {
+export class TextHighlight extends UnifiedRehypePlugin {
+	getPluginName(): string {
 		return "TextHighlight";
 	}
 
