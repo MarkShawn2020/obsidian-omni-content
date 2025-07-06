@@ -1,4 +1,4 @@
-import {apiVersion, EventRef, ItemView, Notice, TFile, WorkspaceLeaf,} from "obsidian";
+import {EventRef, ItemView, Notice, WorkspaceLeaf,} from "obsidian";
 import {FRONT_MATTER_REGEX, VIEW_TYPE_NOTE_PREVIEW} from "src/constants";
 
 import AssetsManager from "./assets";
@@ -12,7 +12,6 @@ import {RehypePluginManager} from "./remark-plugins/rehype-plugin-manager";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {logger, uevent} from "./utils";
-import {DraftArticle, wxBatchGetMaterial, wxGetToken, wxUploadImage,} from "./weixin-api";
 
 // External React App Interface
 interface ExternalReactLib {
@@ -27,7 +26,6 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	assetsManager: AssetsManager;
 	articleHTML: string;
 	title: string;
-	currentAppId: string;
 	markedParser: MarkedParser;
 	listeners: EventRef[];
 	externalReactLib: ExternalReactLib | null = null;
@@ -71,17 +69,17 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			// 直接从插件目录读取文件
 			const adapter = this.app.vault.adapter;
 			const pluginDir = (this.app as any).plugins.plugins["omni-content"].manifest.dir;
-			
+
 			// 尝试多个可能的路径
 			const possiblePaths = [
 				`${pluginDir}/src/assets/omni-content-react.umd.cjs`,
 				`.obsidian/plugins/omni-content/src/assets/omni-content-react.umd.cjs`,
 				`src/assets/omni-content-react.umd.cjs`
 			];
-			
+
 			let scriptContent = null;
 			let actualPath = null;
-			
+
 			for (const path of possiblePaths) {
 				try {
 					logger.info("尝试路径:", path);
@@ -92,26 +90,26 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 					logger.warn("路径不存在:", path, e.message);
 				}
 			}
-			
+
 			if (!scriptContent) {
 				throw new Error("无法找到React应用文件");
 			}
-			
+
 			logger.info("成功从以下路径加载React应用:", actualPath);
-			
+
 			// 创建script标签并执行
 			const script = document.createElement('script');
 			script.textContent = scriptContent;
 			document.head.appendChild(script);
-			
+
 			// 等待一下确保脚本执行完成
 			await new Promise(resolve => setTimeout(resolve, 100));
-			
+
 			// 获取全局对象 - 检查多种可能的全局变量名
-			this.externalReactLib = (window as any).OmniContentReact || 
-									(window as any).OmniContentReactLib ||
-									(window as any).omniContentReact;
-			
+			this.externalReactLib = (window as any).OmniContentReact ||
+				(window as any).OmniContentReactLib ||
+				(window as any).omniContentReact;
+
 			if (this.externalReactLib) {
 				logger.info("外部React应用加载成功");
 			} else {
@@ -123,7 +121,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			this.loadFallbackComponent();
 		}
 	}
-	
+
 	private loadFallbackComponent() {
 		logger.info("使用回退方案：原始React组件");
 		// 这里可以导入原始的React组件作为备用
@@ -133,7 +131,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	async onOpen() {
 		// 确保React应用已加载
 		await this.loadExternalReactApp();
-		
+
 		this.buildUI();
 		this.listeners = [this.workspace.on("active-leaf-change", () => this.update()),];
 
@@ -153,10 +151,6 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		LocalImageManager.getInstance().cleanup();
 		CardDataManager.getInstance().cleanup();
 		this.renderMarkdown();
-	}
-
-	errorContent(error: any) {
-		return ("<h1>渲染失败!</h1><br/>" + '如需帮助请前往&nbsp;&nbsp;<a href="https://github.com/sunbooshi/omni-content/issues">https://github.com/sunbooshi/omni-content/issues</a>&nbsp;&nbsp;反馈<br/><br/>' + "如果方便，请提供引发错误的完整Markdown内容。<br/><br/>" + "<br/>Obsidian版本：" + apiVersion + "<br/>错误信息：<br/>" + `${error}`);
 	}
 
 	async renderMarkdown() {
@@ -326,105 +320,6 @@ ${themeCss}
 ${customCSS}`;
 	}
 
-	// 其他方法保持不变，仅列出关键的几个
-	getMetadata() {
-		let res: DraftArticle = {
-			title: "",
-			author: undefined,
-			digest: undefined,
-			content: "",
-			content_source_url: undefined,
-			cover: undefined,
-			thumb_media_id: "",
-			need_open_comment: undefined,
-			only_fans_can_comment: undefined,
-			pic_crop_235_1: undefined,
-			pic_crop_1_1: undefined,
-		};
-		const file = this.app.workspace.getActiveFile();
-		if (!file) return res;
-		const metadata = this.app.metadataCache.getFileCache(file);
-		if (metadata?.frontmatter) {
-			const frontmatter = metadata.frontmatter;
-			res.title = frontmatter["标题"];
-			res.author = frontmatter["作者"];
-			res.digest = frontmatter["摘要"];
-			res.content_source_url = frontmatter["原文地址"];
-			res.cover = frontmatter["封面"];
-			res.thumb_media_id = frontmatter["封面素材ID"];
-			res.need_open_comment = frontmatter["打开评论"] ? 1 : undefined;
-			res.only_fans_can_comment = frontmatter["仅粉丝可评论"] ? 1 : undefined;
-			if (frontmatter["封面裁剪"]) {
-				res.pic_crop_235_1 = "0_0_1_0.5";
-				res.pic_crop_1_1 = "0_0.525_0.404_1";
-			}
-		}
-		return res;
-	}
-
-	async uploadVaultCover(name: string, token: string) {
-		const LocalFileRegex = /^!\[\[(.*?)\]\]/;
-		const matches = name.match(LocalFileRegex);
-		let fileName = "";
-		if (matches && matches.length > 1) {
-			fileName = matches[1];
-		} else {
-			fileName = name;
-		}
-		const vault = this.app.vault;
-		const file = this.assetsManager.searchFile(fileName) as TFile;
-		if (!file) {
-			throw new Error("找不到封面文件: " + fileName);
-		}
-		const fileData = await vault.readBinary(file);
-
-		return await this.uploadCover(new Blob([fileData]), file.name, token);
-	}
-
-	async uploadLocalCover(token: string) {
-		// 这个功能在React版本中需要重新实现
-		throw new Error("本地封面上传功能需要在React组件中重新实现");
-	}
-
-	async uploadCover(data: Blob, filename: string, token: string) {
-		const res = await wxUploadImage(data, filename, token, "image");
-		if (res.media_id) {
-			return res.media_id;
-		}
-		console.error("upload cover fail: " + res.errmsg);
-		throw new Error("上传封面失败: " + res.errmsg);
-	}
-
-	async getDefaultCover(token: string) {
-		const res = await wxBatchGetMaterial(token, "image");
-		if (res.item_count > 0) {
-			return res.item[0].media_id;
-		}
-		return "";
-	}
-
-	async getToken() {
-		const res = await wxGetToken(this.settings.authKey, this.currentAppId, this.getSecret() || "");
-		if (res.status != 200) {
-			const data = res.json;
-			// 通过React组件显示消息
-			return "";
-		}
-		const token = res.json.token;
-		if (token === "") {
-			// 通过React组件显示消息
-		}
-		return token;
-	}
-
-	getSecret() {
-		for (const wx of this.settings.wxInfo) {
-			if (wx.appid === this.currentAppId) {
-				return wx.secret.replace("SECRET", "");
-			}
-		}
-	}
-
 	updateElementByID(id: string, html: string): void {
 		const el = document.getElementById(id);
 		if (el) {
@@ -456,7 +351,7 @@ ${customCSS}`;
 				externalReactLib: !!this.externalReactLib,
 				reactContainer: !!this.reactContainer
 			});
-			
+
 			// 如果没有外部React应用，显示一个简单的错误消息
 			if (this.reactContainer) {
 				this.reactContainer.innerHTML = `
@@ -471,114 +366,114 @@ ${customCSS}`;
 		}
 
 		try {
-			logger.info("更新外部React组件", { 
+			logger.info("更新外部React组件", {
 				articleHTMLLength: this.articleHTML?.length || 0,
 				hasCSS: !!this.getCSS(),
 				availableMethods: this.externalReactLib ? Object.keys(this.externalReactLib) : []
 			});
 
-		// 转换设置对象以适配外部React应用的接口
-		const externalSettings = {
-			defaultStyle: this.settings.defaultStyle,
-			defaultHighlight: this.settings.defaultHighlight,
-			defaultTemplate: this.settings.defaultTemplate,
-			useTemplate: this.settings.useTemplate,
-			lastSelectedTemplate: this.settings.lastSelectedTemplate,
-			enableThemeColor: this.settings.enableThemeColor,
-			themeColor: this.settings.themeColor,
-			useCustomCss: this.settings.useCustomCss,
-			authKey: this.settings.authKey,
-			wxInfo: this.settings.wxInfo,
-			expandedAccordionSections: this.settings.expandedAccordionSections || [],
-			showStyleUI: this.settings.showStyleUI !== false, // 默认显示
-		};
-		
+			// 转换设置对象以适配外部React应用的接口
+			const externalSettings = {
+				defaultStyle: this.settings.defaultStyle,
+				defaultHighlight: this.settings.defaultHighlight,
+				defaultTemplate: this.settings.defaultTemplate,
+				useTemplate: this.settings.useTemplate,
+				lastSelectedTemplate: this.settings.lastSelectedTemplate,
+				enableThemeColor: this.settings.enableThemeColor,
+				themeColor: this.settings.themeColor,
+				useCustomCss: this.settings.useCustomCss,
+				authKey: this.settings.authKey,
+				wxInfo: this.settings.wxInfo,
+				expandedAccordionSections: this.settings.expandedAccordionSections || [],
+				showStyleUI: this.settings.showStyleUI !== false, // 默认显示
+			};
 
-		// 获取插件和扩展数据
-		const rehypePlugins = this.getRehypePlugins();
-		const remarkPlugins = this.getRemarkPlugins();
 
-		const props = {
-			settings: externalSettings,
-			articleHTML: this.articleHTML || "",
-			cssContent: this.getCSS(),
-			rehypePlugins: rehypePlugins,
-			remarkPlugins: remarkPlugins,
-			onRefresh: async () => {
-				await this.renderMarkdown();
-				uevent("refresh");
-			},
-			onCopy: async () => {
-				await this.copyArticle();
-				uevent("copy");
-			},
-			onDistribute: async () => {
-				this.openDistributionModal();
-				uevent("distribute");
-			},
-			onTemplateChange: async (template: string) => {
-				if (template === "") {
-					this.settings.useTemplate = false;
-					this.settings.lastSelectedTemplate = "";
-				} else {
-					this.settings.useTemplate = true;
-					this.settings.defaultTemplate = template;
-					this.settings.lastSelectedTemplate = template;
+			// 获取插件和扩展数据
+			const rehypePlugins = this.getRehypePlugins();
+			const remarkPlugins = this.getRemarkPlugins();
+
+			const props = {
+				settings: externalSettings,
+				articleHTML: this.articleHTML || "",
+				cssContent: this.getCSS(),
+				rehypePlugins: rehypePlugins,
+				remarkPlugins: remarkPlugins,
+				onRefresh: async () => {
+					await this.renderMarkdown();
+					uevent("refresh");
+				},
+				onCopy: async () => {
+					await this.copyArticle();
+					uevent("copy");
+				},
+				onDistribute: async () => {
+					this.openDistributionModal();
+					uevent("distribute");
+				},
+				onTemplateChange: async (template: string) => {
+					if (template === "") {
+						this.settings.useTemplate = false;
+						this.settings.lastSelectedTemplate = "";
+					} else {
+						this.settings.useTemplate = true;
+						this.settings.defaultTemplate = template;
+						this.settings.lastSelectedTemplate = template;
+					}
+					this.saveSettingsToPlugin();
+					await this.renderMarkdown();
+				},
+				onThemeChange: async (theme: string) => {
+					this.settings.defaultStyle = theme;
+					this.saveSettingsToPlugin();
+					this.updateExternalReactComponent();
+				},
+				onHighlightChange: async (highlight: string) => {
+					this.settings.defaultHighlight = highlight;
+					this.saveSettingsToPlugin();
+					this.updateExternalReactComponent();
+				},
+				onThemeColorToggle: async (enabled: boolean) => {
+					this.settings.enableThemeColor = enabled;
+					this.saveSettingsToPlugin();
+					await this.renderMarkdown();
+				},
+				onThemeColorChange: async (color: string) => {
+					this.settings.themeColor = color;
+					this.saveSettingsToPlugin();
+					await this.renderMarkdown();
+				},
+				onRenderArticle: async () => {
+					await this.renderArticleOnly();
+				},
+				onSaveSettings: () => {
+					this.saveSettingsToPlugin();
+				},
+				onUpdateCSSVariables: () => {
+					this.updateCSSVariables();
+				},
+				onExtensionToggle: (extensionName: string, enabled: boolean) => {
+					this.handleExtensionToggle(extensionName, enabled);
+				},
+				onPluginToggle: (pluginName: string, enabled: boolean) => {
+					this.handlePluginToggle(pluginName, enabled);
+				},
+				onExtensionConfigChange: (extensionName: string, key: string, value: string | boolean) => {
+					this.handleExtensionConfigChange(extensionName, key, value);
+				},
+				onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
+					this.handlePluginConfigChange(pluginName, key, value);
+				},
+				onExpandedSectionsChange: (sections: string[]) => {
+					this.settings.expandedAccordionSections = sections;
+					this.saveSettingsToPlugin();
 				}
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown();
-			},
-			onThemeChange: async (theme: string) => {
-				this.settings.defaultStyle = theme;
-				this.saveSettingsToPlugin();
-				this.updateExternalReactComponent();
-			},
-			onHighlightChange: async (highlight: string) => {
-				this.settings.defaultHighlight = highlight;
-				this.saveSettingsToPlugin();
-				this.updateExternalReactComponent();
-			},
-			onThemeColorToggle: async (enabled: boolean) => {
-				this.settings.enableThemeColor = enabled;
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown();
-			},
-			onThemeColorChange: async (color: string) => {
-				this.settings.themeColor = color;
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown();
-			},
-			onRenderArticle: async () => {
-				await this.renderArticleOnly();
-			},
-			onSaveSettings: () => {
-				this.saveSettingsToPlugin();
-			},
-			onUpdateCSSVariables: () => {
-				this.updateCSSVariables();
-			},
-			onExtensionToggle: (extensionName: string, enabled: boolean) => {
-				this.handleExtensionToggle(extensionName, enabled);
-			},
-			onPluginToggle: (pluginName: string, enabled: boolean) => {
-				this.handlePluginToggle(pluginName, enabled);
-			},
-			onExtensionConfigChange: (extensionName: string, key: string, value: string | boolean) => {
-				this.handleExtensionConfigChange(extensionName, key, value);
-			},
-			onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
-				this.handlePluginConfigChange(pluginName, key, value);
-			},
-			onExpandedSectionsChange: (sections: string[]) => {
-				this.settings.expandedAccordionSections = sections;
-				this.saveSettingsToPlugin();
-			}
-		};
+			};
 
-		// 使用外部React应用进行渲染
-		this.externalReactLib.update(this.reactContainer, props);
-		logger.info("外部React组件更新成功");
-		
+			// 使用外部React应用进行渲染
+			this.externalReactLib.update(this.reactContainer, props);
+			logger.info("外部React组件更新成功");
+
 		} catch (error) {
 			logger.error("更新外部React组件时出错:", error);
 			if (this.reactContainer) {
@@ -597,7 +492,7 @@ ${customCSS}`;
 		try {
 			const pluginManager = RehypePluginManager.getInstance();
 			if (!pluginManager) return [];
-			
+
 			const plugins = pluginManager.getPlugins();
 			return plugins.map((ext: any) => ({
 				name: ext.getName ? ext.getName() : 'Unknown Extension',
@@ -616,7 +511,7 @@ ${customCSS}`;
 		try {
 			const pluginManager = RemarkPluginManager.getInstance();
 			if (!pluginManager) return [];
-			
+
 			const plugins = pluginManager.getPlugins();
 			return plugins.map((plugin: any) => ({
 				name: plugin.getName ? plugin.getName() : 'Unknown Plugin',
@@ -653,7 +548,7 @@ ${customCSS}`;
 		try {
 			const pluginManager = RemarkPluginManager.getInstance();
 			if (pluginManager) {
-				const plugin = pluginManager.getPlugins().find((p: any) => 
+				const plugin = pluginManager.getPlugins().find((p: any) =>
 					p.getName && p.getName() === pluginName
 				);
 				if (plugin && plugin.setEnabled) {
@@ -690,7 +585,7 @@ ${customCSS}`;
 		try {
 			const pluginManager = RemarkPluginManager.getInstance();
 			if (pluginManager) {
-				const plugin = pluginManager.getPlugins().find((p: any) => 
+				const plugin = pluginManager.getPlugins().find((p: any) =>
 					p.getName && p.getName() === pluginName
 				);
 				if (plugin && plugin.updateConfig) {
