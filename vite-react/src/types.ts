@@ -58,7 +58,6 @@ export interface OmniContentReactProps {
 	cssContent: string;
 	extensions: ExtensionData[];
 	plugins: PluginData[];
-	onRefresh: () => void;
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;

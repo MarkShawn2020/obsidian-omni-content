@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
@@ -10,7 +10,6 @@ interface ToolbarProps {
 	settings: ViteReactSettings;
 	extensions: ExtensionData[];
 	plugins: PluginData[];
-	onRefresh: () => void;
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;
@@ -30,7 +29,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													settings,
 													extensions,
 													plugins,
-													onRefresh,
 													onCopy,
 													onDistribute,
 													onTemplateChange,
@@ -47,10 +45,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												}) => {
 	// 使用本地状态管理展开的sections
 	const [expandedSections, setExpandedSections] = useState<string[]>(settings.expandedAccordionSections);
+	const hasInitialized = useRef(false);
 
-	// 当外部settings变化时同步本地状态
+	// 只在首次初始化时从外部settings同步，避免后续重置
 	useEffect(() => {
-		setExpandedSections([...settings.expandedAccordionSections]);
+		if (!hasInitialized.current) {
+			setExpandedSections([...settings.expandedAccordionSections]);
+			hasInitialized.current = true;
+		}
 	}, [settings.expandedAccordionSections]);
 
 	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
@@ -99,7 +101,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 				>
 					{/* 操作按钮组 */}
 					<ActionButtons
-						onRefresh={onRefresh}
 						onCopy={onCopy}
 						onDistribute={onDistribute}
 					/>

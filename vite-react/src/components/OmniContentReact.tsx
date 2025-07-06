@@ -9,7 +9,6 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  cssContent,
 																	  extensions,
 																	  plugins,
-																	  onRefresh,
 																	  onCopy,
 																	  onDistribute,
 																	  onTemplateChange,
@@ -180,7 +179,6 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 					settings={settings}
 					extensions={extensions}
 					plugins={plugins}
-					onRefresh={onRefresh}
 					onCopy={onCopy}
 					onDistribute={onDistribute}
 					onTemplateChange={onTemplateChange}
