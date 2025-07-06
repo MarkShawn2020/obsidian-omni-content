@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
@@ -45,17 +45,29 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onExtensionConfigChange,
 													onPluginConfigChange,
 												}) => {
+	const [, forceUpdate] = useState({});
 	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
+		console.log(`[Toolbar] handleAccordionToggle: ${sectionId}, isExpanded: ${isExpanded}`);
+		console.log(`[Toolbar] Before update:`, settings.expandedAccordionSections);
+		
+		let currentSections = [...settings.expandedAccordionSections];
+		
 		if (isExpanded) {
-			if (!settings.expandedAccordionSections.includes(sectionId)) {
-				settings.expandedAccordionSections.push(sectionId);
+			if (!currentSections.includes(sectionId)) {
+				currentSections.push(sectionId);
 			}
 		} else {
-			const index = settings.expandedAccordionSections.indexOf(sectionId);
+			const index = currentSections.indexOf(sectionId);
 			if (index > -1) {
-				settings.expandedAccordionSections.splice(index, 1);
+				currentSections.splice(index, 1);
 			}
 		}
+		
+		settings.expandedAccordionSections = currentSections;
+		console.log(`[Toolbar] After update:`, settings.expandedAccordionSections);
+		
+		// 强制重新渲染
+		forceUpdate({});
 		onSaveSettings();
 	};
 
