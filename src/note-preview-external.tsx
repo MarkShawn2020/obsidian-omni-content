@@ -598,7 +598,7 @@ ${customCSS}`;
 			const extensionManager = RehypePluginManager.getInstance();
 			if (!extensionManager) return [];
 			
-			const extensions = extensionManager.getExtensions();
+			const extensions = extensionManager.getPlugins();
 			return extensions.map((ext: any) => ({
 				name: ext.getName ? ext.getName() : 'Unknown Extension',
 				description: ext.getDescription ? ext.getDescription() : '',
@@ -635,7 +635,7 @@ ${customCSS}`;
 		try {
 			const extensionManager = RehypePluginManager.getInstance();
 			if (extensionManager) {
-				const extension = extensionManager.getExtensions().find((ext: any) => 
+				const extension = extensionManager.getPlugins().find((ext: any) =>
 					ext.getName && ext.getName() === extensionName
 				);
 				if (extension && extension.setEnabled) {
@@ -671,7 +671,7 @@ ${customCSS}`;
 		try {
 			const extensionManager = RehypePluginManager.getInstance();
 			if (extensionManager) {
-				const extension = extensionManager.getExtensions().find((ext: any) => 
+				const extension = extensionManager.getPlugins().find((ext: any) =>
 					ext.getName && ext.getName() === extensionName
 				);
 				if (extension && extension.updateConfig) {

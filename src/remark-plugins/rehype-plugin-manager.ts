@@ -16,7 +16,6 @@ export class RehypePluginManager extends BasePluginManager<RehypePlugin> {
 	private constructor() {
 		super();
 	}
-
 	/**
 	 * 获取管理器单例
 	 * @returns Extension管理器实例
@@ -34,20 +33,9 @@ export class RehypePluginManager extends BasePluginManager<RehypePlugin> {
 	 */
 	public setParser(parser: MarkedParser): void {
 		this.parser = parser;
+		// 从 parser 中获取所有插件并注册到管理器
+		this.registerPlugins(parser.getExtensions());
 		logger.debug("设置MarkedParser实例到Extension管理器");
 	}
-
-	/**
-	 * 获取所有已注册的扩展插件
-	 * @returns 扩展插件数组
-	 */
-	public getExtensions(): RehypePlugin[] {
-		if (!this.parser) {
-			logger.warn("MarkedParser实例未设置");
-			return [];
-		}
-		return this.parser.getExtensions();
-	}
-
 
 }

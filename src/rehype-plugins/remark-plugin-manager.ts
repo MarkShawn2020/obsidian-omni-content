@@ -8,7 +8,6 @@ import {BasePluginManager} from "src/shared/base-plugin-manager";
  */
 export class RemarkPluginManager extends BasePluginManager<IRemarkPlugin> {
 	private static instance: RemarkPluginManager;
-	private plugins: IRemarkPlugin[] = [];
 
 	/**
 	 * 私有构造函数，确保单例模式
@@ -28,33 +27,6 @@ export class RemarkPluginManager extends BasePluginManager<IRemarkPlugin> {
 		return RemarkPluginManager.instance;
 	}
 
-	/**
-	 * 注册一个处理插件
-	 * @param plugin 要注册的插件
-	 * @returns 当前插件管理器实例，支持链式调用
-	 */
-	public registerPlugin(plugin: IRemarkPlugin): RemarkPluginManager {
-		logger.debug(`注册处理插件: ${plugin.getName()}`);
-		this.plugins.push(plugin);
-		return this;
-	}
-
-	/**
-	 * 批量注册处理插件
-	 * @param plugins 要注册的插件数组
-	 * @returns 当前插件管理器实例，支持链式调用
-	 */
-	public registerPlugins(plugins: IRemarkPlugin[]): RemarkPluginManager {
-		plugins.forEach(plugin => this.registerPlugin(plugin));
-		return this;
-	}
-	/**
-	 * 获取所有已注册的插件
-	 * @returns 插件数组
-	 */
-	public getPlugins(): IRemarkPlugin[] {
-		return [...this.plugins];
-	}
 
 	/**
 	 * 处理HTML内容 - 应用所有启用的插件

@@ -16,7 +16,7 @@ import {TextHighlight} from "./text-highlight";
 import {logger} from "src/utils";
 import {RehypePluginManager} from "./rehype-plugin-manager";
 
-const markedOptiones = {
+const markedOptions = {
 	gfm: true,
 	breaks: true,
 	mangle: false,   // 禁用自动检测并转换邮箱地址为链接
@@ -130,7 +130,7 @@ export class MarkedParser {
 
 	async buildMarked() {
 		this.marked = new Marked();
-		this.marked.use(markedOptiones);
+		this.marked.use(markedOptions);
 
 		// 只对启用的扩展应用marked扩展
 		const enabledExtensions = this.getEnabledExtensions();
