@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {Select} from "../ui/Select";
-import {ExtensionData, PluginData} from "../../types";
+import {PluginData} from "../../types";
 
 const STORAGE_KEY_PREFIX = 'omni-content-config';
 
@@ -27,9 +27,8 @@ const saveToStorage = (key: string, value: any) => {
 // 	}
 // };
 
-type ConfigItem = PluginData | ExtensionData;
 
-interface ConfigComponentProps<T extends ConfigItem> {
+interface ConfigComponentProps<T extends PluginData> {
 	item: T;
 	type: 'plugin' | 'extension';
 	expandedSections: string[];
@@ -39,24 +38,24 @@ interface ConfigComponentProps<T extends ConfigItem> {
 }
 
 
-export const ConfigComponent = <T extends ConfigItem>({
-	item,
-	type,
-	expandedSections,
-	onToggle,
-	onEnabledChange,
-	onConfigChange,
-}: ConfigComponentProps<T>) => {
+export const ConfigComponent = <T extends PluginData>({
+														  item,
+														  type,
+														  expandedSections,
+														  onToggle,
+														  onEnabledChange,
+														  onConfigChange,
+													  }: ConfigComponentProps<T>) => {
 	const itemId = `${type}-${item.name.replace(/\s+/g, "-").toLowerCase()}`;
 	const isExpanded = expandedSections.includes(itemId);
 	const storageKey = getStorageKey(type, item.name);
-	
+
 	// 以 item.config 为准，localStorage 只作为备份
 	const getInitialConfig = () => {
 		// 优先使用 item.config，确保前后端一致
 		return item.config || {};
 	};
-	
+
 	// 本地配置状态管理
 	const [localConfig, setLocalConfig] = useState(getInitialConfig);
 	const hasLocalUpdate = useRef(false);
@@ -65,7 +64,7 @@ export const ConfigComponent = <T extends ConfigItem>({
 	useEffect(() => {
 		if (!hasLocalUpdate.current) {
 			// 以 item.config 为准，确保前后端一致
-			setLocalConfig({ ...item.config });
+			setLocalConfig({...item.config});
 		} else {
 			// 重置标记，允许下次外部更新
 			const timer = setTimeout(() => {
@@ -82,30 +81,30 @@ export const ConfigComponent = <T extends ConfigItem>({
 		// 持久化enabled状态
 		const enabledStorageKey = `${storageKey}-enabled`;
 		saveToStorage(enabledStorageKey, enabled);
-		
+
 		onEnabledChange(item.name, enabled);
 	};
-	
+
 
 	const handleConfigChange = (key: string, value: string | boolean) => {
 		// 标记为本地更新，防止外部同步覆盖
 		hasLocalUpdate.current = true;
-		
+
 		// 1. 首先更新原始配置对象（确保后端能读取到最新配置）
 		item.config[key] = value;
-		
+
 		// 2. 更新本地状态
-		const newConfig = { ...localConfig, [key]: value };
+		const newConfig = {...localConfig, [key]: value};
 		setLocalConfig(newConfig);
-		
+
 		// 3. 持久化到localStorage作为备份
 		saveToStorage(storageKey, newConfig);
-		
+
 		// 调试日志
 		console.log(`[PluginConfigComponent] 配置更新: ${item.name}.${key} = ${value}`);
-		console.log(`[PluginConfigComponent] 更新后的item.config:`, { ...item.config });
-		console.log(`[PluginConfigComponent] 更新后的localConfig:`, { ...newConfig });
-		
+		console.log(`[PluginConfigComponent] 更新后的item.config:`, {...item.config});
+		console.log(`[PluginConfigComponent] 更新后的localConfig:`, {...newConfig});
+
 		// 4. 调用外部回调更新原始数据
 		if (onConfigChange) {
 			onConfigChange(item.name, key, value);

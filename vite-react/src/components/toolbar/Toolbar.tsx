@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
 import {Accordion} from "../ui/Accordion";
 import {ConfigComponent} from "./PluginConfigComponent";
-import {ExtensionData, PluginData, ViteReactSettings} from "../../types";
+import {PluginData, ViteReactSettings} from "../../types";
 
 interface ToolbarProps {
 	settings: ViteReactSettings;
-	extensions: ExtensionData[];
-	plugins: PluginData[];
+	rehypePlugins: PluginData[];
+	remarkPlugins: PluginData[];
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;
@@ -28,8 +28,8 @@ interface ToolbarProps {
 
 export const Toolbar: React.FC<ToolbarProps> = ({
 													settings,
-													extensions,
-													plugins,
+													rehypePlugins,
+													remarkPlugins,
 													onCopy,
 													onDistribute,
 													onTemplateChange,
@@ -56,16 +56,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
 		let newSections: string[];
 		if (isExpanded) {
-			newSections = expandedSections.includes(sectionId) 
-				? expandedSections 
+			newSections = expandedSections.includes(sectionId)
+				? expandedSections
 				: [...expandedSections, sectionId];
 		} else {
 			newSections = expandedSections.filter(id => id !== sectionId);
 		}
-		
+
 		// 更新本地状态
 		setExpandedSections(newSections);
-		
+
 		// 通过回调函数更新外部settings
 		if (onExpandedSectionsChange) {
 			onExpandedSectionsChange(newSections);
@@ -142,8 +142,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							onToggle={handleAccordionToggle}
 						>
 							<div className="remark-plugins-container" style={{width: "100%"}}>
-								{extensions.length > 0 ? (
-									extensions.map((extension) => (
+								{rehypePlugins.length > 0 ? (
+									rehypePlugins.map((extension) => (
 										<ConfigComponent
 											key={extension.name}
 											item={extension}
@@ -156,7 +156,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											onConfigChange={async (extensionName, key, value) => {
 												console.log(`[Toolbar] 扩展配置变更: ${extensionName}.${key} = ${value}`);
 												console.log(`[Toolbar] onExtensionConfigChange 存在:`, !!onExtensionConfigChange);
-												
+
 												// 调用外部配置变更回调
 												if (onExtensionConfigChange) {
 													try {
@@ -172,7 +172,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												} else {
 													console.warn(`[Toolbar] onExtensionConfigChange 未定义`);
 												}
-												
+
 												// 等待配置更新完成后触发重新渲染
 												setTimeout(() => {
 													console.log(`[Toolbar] 触发重新渲染: ${extensionName}.${key}`);
@@ -195,8 +195,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							onToggle={handleAccordionToggle}
 						>
 							<div className="rehype-plugins-container" style={{width: "100%"}}>
-								{plugins.length > 0 ? (
-									plugins.map((plugin) => (
+								{remarkPlugins.length > 0 ? (
+									remarkPlugins.map((plugin) => (
 										<ConfigComponent
 											key={plugin.name}
 											item={plugin}
@@ -209,7 +209,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											onConfigChange={async (pluginName, key, value) => {
 												console.log(`[Toolbar] 配置变更: ${pluginName}.${key} = ${value}`);
 												console.log(`[Toolbar] onPluginConfigChange 存在:`, !!onPluginConfigChange);
-												
+
 												// 调用外部配置变更回调
 												if (onPluginConfigChange) {
 													try {
@@ -225,7 +225,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												} else {
 													console.warn(`[Toolbar] onPluginConfigChange 未定义`);
 												}
-												
+
 												// 等待配置更新完成后触发重新渲染
 												setTimeout(() => {
 													console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);

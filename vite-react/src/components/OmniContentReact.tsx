@@ -7,8 +7,8 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  settings,
 																	  articleHTML,
 																	  cssContent,
-																	  extensions,
-																	  plugins,
+																	  rehypePlugins,
+																	  remarkPlugins,
 																	  onCopy,
 																	  onDistribute,
 																	  onTemplateChange,
@@ -180,8 +180,8 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 			>
 				<Toolbar
 					settings={settings}
-					extensions={extensions}
-					plugins={plugins}
+					rehypePlugins={rehypePlugins}
+					remarkPlugins={remarkPlugins}
 					onCopy={onCopy}
 					onDistribute={onDistribute}
 					onTemplateChange={onTemplateChange}

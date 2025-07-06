@@ -35,7 +35,7 @@ export interface ConfigMetaCollection {
 }
 
 // Extension/Plugin interfaces
-export interface ExtensionData {
+export interface PluginData {
 	name: string;
 	description?: string;
 	enabled: boolean;
@@ -43,7 +43,7 @@ export interface ExtensionData {
 	metaConfig: ConfigMetaCollection;
 }
 
-export interface PluginData {
+export interface RemarkPluginData {
 	name: string;
 	description?: string;
 	enabled: boolean;
@@ -56,8 +56,8 @@ export interface OmniContentReactProps {
 	settings: ViteReactSettings;
 	articleHTML: string;
 	cssContent: string;
-	extensions: ExtensionData[];
-	plugins: PluginData[];
+	remarkPlugins: PluginData[];
+	rehypePlugins: PluginData[];
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;
