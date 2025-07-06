@@ -70,12 +70,9 @@ export abstract class Extension {
 	 * 获取插件配置的元数据 - 子类可以重写
 	 */
 	getMetaConfig(): ExtensionMetaConfig {
-		return {
-			enabled: {
-				type: "switch",
-				title: "启用插件"
-			}
-		};
+		// 默认返回空配置，与rehype插件系统保持一致
+		// 只有具备额外配置选项的插件才需要重写此方法
+		return {};
 	}
 
 	/**
