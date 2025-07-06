@@ -1,8 +1,8 @@
 import {MarkedExtension, Tokens} from "marked";
 import {logger} from "../utils";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
-export class LinkRenderer extends Extension {
+export class LinkRenderer extends RehypePlugin {
 
 	getName(): string {
 		return "LinkRenderer";

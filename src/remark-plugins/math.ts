@@ -1,7 +1,7 @@
 import {MarkedExtension, Token, Tokens} from "marked";
 import {requestUrl} from "obsidian";
 import {NMPSettings} from "src/settings";
-import {Extension, MDRendererCallback} from "./extension";
+import {RehypePlugin, MDRendererCallback} from "./rehype-plugin";
 
 const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1/;
 const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
@@ -130,7 +130,7 @@ export class MathRendererQueue {
 }
 
 
-export class MathRenderer extends Extension {
+export class MathRenderer extends RehypePlugin {
 
 	getName(): string {
 		return "MathRenderer";

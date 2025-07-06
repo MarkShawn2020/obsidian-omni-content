@@ -2,9 +2,9 @@ import hljs from "highlight.js";
 import {MarkedExtension} from "marked";
 import {markedHighlight} from "marked-highlight";
 import {CodeRenderer} from "./code";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
-export class CodeHighlight extends Extension {
+export class CodeHighlight extends RehypePlugin {
 	getName(): string {
 		return "CodeHighlight";
 	}

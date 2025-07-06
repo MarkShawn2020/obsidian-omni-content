@@ -1,9 +1,9 @@
 import {MarkedExtension, Tokens} from "marked";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
 const BlockMarkRegex = /^\^[0-9A-Za-z-]+$/;
 
-export class EmbedBlockMark extends Extension {
+export class EmbedBlockMark extends RehypePlugin {
 	allLinks: string[] = [];
 
 	async prepare() {

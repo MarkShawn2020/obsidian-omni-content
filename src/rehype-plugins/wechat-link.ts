@@ -1,11 +1,11 @@
-import {BaseProcess} from "src/rehype-plugins/base-process";
+import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
 /**
  * 链接处理插件 - 根据设置将链接转换为脚注或其他格式
  */
-export class WechatLink extends BaseProcess {
+export class WechatLink extends RemarkPlugin {
 	getName(): string {
 		return "微信链接处理插件";
 	}

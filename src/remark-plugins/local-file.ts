@@ -1,7 +1,7 @@
 import {MarkedExtension, Token, Tokens} from "marked";
 import {MarkdownView, requestUrl, TAbstractFile, TFile} from "obsidian";
 import {NMPSettings} from "../settings";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
 declare module 'obsidian' {
 	interface Vault {
@@ -69,7 +69,7 @@ export class LocalImageManager {
 }
 
 
-export class LocalFile extends Extension {
+export class LocalFile extends RehypePlugin {
 	index: number = 0;
 
 	getName(): string {

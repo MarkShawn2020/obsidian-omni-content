@@ -1,9 +1,9 @@
 import {Lexer, MarkedExtension, Token, Tokens} from "marked";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
 const highlightRegex = /^==(.*?)==/;
 
-export class TextHighlight extends Extension {
+export class TextHighlight extends RehypePlugin {
 	getName(): string {
 		return "TextHighlight";
 	}

@@ -4,11 +4,11 @@ import {FRONT_MATTER_REGEX, VIEW_TYPE_NOTE_PREVIEW} from "src/constants";
 import AssetsManager from "./assets";
 import InlineCSS from "./inline-css";
 import {CardDataManager} from "./rehype-plugins/code-blocks";
-import {MDRendererCallback} from "./remark-plugins/extension";
+import {MDRendererCallback} from "./remark-plugins/rehype-plugin";
 import {LocalImageManager} from "./remark-plugins/local-file";
 import {MarkedParser} from "./remark-plugins/parser";
-import {initializePlugins, PluginManager} from "./rehype-plugins";
-import {ExtensionManager} from "./remark-plugins/extension-manager";
+import {initializePlugins, RemarkPluginManager} from "./rehype-plugins";
+import {RehypePluginManager} from "./remark-plugins/rehype-plugin-manager";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {logger, uevent} from "./utils";
@@ -287,7 +287,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			let articleHTML = await this.markedParser.parse(md);
 			articleHTML = this.wrapArticleContent(articleHTML);
 
-			const pluginManager = PluginManager.getInstance();
+			const pluginManager = RemarkPluginManager.getInstance();
 			articleHTML = pluginManager.processContent(articleHTML, this.settings);
 			return articleHTML;
 		} catch (error) {
@@ -595,7 +595,7 @@ ${customCSS}`;
 
 	private getExtensionsData() {
 		try {
-			const extensionManager = ExtensionManager.getInstance();
+			const extensionManager = RehypePluginManager.getInstance();
 			if (!extensionManager) return [];
 			
 			const extensions = extensionManager.getExtensions();
@@ -614,7 +614,7 @@ ${customCSS}`;
 
 	private getPluginsData() {
 		try {
-			const pluginManager = PluginManager.getInstance();
+			const pluginManager = RemarkPluginManager.getInstance();
 			if (!pluginManager) return [];
 			
 			const plugins = pluginManager.getPlugins();
@@ -633,7 +633,7 @@ ${customCSS}`;
 
 	private handleExtensionToggle(extensionName: string, enabled: boolean) {
 		try {
-			const extensionManager = ExtensionManager.getInstance();
+			const extensionManager = RehypePluginManager.getInstance();
 			if (extensionManager) {
 				const extension = extensionManager.getExtensions().find((ext: any) => 
 					ext.getName && ext.getName() === extensionName
@@ -651,7 +651,7 @@ ${customCSS}`;
 
 	private handlePluginToggle(pluginName: string, enabled: boolean) {
 		try {
-			const pluginManager = PluginManager.getInstance();
+			const pluginManager = RemarkPluginManager.getInstance();
 			if (pluginManager) {
 				const plugin = pluginManager.getPlugins().find((p: any) => 
 					p.getName && p.getName() === pluginName
@@ -669,7 +669,7 @@ ${customCSS}`;
 
 	private handleExtensionConfigChange(extensionName: string, key: string, value: string | boolean) {
 		try {
-			const extensionManager = ExtensionManager.getInstance();
+			const extensionManager = RehypePluginManager.getInstance();
 			if (extensionManager) {
 				const extension = extensionManager.getExtensions().find((ext: any) => 
 					ext.getName && ext.getName() === extensionName
@@ -688,7 +688,7 @@ ${customCSS}`;
 
 	private handlePluginConfigChange(pluginName: string, key: string, value: string | boolean) {
 		try {
-			const pluginManager = PluginManager.getInstance();
+			const pluginManager = RemarkPluginManager.getInstance();
 			if (pluginManager) {
 				const plugin = pluginManager.getPlugins().find((p: any) => 
 					p.getName && p.getName() === pluginName

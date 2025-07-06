@@ -3,14 +3,14 @@ import {Tokens} from "marked";
 import {MarkdownView} from "obsidian";
 import {WeixinCodeFormatter} from "./weixin-code-formatter";
 import {GetCallout} from "./callouts";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 import {MathRendererQueue} from "./math";
 import {CardDataManager} from "../rehype-plugins/code-blocks";
 
 const MermaidSectionClassName = "note-mermaid";
 const MermaidImgClassName = "note-mermaid-img";
 
-export class CodeRenderer extends Extension {
+export class CodeRenderer extends RehypePlugin {
 	showLineNumber: boolean;
 	mermaidIndex: number;
 

@@ -1,5 +1,5 @@
 import {MarkedExtension, Tokens} from "marked";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
 interface FootnoteRefToken extends Tokens.Generic {
 	type: 'footnoteRef';
@@ -11,7 +11,7 @@ type FootnoteDefinition = {
 	content: string;
 };
 
-export class FootnoteRenderer extends Extension {
+export class FootnoteRenderer extends RehypePlugin {
 	// 存储所有脚注定义
 	footnotes: Map<string, string> = new Map();
 	// 存储脚注引用的顺序

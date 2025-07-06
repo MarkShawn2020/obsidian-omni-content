@@ -1,4 +1,4 @@
-import {BaseProcess, PluginMetaConfig} from "src/rehype-plugins/base-process";
+import {RemarkPlugin, RemarkPluginMetaConfig} from "src/rehype-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
@@ -9,7 +9,7 @@ import {logger} from "src/utils";
  * 2. 添加data-src属性: 微信编辑器需要
  * 3. 设置图片样式和对齐方式
  */
-export class Images extends BaseProcess {
+export class Images extends RemarkPlugin {
 	getName(): string {
 		return "图片处理插件";
 	}
@@ -18,7 +18,7 @@ export class Images extends BaseProcess {
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据
 	 */
-	getMetaConfig(): PluginMetaConfig {
+	getMetaConfig(): RemarkPluginMetaConfig {
 		return {
 			showImageCaption: {
 				type: "switch",

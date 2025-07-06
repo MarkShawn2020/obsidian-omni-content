@@ -1,9 +1,9 @@
 import {MarkedExtension, Tokens} from "marked";
-import {Extension} from "./extension";
+import {RehypePlugin} from "./rehype-plugin";
 
 const iconsRegex = /^\[:(.*?):\]/;
 
-export class SVGIcon extends Extension {
+export class SVGIcon extends RehypePlugin {
 	getName(): string {
 		return "SVGIcon";
 	}

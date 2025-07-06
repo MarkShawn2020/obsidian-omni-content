@@ -1,11 +1,11 @@
-import {BaseProcess} from "src/rehype-plugins/base-process";
+import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
 /**
  * 表格处理插件 - 处理微信公众号中的表格格式
  */
-export class Tables extends BaseProcess {
+export class Tables extends RemarkPlugin {
 	getName(): string {
 		return "表格处理插件";
 	}

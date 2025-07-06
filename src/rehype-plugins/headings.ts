@@ -1,4 +1,4 @@
-import {BaseProcess, PluginMetaConfig} from "src/rehype-plugins/base-process";
+import {RemarkPlugin, RemarkPluginMetaConfig} from "src/rehype-plugins/remark-plugin";
 import {logger} from "src/utils";
 
 /**
@@ -7,7 +7,7 @@ import {logger} from "src/utils";
  * 1. 添加序号: 当启用时，将标题序号作为标题内容插入
  * 2. 分隔符换行: 当启用时，遇到逗号等分隔符自动换行
  */
-export class Headings extends BaseProcess {
+export class Headings extends RemarkPlugin {
 	getName(): string {
 		return "标题处理插件";
 	}
@@ -16,7 +16,7 @@ export class Headings extends BaseProcess {
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据
 	 */
-	getMetaConfig(): PluginMetaConfig {
+	getMetaConfig(): RemarkPluginMetaConfig {
 		return {
 			enableHeadingNumber: {
 				type: "switch",

@@ -1,8 +1,8 @@
 // Markdown扩展系统导出文件
 
-export {Extension} from './extension';
-export type {ExtensionConfig, ExtensionMetaConfig} from './extension';
-export {ExtensionManager} from './extension-manager';
+export {RehypePlugin} from './rehype-plugin';
+export type {RehypePluginConfig, RehypePluginMetaConfig} from './rehype-plugin';
+export {RehypePluginManager} from './rehype-plugin-manager';
 export {MarkedParser} from './parser';
 
 // 具体扩展插件导出

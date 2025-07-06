@@ -1,4 +1,4 @@
-import {BaseProcess} from "src/rehype-plugins/base-process";
+import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
@@ -6,7 +6,7 @@ import {logger} from "src/utils";
  * 列表处理插件 - 处理微信公众号中的列表格式，特别是嵌套列表
  * 微信公众号编辑器对嵌套列表支持不好，需要特殊处理
  */
-export class Lists extends BaseProcess {
+export class Lists extends RemarkPlugin {
 	getName(): string {
 		return "列表处理插件";
 	}

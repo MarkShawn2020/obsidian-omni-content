@@ -6,7 +6,7 @@ import {CalloutRenderer} from "./callouts";
 import {CodeRenderer} from "./code";
 import {CodeHighlight} from "./code-highlight";
 import {EmbedBlockMark} from "./embed-block-mark";
-import {Extension, MDRendererCallback} from "./extension";
+import {RehypePlugin, MDRendererCallback} from "./rehype-plugin";
 import {FootnoteRenderer} from "./footnote";
 import {SVGIcon} from "./icons";
 import {LinkRenderer} from "./link";
@@ -14,7 +14,7 @@ import {LocalFile} from "./local-file";
 import {MathRenderer} from "./math";
 import {TextHighlight} from "./text-highlight";
 import {logger} from "src/utils";
-import {ExtensionManager} from "./extension-manager";
+import {RehypePluginManager} from "./rehype-plugin-manager";
 
 const markedOptiones = {
 	gfm: true,
@@ -35,7 +35,7 @@ const customRenderer = {
 };
 
 export class MarkedParser {
-	extensions: Extension[] = [];
+	extensions: RehypePlugin[] = [];
 	marked: Marked;
 	app: App;
 	vault: Vault;
@@ -83,14 +83,14 @@ export class MarkedParser {
 		logger.debug(`初始化了 ${this.extensions.length} 个markdown扩展插件`);
 
 		// 设置ExtensionManager实例
-		ExtensionManager.getInstance().setParser(this);
+		RehypePluginManager.getInstance().setParser(this);
 	}
 
 	/**
 	 * 获取所有已注册的扩展插件
 	 * @returns 扩展插件数组
 	 */
-	getExtensions(): Extension[] {
+	getExtensions(): RehypePlugin[] {
 		return [...this.extensions];
 	}
 
@@ -98,7 +98,7 @@ export class MarkedParser {
 	 * 获取所有启用的扩展插件
 	 * @returns 启用的扩展插件数组
 	 */
-	getEnabledExtensions(): Extension[] {
+	getEnabledExtensions(): RehypePlugin[] {
 		return this.extensions.filter(ext => ext.isEnabled());
 	}
 
@@ -107,7 +107,7 @@ export class MarkedParser {
 	 * @param name 插件名称
 	 * @returns 扩展插件实例或null
 	 */
-	getExtensionByName(name: string): Extension | null {
+	getExtensionByName(name: string): RehypePlugin | null {
 		return this.extensions.find(ext => ext.getName() === name) || null;
 	}
 

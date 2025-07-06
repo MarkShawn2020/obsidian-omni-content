@@ -1,4 +1,4 @@
-import {BaseProcess} from "src/rehype-plugins/base-process";
+import {RemarkPlugin} from "src/rehype-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 import {Notice} from "obsidian";
@@ -50,7 +50,7 @@ const MermaidImgClassName = "note-mermaid-img";
 /**
  * 代码块处理插件 - 处理微信公众号中的代码格式和行号显示
  */
-export class CodeBlocks extends BaseProcess {
+export class CodeBlocks extends RemarkPlugin {
 	/**
 	 * 将base64图片转换为Blob对象
 	 * @param src base64图片数据
@@ -214,7 +214,7 @@ export class CodeBlocks extends BaseProcess {
 	 * @returns 是否启用代码换行
 	 */
 	private getCodeWrapConfig(): boolean {
-		return this._config.codeWrap as boolean ?? false; // 默认为false（不换行）
+		return this.getConfig().codeWrap as boolean ?? false; // 默认为false（不换行）
 	}
 
 	/**
