@@ -3,8 +3,8 @@ import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
 import {Accordion} from "../ui/Accordion";
-import {PluginConfigComponent, ExtensionConfigComponent} from "./PluginConfigComponent";
-import {ViteReactSettings, ExtensionData, PluginData} from "../../types";
+import {ConfigComponent} from "./PluginConfigComponent";
+import {ExtensionData, PluginData, ViteReactSettings} from "../../types";
 
 interface ToolbarProps {
 	settings: ViteReactSettings;
@@ -131,9 +131,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							<div className="remark-plugins-container" style={{width: "100%"}}>
 								{extensions.length > 0 ? (
 									extensions.map((extension) => (
-										<ExtensionConfigComponent
+										<ConfigComponent
 											key={extension.name}
-											extension={extension}
+											item={extension}
+											type="extension"
 											expandedSections={settings.expandedAccordionSections}
 											onToggle={(sectionId, isExpanded) => {
 												handleAccordionToggle(sectionId, isExpanded);
@@ -158,9 +159,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							<div className="rehype-plugins-container" style={{width: "100%"}}>
 								{plugins.length > 0 ? (
 									plugins.map((plugin) => (
-										<PluginConfigComponent
+										<ConfigComponent
 											key={plugin.name}
-											plugin={plugin}
+											item={plugin}
+											type="plugin"
 											expandedSections={settings.expandedAccordionSections}
 											onToggle={(sectionId, isExpanded) => {
 												handleAccordionToggle(sectionId, isExpanded);
