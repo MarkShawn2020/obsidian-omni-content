@@ -1,11 +1,12 @@
 import {IRemarkPlugin} from "src/rehype-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
+import {BasePluginManager} from "src/shared/base-plugin-manager";
 
 /**
  * 插件管理器 - 集中管理所有处理插件
  */
-export class RemarkPluginManager {
+export class RemarkPluginManager extends BasePluginManager<IRemarkPlugin> {
 	private static instance: RemarkPluginManager;
 	private plugins: IRemarkPlugin[] = [];
 
@@ -13,7 +14,7 @@ export class RemarkPluginManager {
 	 * 私有构造函数，确保单例模式
 	 */
 	private constructor() {
-		logger.debug("初始化插件管理器");
+		super();
 	}
 
 	/**

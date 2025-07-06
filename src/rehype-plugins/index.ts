@@ -35,5 +35,5 @@ export function initializePlugins(): void {
 // 导出插件管理器和所有插件类型
 export {RemarkPluginManager} from "./remark-plugin-manager";
 export {RemarkPlugin} from "./remark-plugin";
-export type {IRemarkPlugin, UniversalPluginConfig, RemarkPluginMetaConfig} from "./remark-plugin";
+export type {IRemarkPlugin, RemarkPluginMetaConfig} from "./remark-plugin";
 

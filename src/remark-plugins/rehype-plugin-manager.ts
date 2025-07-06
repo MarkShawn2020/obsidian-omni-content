@@ -1,11 +1,12 @@
 import {RehypePlugin} from "./rehype-plugin";
 import {MarkedParser} from "./parser";
 import {logger} from "src/utils";
+import {BasePluginManager} from "src/shared/base-plugin-manager";
 
 /**
  * Extension管理器 - 为remark扩展系统提供类似rehype插件管理器的功能
  */
-export class RehypePluginManager {
+export class RehypePluginManager extends BasePluginManager<RehypePlugin> {
 	private static instance: RehypePluginManager;
 	private parser: MarkedParser | null = null;
 
@@ -13,7 +14,7 @@ export class RehypePluginManager {
 	 * 私有构造函数，确保单例模式
 	 */
 	private constructor() {
-		logger.debug("初始化Extension管理器");
+		super();
 	}
 
 	/**
