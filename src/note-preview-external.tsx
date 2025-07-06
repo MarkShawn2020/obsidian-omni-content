@@ -495,15 +495,15 @@ ${customCSS}`;
 		
 
 		// 获取插件和扩展数据
-		const extensions = this.getExtensionsData();
-		const plugins = this.getPluginsData();
+		const rehypePlugins = this.getRehypePlugins();
+		const remarkPlugins = this.getRemarkPlugins();
 
 		const props = {
 			settings: externalSettings,
 			articleHTML: this.articleHTML || "",
 			cssContent: this.getCSS(),
-			extensions: extensions,
-			plugins: plugins,
+			rehypePlugins: rehypePlugins,
+			remarkPlugins: remarkPlugins,
 			onRefresh: async () => {
 				await this.renderMarkdown();
 				uevent("refresh");
@@ -593,13 +593,13 @@ ${customCSS}`;
 		}
 	}
 
-	private getExtensionsData() {
+	private getRehypePlugins() {
 		try {
-			const extensionManager = RehypePluginManager.getInstance();
-			if (!extensionManager) return [];
+			const pluginManager = RehypePluginManager.getInstance();
+			if (!pluginManager) return [];
 			
-			const extensions = extensionManager.getPlugins();
-			return extensions.map((ext: any) => ({
+			const plugins = pluginManager.getPlugins();
+			return plugins.map((ext: any) => ({
 				name: ext.getName ? ext.getName() : 'Unknown Extension',
 				description: ext.getDescription ? ext.getDescription() : '',
 				enabled: ext.isEnabled ? ext.isEnabled() : true,
@@ -612,7 +612,7 @@ ${customCSS}`;
 		}
 	}
 
-	private getPluginsData() {
+	private getRemarkPlugins() {
 		try {
 			const pluginManager = RemarkPluginManager.getInstance();
 			if (!pluginManager) return [];
