@@ -19,6 +19,7 @@ export class CodeHighlight extends Extension {
 				if (type) return code;
 				if (lang && lang.trim().toLocaleLowerCase() == 'mpcard') return code;
 				if (lang && lang.trim().toLocaleLowerCase() == 'mermaid') return code;
+				if (lang && lang.startsWith('ad-')) return code;
 
 				if (lang && hljs.getLanguage(lang)) {
 					try {

@@ -174,27 +174,17 @@ export class CodeRenderer extends Extension {
 
 			// 检查第一行是否是 title: xxx 格式
 			const firstLine = lines[0].trim();
-			// 需要处理可能被代码高亮处理过的HTML标签
-			const titleMatch = firstLine.match(/^(?:<[^>]*>)?title:(?:<[^>]*>)?\s*(.+)$/);
-			
-			console.log('renderAdCallout debug:', {
-				calloutType,
-				firstLine,
-				titleMatch,
-				lines: lines.slice(0, 3)
-			});
+			const titleMatch = firstLine.match(/^title:\s*(.+)$/);
 			
 			if (titleMatch) {
 				// 如果第一行是 title: xxx 格式，使用指定的标题
-				// 清理可能的HTML标签
-				title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
+				title = titleMatch[1].trim();
 				contentStartIndex = 1;
 				// 跳过第一行和可能的空行
 				while (contentStartIndex < lines.length && lines[contentStartIndex].trim() === '') {
 					contentStartIndex++;
 				}
 				content = lines.slice(contentStartIndex).join('\n').trim();
-				console.log('Using title syntax:', { title, content });
 			} else if (firstLine !== '' && lines.length > 1 && lines[1].trim() === '') {
 				// 如果第一行不是空行且第二行是空行，第一行作为标题
 				title = title.toUpperCase() + ': ' + firstLine;
@@ -204,7 +194,6 @@ export class CodeRenderer extends Extension {
 					contentStartIndex++;
 				}
 				content = lines.slice(contentStartIndex).join('\n').trim();
-				console.log('Using first line as title:', { title, content });
 			}
 			const body = this.marked.parser(this.marked.lexer(content));
 
