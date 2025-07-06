@@ -59,10 +59,6 @@ interface SettingsData {
 	/** 是否启用标题分隔符自动换行 */
 	enableHeadingDelimiterBreak?: boolean;
 
-	// ===== 图片设置 =====
-	/** 是否显示图片说明文字 */
-	showImageCaption?: boolean;
-
 	// ===== 认证和外部服务 =====
 	/** 认证密钥 */
 	authKey?: string;
@@ -104,7 +100,6 @@ export class NMPSettings implements SettingsData {
 	distributionConfig: DistributionConfig | null = null;
 	enableHeadingNumber: boolean = true;
 	enableHeadingDelimiterBreak: boolean = true;
-	showImageCaption: boolean = true;
 	expandedAccordionSections: string[] = [];
 	lastSelectedPlatform: string = "";
 	lastSelectedTemplate: string = "";

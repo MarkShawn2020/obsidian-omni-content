@@ -1,13 +1,30 @@
-import {BaseProcess} from "src/rehype-plugins/base-process";
+import {BaseProcess, PluginMetaConfig} from "src/rehype-plugins/base-process";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
 /**
  * 图片处理插件 - 处理微信公众号中的图片格式
+ * 根据设置实现以下功能：
+ * 1. 显示图片说明: 当启用时，将alt属性内容显示为可见的caption
+ * 2. 添加data-src属性: 微信编辑器需要
+ * 3. 设置图片样式和对齐方式
  */
 export class Images extends BaseProcess {
 	getName(): string {
 		return "图片处理插件";
+	}
+	
+	/**
+	 * 获取插件配置的元数据
+	 * @returns 插件配置的元数据
+	 */
+	getMetaConfig(): PluginMetaConfig {
+		return {
+			showImageCaption: {
+				type: "switch",
+				title: "显示图片说明"
+			}
+		};
 	}
 
 	process(html: string, settings: NMPSettings): string {
@@ -16,7 +33,11 @@ export class Images extends BaseProcess {
 		// 2. 确保图片有正确的样式和对齐方式
 		// 3. 根据设置控制caption显示
 		try {
-			logger.info("图片处理插件开始处理，showImageCaption设置:", settings.showImageCaption);
+			// 使用插件自己的配置而非全局设置
+			const config = this.getConfig();
+			const showImageCaption = config.showImageCaption !== false; // 默认显示
+			
+			logger.info("图片处理插件开始处理，showImageCaption设置:", showImageCaption);
 			logger.info("处理前的HTML片段:", html.substring(0, 500) + "...");
 			const parser = new DOMParser();
 			const doc = parser.parseFromString(html, "text/html");
@@ -69,7 +90,7 @@ export class Images extends BaseProcess {
 						figcaptionText: figcaption?.textContent
 					});
 
-					if (!settings.showImageCaption) {
+					if (!showImageCaption) {
 						logger.info(`隐藏第${index + 1}张图片的说明文字`);
 						// 移除alt属性以隐藏说明文字
 						img.removeAttribute("alt");
@@ -87,14 +108,34 @@ export class Images extends BaseProcess {
 						if (alt && alt.trim() && !figcaption) {
 							logger.info(`为第${index + 1}张图片创建可见的caption`);
 							
-							// 创建一个caption元素显示在图片下方
-							const captionDiv = doc.createElement("div");
-							captionDiv.style.cssText = "text-align: center; color: #666; font-size: 14px; margin-top: 8px; font-style: italic;";
-							captionDiv.textContent = alt;
+							// 创建一个段落元素，使用与现有内容相似的结构
+							const captionP = doc.createElement("p");
+							captionP.setAttribute("style", 
+								"text-align: center !important; " +
+								"color: #666666 !important; " + 
+								"font-size: 14px !important; " +
+								"margin-top: 8px !important; " +
+								"margin-bottom: 8px !important; " +
+								"font-style: italic !important; " +
+								"line-height: 1.5 !important; " +
+								"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;"
+							);
+							
+							// 创建span元素，使用leaf属性（符合现有结构）
+							const captionSpan = doc.createElement("span");
+							captionSpan.setAttribute("leaf", "");
+							captionSpan.setAttribute("style",
+								"color: #666666 !important; " +
+								"font-style: italic !important; " +
+								"font-size: 14px !important;"
+							);
+							captionSpan.textContent = alt;
+							
+							captionP.appendChild(captionSpan);
 							
 							// 将caption插入到图片后面
 							if (parent) {
-								parent.insertBefore(captionDiv, img.nextSibling);
+								parent.insertBefore(captionP, img.nextSibling);
 							}
 						}
 					}
