@@ -141,6 +141,7 @@ export const ConfigComponent = <T extends ConfigItem>({
 										<ToggleSwitch
 											checked={!!item.config[key]}
 											onChange={(value) => handleConfigChange(key, value)}
+											size="small"
 										/>
 									) : meta.type === "select" ? (
 										<Select
