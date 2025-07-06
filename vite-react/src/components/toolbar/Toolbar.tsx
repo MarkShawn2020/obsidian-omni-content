@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
@@ -45,29 +45,29 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onExtensionConfigChange,
 													onPluginConfigChange,
 												}) => {
-	const [, forceUpdate] = useState({});
+	// 使用本地状态管理展开的sections
+	const [expandedSections, setExpandedSections] = useState<string[]>(settings.expandedAccordionSections);
+
+	// 当外部settings变化时同步本地状态
+	useEffect(() => {
+		setExpandedSections([...settings.expandedAccordionSections]);
+	}, [settings.expandedAccordionSections]);
+
 	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
-		console.log(`[Toolbar] handleAccordionToggle: ${sectionId}, isExpanded: ${isExpanded}`);
-		console.log(`[Toolbar] Before update:`, settings.expandedAccordionSections);
-		
-		let currentSections = [...settings.expandedAccordionSections];
-		
+		let newSections: string[];
 		if (isExpanded) {
-			if (!currentSections.includes(sectionId)) {
-				currentSections.push(sectionId);
-			}
+			newSections = expandedSections.includes(sectionId) 
+				? expandedSections 
+				: [...expandedSections, sectionId];
 		} else {
-			const index = currentSections.indexOf(sectionId);
-			if (index > -1) {
-				currentSections.splice(index, 1);
-			}
+			newSections = expandedSections.filter(id => id !== sectionId);
 		}
 		
-		settings.expandedAccordionSections = currentSections;
-		console.log(`[Toolbar] After update:`, settings.expandedAccordionSections);
+		// 更新本地状态
+		setExpandedSections(newSections);
 		
-		// 强制重新渲染
-		forceUpdate({});
+		// 更新外部settings
+		settings.expandedAccordionSections = newSections;
 		onSaveSettings();
 	};
 
@@ -119,7 +119,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							<Accordion
 								title="样式设置"
 								sectionId="accordion-样式设置"
-								expandedSections={settings.expandedAccordionSections}
+								expandedSections={expandedSections}
 								onToggle={handleAccordionToggle}
 							>
 								<StyleSettings
@@ -137,7 +137,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 						<Accordion
 							title="Remark 插件"
 							sectionId="accordion-remark-插件"
-							expandedSections={settings.expandedAccordionSections}
+							expandedSections={expandedSections}
 							onToggle={handleAccordionToggle}
 						>
 							<div className="remark-plugins-container" style={{width: "100%"}}>
@@ -147,7 +147,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											key={extension.name}
 											item={extension}
 											type="extension"
-											expandedSections={settings.expandedAccordionSections}
+											expandedSections={expandedSections}
 											onToggle={(sectionId, isExpanded) => {
 												handleAccordionToggle(sectionId, isExpanded);
 											}}
@@ -165,7 +165,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 						<Accordion
 							title="Rehype 插件"
 							sectionId="accordion-rehype-插件"
-							expandedSections={settings.expandedAccordionSections}
+							expandedSections={expandedSections}
 							onToggle={handleAccordionToggle}
 						>
 							<div className="rehype-plugins-container" style={{width: "100%"}}>
@@ -175,7 +175,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											key={plugin.name}
 											item={plugin}
 											type="plugin"
-											expandedSections={settings.expandedAccordionSections}
+											expandedSections={expandedSections}
 											onToggle={(sectionId, isExpanded) => {
 												handleAccordionToggle(sectionId, isExpanded);
 											}}

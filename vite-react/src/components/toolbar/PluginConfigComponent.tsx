@@ -26,9 +26,6 @@ export const ConfigComponent = <T extends ConfigItem>({
 	const itemId = `${type}-${item.name.replace(/\s+/g, "-").toLowerCase()}`;
 	const isExpanded = expandedSections.includes(itemId);
 
-	console.log(`[ConfigComponent] ${item.name} - itemId: ${itemId}, isExpanded: ${isExpanded}`);
-	console.log(`[ConfigComponent] expandedSections:`, expandedSections);
-
 	const configEntries = Object.entries(item.metaConfig || {});
 	const hasConfigOptions = configEntries.length > 0;
 
@@ -45,8 +42,6 @@ export const ConfigComponent = <T extends ConfigItem>({
 		e.stopPropagation();
 		e.nativeEvent?.stopImmediatePropagation?.();
 		if (hasConfigOptions) {
-			console.log(`[ConfigComponent] Toggle ${itemId}: ${isExpanded} -> ${!isExpanded}`);
-			console.log(`[ConfigComponent] expandedSections:`, expandedSections);
 			onToggle(itemId, !isExpanded);
 		}
 	};
