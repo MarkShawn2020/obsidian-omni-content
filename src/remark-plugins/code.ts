@@ -182,7 +182,7 @@ export class CodeRenderer extends Extension {
 			} else if (firstLine !== '') {
 				// 如果有一个非空项开头，并且第二行不是空白行，这表明这是内容，不是标题
 				hasCustomTitle = true; // 第一行是标题
-				title = firstLine;
+				title = title.toUpperCase() + ': ' + firstLine;
 			}
 
 			// 处理内容
