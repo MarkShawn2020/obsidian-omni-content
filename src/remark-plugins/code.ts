@@ -167,32 +167,44 @@ export class CodeRenderer extends Extension {
 			// 提取标题 - 默认使用 callout 类型作为标题
 			let title = calloutType.charAt(0).toUpperCase() + calloutType.slice(1).toLowerCase();
 
-			// 解析第一行内容
+			// 解析内容，支持 title: xxx 语法
 			const lines = token.text.split('\n');
+			let content = token.text.trim();
+			let contentStartIndex = 0;
+
+			// 检查第一行是否是 title: xxx 格式
 			const firstLine = lines[0].trim();
-
-			// 检查是否有自定义标题
-			// 关键逻辑：只有当第一行是空或者第一行有内容但后面跟了一个空行时，才记为是标题
-			let hasCustomTitle = false;
-
-			// 空白行判定标准：第一行后跟空白行或没有内容
-			if ((lines.length > 1 && lines[1].trim() === '') || firstLine === '') {
-				// 这种情况下不将第一行内容作为标题
-				hasCustomTitle = false;
-			} else if (firstLine !== '') {
-				// 如果有一个非空项开头，并且第二行不是空白行，这表明这是内容，不是标题
-				hasCustomTitle = true; // 第一行是标题
+			// 需要处理可能被代码高亮处理过的HTML标签
+			const titleMatch = firstLine.match(/^(?:<[^>]*>)?title:(?:<[^>]*>)?\s*(.+)$/);
+			
+			console.log('renderAdCallout debug:', {
+				calloutType,
+				firstLine,
+				titleMatch,
+				lines: lines.slice(0, 3)
+			});
+			
+			if (titleMatch) {
+				// 如果第一行是 title: xxx 格式，使用指定的标题
+				// 清理可能的HTML标签
+				title = titleMatch[1].replace(/<[^>]*>/g, '').trim();
+				contentStartIndex = 1;
+				// 跳过第一行和可能的空行
+				while (contentStartIndex < lines.length && lines[contentStartIndex].trim() === '') {
+					contentStartIndex++;
+				}
+				content = lines.slice(contentStartIndex).join('\n').trim();
+				console.log('Using title syntax:', { title, content });
+			} else if (firstLine !== '' && lines.length > 1 && lines[1].trim() === '') {
+				// 如果第一行不是空行且第二行是空行，第一行作为标题
 				title = title.toUpperCase() + ': ' + firstLine;
-			}
-
-			// 处理内容
-			let content;
-			if (hasCustomTitle) {
-				// 如果第一行是标题，从第二行开始是内容
-				content = lines.slice(1).join('\n').trim();
-			} else {
-				// 如果没有标题，全部都是内容
-				content = token.text.trim();
+				contentStartIndex = 2;
+				// 跳过可能的多个空行
+				while (contentStartIndex < lines.length && lines[contentStartIndex].trim() === '') {
+					contentStartIndex++;
+				}
+				content = lines.slice(contentStartIndex).join('\n').trim();
+				console.log('Using first line as title:', { title, content });
 			}
 			const body = this.marked.parser(this.marked.lexer(content));
 
