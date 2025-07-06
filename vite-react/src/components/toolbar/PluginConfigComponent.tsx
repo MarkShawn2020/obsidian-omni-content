@@ -105,6 +105,10 @@ export const ConfigComponent = <T extends ConfigItem>({
 		// 同时直接更新原始配置对象作为备用方案
 		item.config[key] = value;
 		
+		// 调试日志
+		console.log(`[PluginConfigComponent] 配置更新: ${item.name}.${key} = ${value}`);
+		console.log(`[PluginConfigComponent] 更新后的配置:`, { ...item.config });
+		
 		// 尝试调用外部回调更新原始数据
 		if (onConfigChange) {
 			onConfigChange(item.name, key, value);
