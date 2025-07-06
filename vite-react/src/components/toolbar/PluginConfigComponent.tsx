@@ -40,8 +40,14 @@ export const PluginConfigComponent: React.FC<PluginConfigComponentProps> = ({
     onConfigChange?.(plugin.name, key, value);
   };
 
-  const handleToggle = () => {
-    onToggle(pluginId, !isExpanded);
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+    // 只有当有配置选项时才切换展开状态
+    if (hasConfigOptions) {
+      onToggle(pluginId, !isExpanded);
+    }
   };
 
   return (
@@ -64,7 +70,7 @@ export const PluginConfigComponent: React.FC<PluginConfigComponentProps> = ({
           justifyContent: "space-between",
           alignItems: "center",
         }}
-        onClick={hasConfigOptions ? handleToggle : undefined}
+        onClick={handleToggle}
       >
         <div
           className="accordion-header-left"
@@ -74,12 +80,13 @@ export const PluginConfigComponent: React.FC<PluginConfigComponentProps> = ({
             gap: "10px",
           }}
         >
-          <ToggleSwitch
-            checked={plugin.enabled}
-            onChange={handleEnabledChange}
-            size="small"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <ToggleSwitch
+              checked={plugin.enabled}
+              onChange={handleEnabledChange}
+              size="small"
+            />
+          </div>
           <div className="accordion-title">{plugin.name}</div>
         </div>
 
@@ -133,7 +140,7 @@ export const PluginConfigComponent: React.FC<PluginConfigComponentProps> = ({
                 }}
               >
                 <div className="plugin-config-title">{meta.title}</div>
-                <div className="plugin-config-control">
+                <div className="plugin-config-control" onClick={(e) => e.stopPropagation()}>
                   {meta.type === "switch" ? (
                     <ToggleSwitch
                       checked={!!plugin.config[key]}
@@ -191,8 +198,14 @@ export const ExtensionConfigComponent: React.FC<ExtensionConfigComponentProps> =
     onConfigChange?.(extension.name, key, value);
   };
 
-  const handleToggle = () => {
-    onToggle(extensionId, !isExpanded);
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+    // 只有当有配置选项时才切换展开状态
+    if (hasConfigOptions) {
+      onToggle(extensionId, !isExpanded);
+    }
   };
 
   return (
@@ -215,7 +228,7 @@ export const ExtensionConfigComponent: React.FC<ExtensionConfigComponentProps> =
           justifyContent: "space-between",
           alignItems: "center",
         }}
-        onClick={hasConfigOptions ? handleToggle : undefined}
+        onClick={handleToggle}
       >
         <div
           className="accordion-header-left"
@@ -225,12 +238,13 @@ export const ExtensionConfigComponent: React.FC<ExtensionConfigComponentProps> =
             gap: "10px",
           }}
         >
-          <ToggleSwitch
-            checked={extension.enabled}
-            onChange={handleEnabledChange}
-            size="small"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <ToggleSwitch
+              checked={extension.enabled}
+              onChange={handleEnabledChange}
+              size="small"
+            />
+          </div>
           <div className="accordion-title">{extension.name}</div>
         </div>
 
@@ -284,7 +298,7 @@ export const ExtensionConfigComponent: React.FC<ExtensionConfigComponentProps> =
                 }}
               >
                 <div className="extension-config-title">{meta.title}</div>
-                <div className="extension-config-control">
+                <div className="extension-config-control" onClick={(e) => e.stopPropagation()}>
                   {meta.type === "switch" ? (
                     <ToggleSwitch
                       checked={!!extension.config[key]}

@@ -135,7 +135,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											key={extension.name}
 											extension={extension}
 											expandedSections={settings.expandedAccordionSections}
-											onToggle={handleAccordionToggle}
+											onToggle={(sectionId, isExpanded) => {
+												handleAccordionToggle(sectionId, isExpanded);
+											}}
 											onEnabledChange={(extensionName, enabled) => onExtensionToggle?.(extensionName, enabled)}
 											onConfigChange={onExtensionConfigChange}
 										/>
@@ -160,7 +162,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											key={plugin.name}
 											plugin={plugin}
 											expandedSections={settings.expandedAccordionSections}
-											onToggle={handleAccordionToggle}
+											onToggle={(sectionId, isExpanded) => {
+												handleAccordionToggle(sectionId, isExpanded);
+											}}
 											onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 											onConfigChange={onPluginConfigChange}
 										/>

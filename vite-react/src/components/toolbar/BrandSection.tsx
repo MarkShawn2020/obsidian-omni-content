@@ -96,7 +96,7 @@ export const BrandSection: React.FC = () => {
 									lineHeight: "1.4",
 								}}
 							>
-								V1.0.0
+								V2.0.0
 							</div>
 						</div>
 					</div>

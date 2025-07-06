@@ -25,7 +25,8 @@ export const Accordion: React.FC<AccordionProps> = ({
 		setIsExpanded(expandedSections.includes(sectionId));
 	}, [expandedSections, sectionId]);
 
-	const handleToggle = () => {
+	const handleToggle = (e: React.MouseEvent) => {
+		e.stopPropagation();
 		const newExpanded = !isExpanded;
 		setIsExpanded(newExpanded);
 		onToggle(sectionId, newExpanded);
