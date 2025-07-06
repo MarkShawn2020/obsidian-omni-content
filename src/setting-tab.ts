@@ -144,6 +144,17 @@ export class OmniContentSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
+			.setName("显示图片说明")
+			.setDesc("是否显示图片的说明文字（caption）")
+			.addToggle((toggle) => {
+				toggle.setValue(this.settings.showImageCaption);
+				toggle.onChange(async (value) => {
+					this.settings.showImageCaption = value;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
 			.setName("获取更多主题")
 			.addButton((button) => {
 				button.setButtonText("下载");
