@@ -3,6 +3,7 @@ import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
 import {Accordion} from "../ui/Accordion";
+import {PluginConfigComponent, ExtensionConfigComponent} from "./PluginConfigComponent";
 import {ViteReactSettings, ExtensionData, PluginData} from "../../types";
 
 interface ToolbarProps {
@@ -21,6 +22,8 @@ interface ToolbarProps {
 	onSaveSettings: () => void;
 	onExtensionToggle?: (extensionName: string, enabled: boolean) => void;
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
+	onExtensionConfigChange?: (extensionName: string, key: string, value: string | boolean) => void;
+	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -39,6 +42,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onSaveSettings,
 													onExtensionToggle,
 													onPluginToggle,
+													onExtensionConfigChange,
+													onPluginConfigChange,
 												}) => {
 	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
 		if (isExpanded) {
@@ -126,25 +131,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							<div className="remark-plugins-container" style={{width: "100%"}}>
 								{extensions.length > 0 ? (
 									extensions.map((extension) => (
-										<div key={extension.name} style={{
-											padding: "8px",
-											border: "1px solid var(--background-modifier-border)",
-											borderRadius: "4px",
-											margin: "4px 0",
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center"
-										}}>
-											<span>{extension.name}</span>
-											<label style={{display: "flex", alignItems: "center", gap: "8px"}}>
-												<input
-													type="checkbox"
-													checked={extension.enabled}
-													onChange={(e) => onExtensionToggle?.(extension.name, e.target.checked)}
-												/>
-												启用
-											</label>
-										</div>
+										<ExtensionConfigComponent
+											key={extension.name}
+											extension={extension}
+											expandedSections={settings.expandedAccordionSections}
+											onToggle={handleAccordionToggle}
+											onEnabledChange={(extensionName, enabled) => onExtensionToggle?.(extensionName, enabled)}
+											onConfigChange={onExtensionConfigChange}
+										/>
 									))
 								) : (
 									<p className="no-plugins-message">未找到任何Remark插件</p>
@@ -162,25 +156,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							<div className="rehype-plugins-container" style={{width: "100%"}}>
 								{plugins.length > 0 ? (
 									plugins.map((plugin) => (
-										<div key={plugin.name} style={{
-											padding: "8px",
-											border: "1px solid var(--background-modifier-border)",
-											borderRadius: "4px",
-											margin: "4px 0",
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center"
-										}}>
-											<span>{plugin.name}</span>
-											<label style={{display: "flex", alignItems: "center", gap: "8px"}}>
-												<input
-													type="checkbox"
-													checked={plugin.enabled}
-													onChange={(e) => onPluginToggle?.(plugin.name, e.target.checked)}
-												/>
-												启用
-											</label>
-										</div>
+										<PluginConfigComponent
+											key={plugin.name}
+											plugin={plugin}
+											expandedSections={settings.expandedAccordionSections}
+											onToggle={handleAccordionToggle}
+											onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+											onConfigChange={onPluginConfigChange}
+										/>
 									))
 								) : (
 									<p className="no-plugins-message">未找到任何Rehype插件</p>

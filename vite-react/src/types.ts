@@ -17,19 +17,38 @@ export interface ViteReactSettings {
   showStyleUI: boolean;
 }
 
+// Configuration option types
+export interface ConfigOption {
+  value: string;
+  text: string;
+}
+
+export interface ConfigMeta {
+  title: string;
+  type: 'switch' | 'select' | 'input';
+  options?: ConfigOption[];
+  description?: string;
+}
+
+export interface ConfigMetaCollection {
+  [key: string]: ConfigMeta;
+}
+
 // Extension/Plugin interfaces
 export interface ExtensionData {
   name: string;
   description?: string;
   enabled: boolean;
-  settings?: any;
+  config: any;
+  metaConfig: ConfigMetaCollection;
 }
 
 export interface PluginData {
   name: string;
   description?: string;
   enabled: boolean;
-  settings?: any;
+  config: any;
+  metaConfig: ConfigMetaCollection;
 }
 
 // Props interface for the main component
@@ -52,6 +71,8 @@ export interface OmniContentReactProps {
   onUpdateCSSVariables: () => void;
   onExtensionToggle?: (extensionName: string, enabled: boolean) => void;
   onPluginToggle?: (pluginName: string, enabled: boolean) => void;
+  onExtensionConfigChange?: (extensionName: string, key: string, value: string | boolean) => void;
+  onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 }
 
 // Global interface for the exported library

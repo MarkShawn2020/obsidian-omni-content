@@ -561,6 +561,12 @@ ${customCSS}`;
 			},
 			onPluginToggle: (pluginName: string, enabled: boolean) => {
 				this.handlePluginToggle(pluginName, enabled);
+			},
+			onExtensionConfigChange: (extensionName: string, key: string, value: string | boolean) => {
+				this.handleExtensionConfigChange(extensionName, key, value);
+			},
+			onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
+				this.handlePluginConfigChange(pluginName, key, value);
 			}
 		};
 
@@ -592,7 +598,8 @@ ${customCSS}`;
 				name: ext.getName ? ext.getName() : 'Unknown Extension',
 				description: ext.getDescription ? ext.getDescription() : '',
 				enabled: ext.isEnabled ? ext.isEnabled() : true,
-				settings: ext.getSettings ? ext.getSettings() : {}
+				config: ext.getConfig ? ext.getConfig() : {},
+				metaConfig: ext.getMetaConfig ? ext.getMetaConfig() : {}
 			}));
 		} catch (error) {
 			logger.warn("无法获取扩展数据:", error);
@@ -610,7 +617,8 @@ ${customCSS}`;
 				name: plugin.getName ? plugin.getName() : 'Unknown Plugin',
 				description: plugin.getDescription ? plugin.getDescription() : '',
 				enabled: plugin.isEnabled ? plugin.isEnabled() : true,
-				settings: plugin.getSettings ? plugin.getSettings() : {}
+				config: plugin.getConfig ? plugin.getConfig() : {},
+				metaConfig: plugin.getMetaConfig ? plugin.getMetaConfig() : {}
 			}));
 		} catch (error) {
 			logger.warn("无法获取插件数据:", error);
@@ -651,6 +659,44 @@ ${customCSS}`;
 			}
 		} catch (error) {
 			logger.error("切换插件状态失败:", error);
+		}
+	}
+
+	private handleExtensionConfigChange(extensionName: string, key: string, value: string | boolean) {
+		try {
+			const extensionManager = ExtensionManager.getInstance();
+			if (extensionManager) {
+				const extension = extensionManager.getExtensions().find((ext: any) => 
+					ext.getName && ext.getName() === extensionName
+				);
+				if (extension && extension.updateConfig) {
+					extension.updateConfig({[key]: value});
+					this.saveSettingsToPlugin();
+					this.renderMarkdown();
+					logger.info(`已更新扩展 ${extensionName} 的配置: ${key} = ${value}`);
+				}
+			}
+		} catch (error) {
+			logger.error("更新扩展配置失败:", error);
+		}
+	}
+
+	private handlePluginConfigChange(pluginName: string, key: string, value: string | boolean) {
+		try {
+			const pluginManager = PluginManager.getInstance();
+			if (pluginManager) {
+				const plugin = pluginManager.getPlugins().find((p: any) => 
+					p.getName && p.getName() === pluginName
+				);
+				if (plugin && plugin.updateConfig) {
+					plugin.updateConfig({[key]: value});
+					this.saveSettingsToPlugin();
+					this.renderMarkdown();
+					logger.info(`已更新插件 ${pluginName} 的配置: ${key} = ${value}`);
+				}
+			}
+		} catch (error) {
+			logger.error("更新插件配置失败:", error);
 		}
 	}
 
