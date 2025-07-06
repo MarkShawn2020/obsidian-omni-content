@@ -17,15 +17,15 @@ const saveToStorage = (key: string, value: any) => {
 	}
 };
 
-const loadFromStorage = (key: string) => {
-	try {
-		const stored = localStorage.getItem(key);
-		return stored ? JSON.parse(stored) : null;
-	} catch (error) {
-		console.warn('Failed to load from localStorage:', error);
-		return null;
-	}
-};
+// const loadFromStorage = (key: string) => {
+// 	try {
+// 		const stored = localStorage.getItem(key);
+// 		return stored ? JSON.parse(stored) : null;
+// 	} catch (error) {
+// 		console.warn('Failed to load from localStorage:', error);
+// 		return null;
+// 	}
+// };
 
 type ConfigItem = PluginData | ExtensionData;
 
@@ -51,10 +51,10 @@ export const ConfigComponent = <T extends ConfigItem>({
 	const isExpanded = expandedSections.includes(itemId);
 	const storageKey = getStorageKey(type, item.name);
 	
-	// 从localStorage加载初始配置
+	// 以 item.config 为准，localStorage 只作为备份
 	const getInitialConfig = () => {
-		const storedConfig = loadFromStorage(storageKey);
-		return storedConfig || item.config || {};
+		// 优先使用 item.config，确保前后端一致
+		return item.config || {};
 	};
 	
 	// 本地配置状态管理
@@ -64,12 +64,8 @@ export const ConfigComponent = <T extends ConfigItem>({
 	// 当外部配置变化时同步本地状态（但避免覆盖刚刚的本地更新）
 	useEffect(() => {
 		if (!hasLocalUpdate.current) {
-			const storedConfig = loadFromStorage(storageKey);
-			if (storedConfig) {
-				setLocalConfig(storedConfig);
-			} else {
-				setLocalConfig({ ...item.config });
-			}
+			// 以 item.config 为准，确保前后端一致
+			setLocalConfig({ ...item.config });
 		} else {
 			// 重置标记，允许下次外部更新
 			const timer = setTimeout(() => {
@@ -77,7 +73,7 @@ export const ConfigComponent = <T extends ConfigItem>({
 			}, 1000); // 1秒后允许外部同步
 			return () => clearTimeout(timer);
 		}
-	}, [item.config, storageKey]);
+	}, [item.config]);
 
 	const configEntries = Object.entries(item.metaConfig || {});
 	const hasConfigOptions = configEntries.length > 0;
@@ -95,21 +91,22 @@ export const ConfigComponent = <T extends ConfigItem>({
 		// 标记为本地更新，防止外部同步覆盖
 		hasLocalUpdate.current = true;
 		
-		// 立即更新本地状态
+		// 1. 首先更新原始配置对象（确保后端能读取到最新配置）
+		item.config[key] = value;
+		
+		// 2. 更新本地状态
 		const newConfig = { ...localConfig, [key]: value };
 		setLocalConfig(newConfig);
 		
-		// 持久化到localStorage
+		// 3. 持久化到localStorage作为备份
 		saveToStorage(storageKey, newConfig);
-		
-		// 同时直接更新原始配置对象作为备用方案
-		item.config[key] = value;
 		
 		// 调试日志
 		console.log(`[PluginConfigComponent] 配置更新: ${item.name}.${key} = ${value}`);
-		console.log(`[PluginConfigComponent] 更新后的配置:`, { ...item.config });
+		console.log(`[PluginConfigComponent] 更新后的item.config:`, { ...item.config });
+		console.log(`[PluginConfigComponent] 更新后的localConfig:`, { ...newConfig });
 		
-		// 尝试调用外部回调更新原始数据
+		// 4. 调用外部回调更新原始数据
 		if (onConfigChange) {
 			onConfigChange(item.name, key, value);
 		}

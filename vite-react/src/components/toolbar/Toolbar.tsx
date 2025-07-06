@@ -23,6 +23,7 @@ interface ToolbarProps {
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
 	onExtensionConfigChange?: (extensionName: string, key: string, value: string | boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
+	onExpandedSectionsChange?: (sections: string[]) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -42,17 +43,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onPluginToggle,
 													onExtensionConfigChange,
 													onPluginConfigChange,
+													onExpandedSectionsChange,
 												}) => {
 	// 使用本地状态管理展开的sections
 	const [expandedSections, setExpandedSections] = useState<string[]>(settings.expandedAccordionSections);
-	const hasInitialized = useRef(false);
 
-	// 只在首次初始化时从外部settings同步，避免后续重置
+	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
-		if (!hasInitialized.current) {
-			setExpandedSections([...settings.expandedAccordionSections]);
-			hasInitialized.current = true;
-		}
+		setExpandedSections([...settings.expandedAccordionSections]);
 	}, [settings.expandedAccordionSections]);
 
 	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
@@ -68,8 +66,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		// 更新本地状态
 		setExpandedSections(newSections);
 		
-		// 更新外部settings
-		settings.expandedAccordionSections = newSections;
+		// 通过回调函数更新外部settings
+		if (onExpandedSectionsChange) {
+			onExpandedSectionsChange(newSections);
+		}
 		onSaveSettings();
 	};
 
@@ -153,11 +153,31 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												handleAccordionToggle(sectionId, isExpanded);
 											}}
 											onEnabledChange={(extensionName, enabled) => onExtensionToggle?.(extensionName, enabled)}
-											onConfigChange={(extensionName, key, value) => {
+											onConfigChange={async (extensionName, key, value) => {
+												console.log(`[Toolbar] 扩展配置变更: ${extensionName}.${key} = ${value}`);
+												console.log(`[Toolbar] onExtensionConfigChange 存在:`, !!onExtensionConfigChange);
+												
 												// 调用外部配置变更回调
-												onExtensionConfigChange?.(extensionName, key, value);
-												// 触发重新渲染
-												onRenderArticle();
+												if (onExtensionConfigChange) {
+													try {
+														const result = onExtensionConfigChange(extensionName, key, value) as any;
+														// 无论是否为 Promise 都等待
+														if (result && typeof result?.then === 'function') {
+															await result;
+														}
+														console.log(`[Toolbar] 后端扩展配置更新完成: ${extensionName}.${key}`);
+													} catch (error) {
+														console.error(`[Toolbar] 扩展配置更新失败:`, error);
+													}
+												} else {
+													console.warn(`[Toolbar] onExtensionConfigChange 未定义`);
+												}
+												
+												// 等待配置更新完成后触发重新渲染
+												setTimeout(() => {
+													console.log(`[Toolbar] 触发重新渲染: ${extensionName}.${key}`);
+													onRenderArticle();
+												}, 200); // 增加延迟到200ms
 											}}
 										/>
 									))
@@ -186,11 +206,31 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												handleAccordionToggle(sectionId, isExpanded);
 											}}
 											onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-											onConfigChange={(pluginName, key, value) => {
+											onConfigChange={async (pluginName, key, value) => {
+												console.log(`[Toolbar] 配置变更: ${pluginName}.${key} = ${value}`);
+												console.log(`[Toolbar] onPluginConfigChange 存在:`, !!onPluginConfigChange);
+												
 												// 调用外部配置变更回调
-												onPluginConfigChange?.(pluginName, key, value);
-												// 触发重新渲染
-												onRenderArticle();
+												if (onPluginConfigChange) {
+													try {
+														const result = onPluginConfigChange(pluginName, key, value) as any;
+														// 无论是否为 Promise 都等待
+														if (result && typeof result?.then === 'function') {
+															await result;
+														}
+														console.log(`[Toolbar] 后端配置更新完成: ${pluginName}.${key}`);
+													} catch (error) {
+														console.error(`[Toolbar] 配置更新失败:`, error);
+													}
+												} else {
+													console.warn(`[Toolbar] onPluginConfigChange 未定义`);
+												}
+												
+												// 等待配置更新完成后触发重新渲染
+												setTimeout(() => {
+													console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
+													onRenderArticle();
+												}, 200); // 增加延迟到200ms
 											}}
 										/>
 									))

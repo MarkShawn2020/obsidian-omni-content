@@ -72,6 +72,7 @@ export interface OmniContentReactProps {
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
 	onExtensionConfigChange?: (extensionName: string, key: string, value: string | boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
+	onExpandedSectionsChange?: (sections: string[]) => void;
 }
 
 // Global interface for the exported library

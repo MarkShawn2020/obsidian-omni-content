@@ -16,7 +16,9 @@
 		"jsx": "react-jsx",
 		"lib": [
 			"DOM", "DOM.Iterable", "ES5", "ES6", "ES7"
-		]
+		],
+		"noUnusedLocals": false,
+		"noUnusedParameters": false
 	},
 	"include": [
 		"**/*.ts", "**/*.tsx"

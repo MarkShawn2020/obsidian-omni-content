@@ -56,7 +56,7 @@ export default class OmniContentPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		NMPSettings.loadSettings(await this.loadData());
+		this.settings = NMPSettings.loadSettings(await this.loadData());
 	}
 
 	async saveSettings() {

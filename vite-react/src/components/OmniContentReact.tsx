@@ -21,6 +21,9 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onUpdateCSSVariables,
 																	  onExtensionToggle,
 																	  onPluginToggle,
+																	  onExtensionConfigChange,
+																	  onPluginConfigChange,
+																	  onExpandedSectionsChange,
 																  }) => {
 	const [isMessageVisible, setIsMessageVisible] = useState(false);
 	const [messageTitle, setMessageTitle] = useState("");
@@ -190,6 +193,9 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 					onSaveSettings={onSaveSettings}
 					onExtensionToggle={onExtensionToggle}
 					onPluginToggle={onPluginToggle}
+					onExtensionConfigChange={onExtensionConfigChange}
+					onPluginConfigChange={onPluginConfigChange}
+					onExpandedSectionsChange={onExpandedSectionsChange}
 				/>
 			</div>
 

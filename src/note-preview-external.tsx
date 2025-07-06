@@ -492,6 +492,7 @@ ${customCSS}`;
 			expandedAccordionSections: this.settings.expandedAccordionSections || [],
 			showStyleUI: this.settings.showStyleUI !== false, // 默认显示
 		};
+		
 
 		// 获取插件和扩展数据
 		const extensions = this.getExtensionsData();
@@ -567,6 +568,10 @@ ${customCSS}`;
 			},
 			onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
 				this.handlePluginConfigChange(pluginName, key, value);
+			},
+			onExpandedSectionsChange: (sections: string[]) => {
+				this.settings.expandedAccordionSections = sections;
+				this.saveSettingsToPlugin();
 			}
 		};
 
