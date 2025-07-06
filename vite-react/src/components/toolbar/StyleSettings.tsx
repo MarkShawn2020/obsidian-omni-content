@@ -158,6 +158,7 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 				<div className="color-control-wrapper">
 					<div className="enable-switch">
 						<ToggleSwitch
+							size={'small'}
 							checked={settings.enableThemeColor}
 							onChange={onThemeColorToggle}
 						/>

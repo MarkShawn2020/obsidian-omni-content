@@ -38,7 +38,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onHighlightChange,
 													onThemeColorToggle,
 													onThemeColorChange,
-													onRenderArticle: _onRenderArticle,
+													onRenderArticle,
 													onSaveSettings,
 													onExtensionToggle,
 													onPluginToggle,
@@ -152,7 +152,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												handleAccordionToggle(sectionId, isExpanded);
 											}}
 											onEnabledChange={(extensionName, enabled) => onExtensionToggle?.(extensionName, enabled)}
-											onConfigChange={onExtensionConfigChange}
+											onConfigChange={(extensionName, key, value) => {
+												// 调用外部配置变更回调
+												onExtensionConfigChange?.(extensionName, key, value);
+												// 触发重新渲染
+												onRenderArticle();
+											}}
 										/>
 									))
 								) : (
@@ -180,7 +185,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 												handleAccordionToggle(sectionId, isExpanded);
 											}}
 											onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-											onConfigChange={onPluginConfigChange}
+											onConfigChange={(pluginName, key, value) => {
+												// 调用外部配置变更回调
+												onPluginConfigChange?.(pluginName, key, value);
+												// 触发重新渲染
+												onRenderArticle();
+											}}
 										/>
 									))
 								) : (

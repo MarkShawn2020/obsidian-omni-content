@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {Select} from "../ui/Select";
 import {ExtensionData, PluginData} from "../../types";
@@ -23,8 +23,24 @@ export const ConfigComponent = <T extends ConfigItem>({
 	onEnabledChange,
 	onConfigChange,
 }: ConfigComponentProps<T>) => {
+	// 本地配置状态管理
+	const [localConfig, setLocalConfig] = useState(item.config || {});
+	const hasLocalUpdate = useRef(false);
 	const itemId = `${type}-${item.name.replace(/\s+/g, "-").toLowerCase()}`;
 	const isExpanded = expandedSections.includes(itemId);
+
+	// 当外部配置变化时同步本地状态（但避免覆盖刚刚的本地更新）
+	useEffect(() => {
+		if (!hasLocalUpdate.current) {
+			setLocalConfig({ ...item.config });
+		} else {
+			// 重置标记，允许下次外部更新
+			const timer = setTimeout(() => {
+				hasLocalUpdate.current = false;
+			}, 1000); // 1秒后允许外部同步
+			return () => clearTimeout(timer);
+		}
+	}, [item.config]);
 
 	const configEntries = Object.entries(item.metaConfig || {});
 	const hasConfigOptions = configEntries.length > 0;
@@ -34,7 +50,20 @@ export const ConfigComponent = <T extends ConfigItem>({
 	};
 
 	const handleConfigChange = (key: string, value: string | boolean) => {
-		onConfigChange?.(item.name, key, value);
+		// 标记为本地更新，防止外部同步覆盖
+		hasLocalUpdate.current = true;
+		
+		// 立即更新本地状态
+		const newConfig = { ...localConfig, [key]: value };
+		setLocalConfig(newConfig);
+		
+		// 同时直接更新原始配置对象作为备用方案
+		item.config[key] = value;
+		
+		// 尝试调用外部回调更新原始数据
+		if (onConfigChange) {
+			onConfigChange(item.name, key, value);
+		}
 	};
 
 	const handleToggle = (e: React.MouseEvent) => {
@@ -136,16 +165,16 @@ export const ConfigComponent = <T extends ConfigItem>({
 								}}
 							>
 								<div className={`${type}-config-title`}>{meta.title}</div>
-								<div className={`${type}-config-control`} onClick={(e) => e.stopPropagation()}>
+								<div className={`${type}-config-control`}>
 									{meta.type === "switch" ? (
 										<ToggleSwitch
-											checked={!!item.config[key]}
+											checked={!!localConfig[key]}
 											onChange={(value) => handleConfigChange(key, value)}
 											size="small"
 										/>
 									) : meta.type === "select" ? (
 										<Select
-											value={String(item.config[key] || "")}
+											value={String(localConfig[key] || "")}
 											options={meta.options || []}
 											onChange={(value) => handleConfigChange(key, value)}
 											className={`${type}-config-select`}
@@ -153,7 +182,7 @@ export const ConfigComponent = <T extends ConfigItem>({
 									) : meta.type === "input" ? (
 										<input
 											type="text"
-											value={String(item.config[key] || "")}
+											value={String(localConfig[key] || "")}
 											onChange={(e) => handleConfigChange(key, e.target.value)}
 											style={{
 												padding: "4px 8px",
