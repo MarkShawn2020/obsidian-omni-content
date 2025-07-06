@@ -13,7 +13,7 @@ export class Images extends BaseProcess {
 	getName(): string {
 		return "图片处理插件";
 	}
-	
+
 	/**
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据
@@ -36,7 +36,7 @@ export class Images extends BaseProcess {
 			// 使用插件自己的配置而非全局设置
 			const config = this.getConfig();
 			const showImageCaption = config.showImageCaption !== false; // 默认显示
-			
+
 			logger.info("图片处理插件开始处理，showImageCaption设置:", showImageCaption);
 			logger.info("处理前的HTML片段:", html.substring(0, 500) + "...");
 			const parser = new DOMParser();
@@ -50,7 +50,7 @@ export class Images extends BaseProcess {
 				const src = img.getAttribute("src");
 				const alt = img.getAttribute("alt");
 				const title = img.getAttribute("title");
-				
+
 				logger.info(`处理第${index + 1}张图片:`, {
 					src: src?.substring(0, 50) + "...",
 					alt,
@@ -82,7 +82,7 @@ export class Images extends BaseProcess {
 					if (figureParent) {
 						figcaption = figureParent.querySelector("figcaption");
 					}
-					
+
 					logger.info(`第${index + 1}张图片父元素信息:`, {
 						parentTagName: parent?.tagName,
 						hasFigureParent: !!figureParent,
@@ -95,7 +95,7 @@ export class Images extends BaseProcess {
 						// 移除alt属性以隐藏说明文字
 						img.removeAttribute("alt");
 						img.removeAttribute("title");
-						
+
 						// 查找并移除可能的caption元素
 						if (figcaption) {
 							figcaption.remove();
@@ -103,16 +103,16 @@ export class Images extends BaseProcess {
 						}
 					} else {
 						logger.info(`保持第${index + 1}张图片的说明文字显示`);
-						
+
 						// 如果有alt属性但没有figcaption，创建caption显示
 						if (alt && alt.trim() && !figcaption) {
 							logger.info(`为第${index + 1}张图片创建可见的caption`);
-							
+
 							// 创建一个段落元素，使用与现有内容相似的结构
 							const captionP = doc.createElement("p");
-							captionP.setAttribute("style", 
+							captionP.setAttribute("style",
 								"text-align: center !important; " +
-								"color: #666666 !important; " + 
+								"color: #666666 !important; " +
 								"font-size: 14px !important; " +
 								"margin-top: 8px !important; " +
 								"margin-bottom: 8px !important; " +
@@ -120,7 +120,7 @@ export class Images extends BaseProcess {
 								"line-height: 1.5 !important; " +
 								"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;"
 							);
-							
+
 							// 创建span元素，使用leaf属性（符合现有结构）
 							const captionSpan = doc.createElement("span");
 							captionSpan.setAttribute("leaf", "");
@@ -130,9 +130,9 @@ export class Images extends BaseProcess {
 								"font-size: 14px !important;"
 							);
 							captionSpan.textContent = alt;
-							
+
 							captionP.appendChild(captionSpan);
-							
+
 							// 将caption插入到图片后面
 							if (parent) {
 								parent.insertBefore(captionP, img.nextSibling);
@@ -141,7 +141,7 @@ export class Images extends BaseProcess {
 					}
 				}
 			});
-			
+
 			const result = doc.body.innerHTML;
 			logger.info("图片处理完成，结果长度:", result.length);
 			logger.info("处理后的HTML片段:", result.substring(0, 500) + "...");

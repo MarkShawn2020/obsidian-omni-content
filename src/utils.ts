@@ -1,4 +1,4 @@
-import { Platform, requestUrl } from "obsidian";
+import {Platform, requestUrl} from "obsidian";
 import * as postcss from "./postcss/postcss";
 
 let PluginVersion = "0.0.0";

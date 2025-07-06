@@ -1,6 +1,5 @@
 import {wxKeyInfo} from './weixin-api';
-import { logger } from './utils';
-import { PlatformType } from 'src/types';
+import {logger} from './utils';
 
 export enum LinkFootnoteMode {
 	None = 'none',
@@ -66,7 +65,7 @@ interface SettingsData {
 	wxInfo?: { name: string, appid: string, secret: string }[];
 	/** 分发服务配置 */
 	distributionConfig?: DistributionConfig | null;
-	
+
 	// ===== 插件配置 =====
 	/** 插件配置存储 */
 	pluginsConfig?: Record<string, Record<string, any>>;
@@ -81,7 +80,9 @@ interface DistributionConfig {
 }
 
 export class NMPSettings implements SettingsData {
-  // interface SettingsData
+	// 单例实例
+	private static instance: NMPSettings;
+	// interface SettingsData
 	defaultStyle: string = 'obsidian-light';
 	defaultHighlight: string = '默认';
 	showStyleUI: boolean = true;
@@ -106,8 +107,9 @@ export class NMPSettings implements SettingsData {
 	expireat: Date | null = null;
 	pluginsConfig: Record<string, Record<string, any>> = {};
 
-	// 单例实例
-	private static instance: NMPSettings;
+	// 私有构造函数 - 所有默认值已通过属性初始化
+	private constructor() {
+	}
 
 	// 获取单例实例
 	public static getInstance(): NMPSettings {
@@ -119,8 +121,15 @@ export class NMPSettings implements SettingsData {
 		return NMPSettings.instance;
 	}
 
-	// 私有构造函数 - 所有默认值已通过属性初始化
-	private constructor() {}
+	// 静态方法用于加载设置（保持向后兼容性）
+	public static loadSettings(data: SettingsData): NMPSettings {
+		return NMPSettings.getInstance().loadSettings(data);
+	}
+
+	// 静态方法获取所有设置（保持向后兼容性）
+	public static allSettings(): Record<string, unknown> {
+		return NMPSettings.getInstance().getAllSettings();
+	}
 
 	// 重置样式和高亮设置
 	resetStyelAndHighlight(): void {
@@ -146,11 +155,6 @@ export class NMPSettings implements SettingsData {
 		return this;
 	}
 
-	// 静态方法用于加载设置（保持向后兼容性）
-	public static loadSettings(data: SettingsData): NMPSettings {
-		return NMPSettings.getInstance().loadSettings(data);
-	}
-
 	// 获取所有设置
 	getAllSettings(): Record<string, unknown> {
 		// 创建一个设置对象的浅拷贝，排除内部使用的属性
@@ -162,11 +166,6 @@ export class NMPSettings implements SettingsData {
 			}
 		});
 		return settingsObj;
-	}
-
-	// 静态方法获取所有设置（保持向后兼容性）
-	public static allSettings(): Record<string, unknown> {
-		return NMPSettings.getInstance().getAllSettings();
 	}
 
 	// 获取过期日期

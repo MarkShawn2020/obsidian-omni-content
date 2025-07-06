@@ -1,34 +1,18 @@
-import {
-	apiVersion,
-	EventRef,
-	ItemView,
-	Notice,
-	Platform,
-	TFile,
-	WorkspaceLeaf,
-} from "obsidian";
-import { FRONT_MATTER_REGEX, VIEW_TYPE_NOTE_PREVIEW } from "src/constants";
-import { IProcessPlugin } from "src/rehype-plugins/base-process";
+import {apiVersion, EventRef, ItemView, Notice, TFile, WorkspaceLeaf,} from "obsidian";
+import {FRONT_MATTER_REGEX, VIEW_TYPE_NOTE_PREVIEW} from "src/constants";
 
 import AssetsManager from "./assets";
 import InlineCSS from "./inline-css";
-import { CardDataManager } from "./rehype-plugins/code-blocks";
-import { MDRendererCallback } from "./remark-plugins/extension";
-import { ExtensionManager } from "./remark-plugins/extension-manager";
-import type { Extension, ExtensionMetaConfig } from "./remark-plugins/extension";
-import { LocalImageManager } from "./remark-plugins/local-file";
-import { MarkedParser } from "./remark-plugins/parser";
-import { initializePlugins, PluginManager } from "./rehype-plugins";
-import { NMPSettings } from "./settings";
+import {CardDataManager} from "./rehype-plugins/code-blocks";
+import {MDRendererCallback} from "./remark-plugins/extension";
+import {LocalImageManager} from "./remark-plugins/local-file";
+import {MarkedParser} from "./remark-plugins/parser";
+import {initializePlugins, PluginManager} from "./rehype-plugins";
+import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
-import { logger, uevent } from "./utils";
-import {
-	DraftArticle,
-	wxBatchGetMaterial,
-	wxGetToken,
-	wxUploadImage,
-} from "./weixin-api";
-import { NotePreviewComponent, ReactRenderer } from "./components/preview/NotePreviewComponent";
+import {logger, uevent} from "./utils";
+import {DraftArticle, wxBatchGetMaterial, wxGetToken, wxUploadImage,} from "./weixin-api";
+import {NotePreviewComponent, ReactRenderer} from "./components/preview/NotePreviewComponent";
 
 export class NotePreviewReact extends ItemView implements MDRendererCallback {
 	container: Element;
@@ -77,9 +61,7 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 
 	async onOpen() {
 		this.buildUI();
-		this.listeners = [
-			this.workspace.on("active-leaf-change", () => this.update()),
-		];
+		this.listeners = [this.workspace.on("active-leaf-change", () => this.update()),];
 
 		this.renderMarkdown();
 		uevent("open");
@@ -98,15 +80,7 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 	}
 
 	errorContent(error: any) {
-		return (
-			"<h1>渲染失败!</h1><br/>" +
-			'如需帮助请前往&nbsp;&nbsp;<a href="https://github.com/sunbooshi/omni-content/issues">https://github.com/sunbooshi/omni-content/issues</a>&nbsp;&nbsp;反馈<br/><br/>' +
-			"如果方便，请提供引发错误的完整Markdown内容。<br/><br/>" +
-			"<br/>Obsidian版本：" +
-			apiVersion +
-			"<br/>错误信息：<br/>" +
-			`${error}`
-		);
+		return ("<h1>渲染失败!</h1><br/>" + '如需帮助请前往&nbsp;&nbsp;<a href="https://github.com/sunbooshi/omni-content/issues">https://github.com/sunbooshi/omni-content/issues</a>&nbsp;&nbsp;反馈<br/><br/>' + "如果方便，请提供引发错误的完整Markdown内容。<br/><br/>" + "<br/>Obsidian版本：" + apiVersion + "<br/>错误信息：<br/>" + `${error}`);
 	}
 
 	async renderMarkdown() {
@@ -127,14 +101,14 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 		// 调试：分析最终的HTML内容
 		console.log("=== 复制内容分析 ===");
 		console.log("完整HTML长度:", content.length);
-		
+
 		// 提取代码块部分进行分析
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(content, "text/html");
 		const codeBlocks = doc.querySelectorAll("pre, pre code, section.code-section");
-		
+
 		console.log("找到代码块数量:", codeBlocks.length);
-		
+
 		codeBlocks.forEach((block, index) => {
 			console.log(`--- 代码块 ${index + 1} ---`);
 			console.log("标签名:", block.tagName);
@@ -143,7 +117,7 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 			console.log("内容预览:", block.innerHTML.substring(0, 200));
 			console.log("父元素:", block.parentElement?.tagName, block.parentElement?.className);
 			console.log("父元素样式:", block.parentElement?.getAttribute("style"));
-			
+
 			// 详细分析换行符
 			const html = block.innerHTML;
 			const lines = html.split('\n');
@@ -154,7 +128,7 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 					console.log(`  行${i}: "${line}"`);
 				}
 			});
-			
+
 			// 检查是否有高亮span元素
 			const highlightSpans = block.querySelectorAll('[class*="hljs-"]');
 			console.log("高亮span数量:", highlightSpans.length);
@@ -164,30 +138,23 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 		});
 
 		// 复制到剪贴板
-		await navigator.clipboard.write([
-			new ClipboardItem({
-				"text/html": new Blob([content], { type: "text/html" }),
-			}),
-		]);
+		await navigator.clipboard.write([new ClipboardItem({
+			"text/html": new Blob([content], {type: "text/html"}),
+		}),]);
 
 		new Notice(`已复制到剪贴板！`);
 	}
 
 	updateCSSVariables() {
 		// 在React组件中处理CSS变量更新
-		const noteContainer = document.querySelector(
-			".note-to-mp"
-		) as HTMLElement;
+		const noteContainer = document.querySelector(".note-to-mp") as HTMLElement;
 		if (!noteContainer) {
 			console.log("找不到.note-to-mp容器，无法更新CSS变量");
 			return;
 		}
 
 		if (this.settings.enableThemeColor) {
-			noteContainer.style.setProperty(
-				"--primary-color",
-				this.settings.themeColor || "#7852ee"
-			);
+			noteContainer.style.setProperty("--primary-color", this.settings.themeColor || "#7852ee");
 			console.log(`应用自定义主题色：${this.settings.themeColor}`);
 		} else {
 			noteContainer.style.removeProperty("--primary-color");
@@ -209,21 +176,14 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 			try {
 				const templateManager = TemplateManager.getInstance();
 				const file = this.app.workspace.getActiveFile();
-				const meta: Record<
-					string,
-					string | string[] | number | boolean | object | undefined
-				> = {};
+				const meta: Record<string, string | string[] | number | boolean | object | undefined> = {};
 				if (file) {
 					const metadata = this.app.metadataCache.getFileCache(file);
 					Object.assign(meta, metadata?.frontmatter);
 				}
 				logger.debug("传递至模板的元数据:", meta);
 
-				html = templateManager.applyTemplate(
-					html,
-					this.settings.defaultTemplate,
-					meta
-				);
+				html = templateManager.applyTemplate(html, this.settings.defaultTemplate, meta);
 			} catch (error) {
 				logger.error("应用模板失败", error);
 				new Notice("应用模板失败，请检查模板设置！");
@@ -252,10 +212,7 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 			articleHTML = this.wrapArticleContent(articleHTML);
 
 			const pluginManager = PluginManager.getInstance();
-			articleHTML = pluginManager.processContent(
-				articleHTML,
-				this.settings
-			);
+			articleHTML = pluginManager.processContent(articleHTML, this.settings);
 			return articleHTML;
 		} catch (error) {
 			logger.error("获取文章内容时出错:", error);
@@ -265,12 +222,8 @@ export class NotePreviewReact extends ItemView implements MDRendererCallback {
 
 	getCSS() {
 		const theme = this.assetsManager.getTheme(this.currentTheme);
-		const highlight = this.assetsManager.getHighlight(
-			this.currentHighlight
-		);
-		const customCSS = this.settings.useCustomCss
-			? this.assetsManager.customCSS
-			: "";
+		const highlight = this.assetsManager.getHighlight(this.currentHighlight);
+		const customCSS = this.settings.useCustomCss ? this.assetsManager.customCSS : "";
 
 		let themeColorCSS = "";
 
@@ -323,9 +276,7 @@ ${customCSS}`;
 			res.cover = frontmatter["封面"];
 			res.thumb_media_id = frontmatter["封面素材ID"];
 			res.need_open_comment = frontmatter["打开评论"] ? 1 : undefined;
-			res.only_fans_can_comment = frontmatter["仅粉丝可评论"]
-				? 1
-				: undefined;
+			res.only_fans_can_comment = frontmatter["仅粉丝可评论"] ? 1 : undefined;
 			if (frontmatter["封面裁剪"]) {
 				res.pic_crop_235_1 = "0_0_1_0.5";
 				res.pic_crop_1_1 = "0_0.525_0.404_1";
@@ -376,11 +327,7 @@ ${customCSS}`;
 	}
 
 	async getToken() {
-		const res = await wxGetToken(
-			this.settings.authKey,
-			this.currentAppId,
-			this.getSecret() || ""
-		);
+		const res = await wxGetToken(this.settings.authKey, this.currentAppId, this.getSecret() || "");
 		if (res.status != 200) {
 			const data = res.json;
 			// 通过React组件显示消息
@@ -421,66 +368,64 @@ ${customCSS}`;
 	}
 
 	private updateReactComponent() {
-		const component = (
-			<NotePreviewComponent
-				settings={this.settings}
-				articleHTML={this.articleHTML || ""}
-				cssContent={this.getCSS()}
-				onRefresh={async () => {
-					await this.renderMarkdown();
-					uevent("refresh");
-				}}
-				onCopy={async () => {
-					await this.copyArticle();
-					uevent("copy");
-				}}
-				onDistribute={async () => {
-					this.openDistributionModal();
-					uevent("distribute");
-				}}
-				onTemplateChange={async (template: string) => {
-					if (template === "") {
-						this.settings.useTemplate = false;
-						this.settings.lastSelectedTemplate = "";
-					} else {
-						this.settings.useTemplate = true;
-						this.settings.defaultTemplate = template;
-						this.settings.lastSelectedTemplate = template;
-					}
-					this.saveSettingsToPlugin();
-					await this.renderMarkdown();
-				}}
-				onThemeChange={async (theme: string) => {
-					this.settings.defaultStyle = theme;
-					this.saveSettingsToPlugin();
-					this.updateReactComponent();
-				}}
-				onHighlightChange={async (highlight: string) => {
-					this.settings.defaultHighlight = highlight;
-					this.saveSettingsToPlugin();
-					this.updateReactComponent();
-				}}
-				onThemeColorToggle={async (enabled: boolean) => {
-					this.settings.enableThemeColor = enabled;
-					this.saveSettingsToPlugin();
-					await this.renderMarkdown();
-				}}
-				onThemeColorChange={async (color: string) => {
-					this.settings.themeColor = color;
-					this.saveSettingsToPlugin();
-					await this.renderMarkdown();
-				}}
-				onRenderArticle={async () => {
-					await this.renderArticleOnly();
-				}}
-				onSaveSettings={() => {
-					this.saveSettingsToPlugin();
-				}}
-				onUpdateCSSVariables={() => {
-					this.updateCSSVariables();
-				}}
-			/>
-		);
+		const component = (<NotePreviewComponent
+			settings={this.settings}
+			articleHTML={this.articleHTML || ""}
+			cssContent={this.getCSS()}
+			onRefresh={async () => {
+				await this.renderMarkdown();
+				uevent("refresh");
+			}}
+			onCopy={async () => {
+				await this.copyArticle();
+				uevent("copy");
+			}}
+			onDistribute={async () => {
+				this.openDistributionModal();
+				uevent("distribute");
+			}}
+			onTemplateChange={async (template: string) => {
+				if (template === "") {
+					this.settings.useTemplate = false;
+					this.settings.lastSelectedTemplate = "";
+				} else {
+					this.settings.useTemplate = true;
+					this.settings.defaultTemplate = template;
+					this.settings.lastSelectedTemplate = template;
+				}
+				this.saveSettingsToPlugin();
+				await this.renderMarkdown();
+			}}
+			onThemeChange={async (theme: string) => {
+				this.settings.defaultStyle = theme;
+				this.saveSettingsToPlugin();
+				this.updateReactComponent();
+			}}
+			onHighlightChange={async (highlight: string) => {
+				this.settings.defaultHighlight = highlight;
+				this.saveSettingsToPlugin();
+				this.updateReactComponent();
+			}}
+			onThemeColorToggle={async (enabled: boolean) => {
+				this.settings.enableThemeColor = enabled;
+				this.saveSettingsToPlugin();
+				await this.renderMarkdown();
+			}}
+			onThemeColorChange={async (color: string) => {
+				this.settings.themeColor = color;
+				this.saveSettingsToPlugin();
+				await this.renderMarkdown();
+			}}
+			onRenderArticle={async () => {
+				await this.renderArticleOnly();
+			}}
+			onSaveSettings={() => {
+				this.saveSettingsToPlugin();
+			}}
+			onUpdateCSSVariables={() => {
+				this.updateCSSVariables();
+			}}
+		/>);
 
 		if (this.reactRenderer.root) {
 			this.reactRenderer.update(component);

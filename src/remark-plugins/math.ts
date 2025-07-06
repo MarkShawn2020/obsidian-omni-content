@@ -13,11 +13,14 @@ export function cleanMathCache() {
 }
 
 export class MathRendererQueue {
+	private static instance: MathRendererQueue;
 	private queue: (() => Promise<any>)[] = [];
 	private isProcessing: boolean = false;
 	private host = 'https://obplugin.sunboshi.tech';
-	private static instance: MathRendererQueue;
 	private mathIndex: number = 0;
+
+	private constructor() {
+	}
 
 	// 静态方法，用于获取实例
 	public static getInstance(): MathRendererQueue {
@@ -25,9 +28,6 @@ export class MathRendererQueue {
 			MathRendererQueue.instance = new MathRendererQueue();
 		}
 		return MathRendererQueue.instance;
-	}
-
-	private constructor() {
 	}
 
 	getMathSVG(expression: string, inline: boolean, type: string, callback: (svg: string) => void) {
@@ -80,28 +80,6 @@ export class MathRendererQueue {
 		this.processQueue();
 	}
 
-	// 处理队列中的请求
-	private async processQueue(): Promise<void> {
-		if (this.isProcessing) {
-			return;
-		}
-
-		this.isProcessing = true;
-
-		while (this.queue.length > 0) {
-			const request = this.queue.shift();
-			if (request) {
-				try {
-					await request();
-				} catch (error) {
-					console.error('Request failed:', error);
-				}
-			}
-		}
-
-		this.isProcessing = false;
-	}
-
 	generateId() {
 		this.mathIndex += 1;
 		return `math-id-${this.mathIndex}`;
@@ -126,6 +104,28 @@ export class MathRendererQueue {
 
 		let className = inline ? 'inline-math-svg' : 'block-math-svg';
 		return `<span id="${id}" class="${className}">${svg}</span>`;
+	}
+
+	// 处理队列中的请求
+	private async processQueue(): Promise<void> {
+		if (this.isProcessing) {
+			return;
+		}
+
+		this.isProcessing = true;
+
+		while (this.queue.length > 0) {
+			const request = this.queue.shift();
+			if (request) {
+				try {
+					await request();
+				} catch (error) {
+					console.error('Request failed:', error);
+				}
+			}
+		}
+
+		this.isProcessing = false;
 	}
 }
 

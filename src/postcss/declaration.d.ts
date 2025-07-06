@@ -63,6 +63,12 @@ declare namespace Declaration {
  * ```
  */
 declare class Declaration_ extends Node {
+	parent: ContainerWithChildren | undefined
+	raws: Declaration.DeclarationRaws
+	type: 'decl'
+
+	constructor(defaults?: Declaration.DeclarationProps)
+
 	/**
 	 * It represents a specificity of the declaration.
 	 *
@@ -78,9 +84,8 @@ declare class Declaration_ extends Node {
 	 * ```
 	 */
 	get important(): boolean
-	set important(value: boolean)
 
-	parent: ContainerWithChildren | undefined
+	set important(value: boolean)
 
 	/**
 	 * The property name for a CSS declaration.
@@ -93,11 +98,8 @@ declare class Declaration_ extends Node {
 	 * ```
 	 */
 	get prop(): string
+
 	set prop(value: string)
-
-	raws: Declaration.DeclarationRaws
-
-	type: 'decl'
 
 	/**
 	 * The property value for a CSS declaration.
@@ -117,6 +119,7 @@ declare class Declaration_ extends Node {
 	 * ```
 	 */
 	get value(): string
+
 	set value(value: string)
 
 	/**
@@ -140,8 +143,6 @@ declare class Declaration_ extends Node {
 	get variable(): boolean
 
 	set varaible(value: string)
-
-	constructor(defaults?: Declaration.DeclarationProps)
 
 	assign(overrides: Declaration.DeclarationProps | object): this
 

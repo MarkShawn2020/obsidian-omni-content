@@ -119,23 +119,23 @@ export class MyCustomExtension extends Extension {
 
 ### ExtensionManager
 
-| 方法 | 说明 | 参数 | 返回值 |
-|------|------|------|--------|
-| `getInstance()` | 获取单例实例 | - | ExtensionManager |
-| `getExtensions()` | 获取所有插件 | - | Extension[] |
-| `getEnabledExtensions()` | 获取启用的插件 | - | Extension[] |
-| `getExtensionByName(name)` | 根据名称获取插件 | name: string | Extension \| null |
-| `setExtensionEnabled(name, enabled)` | 设置插件启用状态 | name: string, enabled: boolean | boolean |
-| `getExtensionsSummary()` | 获取插件状态摘要 | - | PluginSummary[] |
-| `batchUpdateExtensionsEnabled(updates)` | 批量更新插件状态 | updates: Record<string, boolean> | UpdateResult |
+| 方法                                      | 说明       | 参数                               | 返回值               |
+|-----------------------------------------|----------|----------------------------------|-------------------|
+| `getInstance()`                         | 获取单例实例   | -                                | ExtensionManager  |
+| `getExtensions()`                       | 获取所有插件   | -                                | Extension[]       |
+| `getEnabledExtensions()`                | 获取启用的插件  | -                                | Extension[]       |
+| `getExtensionByName(name)`              | 根据名称获取插件 | name: string                     | Extension \| null |
+| `setExtensionEnabled(name, enabled)`    | 设置插件启用状态 | name: string, enabled: boolean   | boolean           |
+| `getExtensionsSummary()`                | 获取插件状态摘要 | -                                | PluginSummary[]   |
+| `batchUpdateExtensionsEnabled(updates)` | 批量更新插件状态 | updates: Record<string, boolean> | UpdateResult      |
 
 ### Extension基类新增方法
 
-| 方法 | 说明 | 参数 | 返回值 |
-|------|------|------|--------|
-| `getName()` | 获取插件名称 | - | string |
-| `isEnabled()` | 检查是否启用 | - | boolean |
-| `setEnabled(enabled)` | 设置启用状态 | enabled: boolean | void |
-| `getConfig()` | 获取插件配置 | - | ExtensionConfig |
-| `updateConfig(config)` | 更新插件配置 | config: ExtensionConfig | ExtensionConfig |
-| `getMetaConfig()` | 获取UI元数据 | - | ExtensionMetaConfig |
+| 方法                     | 说明      | 参数                      | 返回值                 |
+|------------------------|---------|-------------------------|---------------------|
+| `getName()`            | 获取插件名称  | -                       | string              |
+| `isEnabled()`          | 检查是否启用  | -                       | boolean             |
+| `setEnabled(enabled)`  | 设置启用状态  | enabled: boolean        | void                |
+| `getConfig()`          | 获取插件配置  | -                       | ExtensionConfig     |
+| `updateConfig(config)` | 更新插件配置  | config: ExtensionConfig | ExtensionConfig     |
+| `getMetaConfig()`      | 获取UI元数据 | -                       | ExtensionMetaConfig |

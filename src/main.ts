@@ -5,7 +5,7 @@ import {NotePreviewReact} from "./note-preview-react";
 import {OmniContentSettingTab} from "./setting-tab";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
-import {logger, setVersion, uevent} from "./utils";
+import {setVersion, uevent} from "./utils";
 
 export default class OmniContentPlugin extends Plugin {
 	settings: NMPSettings;

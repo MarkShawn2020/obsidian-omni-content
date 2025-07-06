@@ -52,6 +52,24 @@ declare abstract class Container_<Child extends Node = ChildNode> extends Node {
 	nodes: Child[] | undefined
 
 	/**
+	 * The container’s first child.
+	 *
+	 * ```js
+	 * rule.first === rules.nodes[0]
+	 * ```
+	 */
+	get first(): Child | undefined
+
+	/**
+	 * The container’s last child.
+	 *
+	 * ```js
+	 * rule.last === rule.nodes[rule.nodes.length - 1]
+	 * ```
+	 */
+	get last(): Child | undefined
+
+	/**
 	 * Inserts new nodes to the end of the container.
 	 *
 	 * ```js
@@ -156,6 +174,23 @@ declare abstract class Container_<Child extends Node = ChildNode> extends Node {
 	index(child: Child | number): number
 
 	/**
+	 * Traverses the container’s descendant nodes, calling callback
+	 * for each comment node.
+	 *
+	 * Like `Container#each`, this method is safe
+	 * to use if you are mutating arrays during iteration.
+	 *
+	 * ```js
+	 * root.walkComments(comment => {
+	 *   comment.remove()
+	 * })
+	 * ```
+	 *
+	 * @param callback Iterator receives each node and index.
+	 * @return Returns `false` if iteration was broke.
+	 */
+
+	/**
 	 * Insert new node after old node within the container.
 	 *
 	 * @param oldNode Child or child’s index.
@@ -196,23 +231,6 @@ declare abstract class Container_<Child extends Node = ChildNode> extends Node {
 			| string[]
 			| undefined
 	): this
-
-	/**
-	 * Traverses the container’s descendant nodes, calling callback
-	 * for each comment node.
-	 *
-	 * Like `Container#each`, this method is safe
-	 * to use if you are mutating arrays during iteration.
-	 *
-	 * ```js
-	 * root.walkComments(comment => {
-	 *   comment.remove()
-	 * })
-	 * ```
-	 *
-	 * @param callback Iterator receives each node and index.
-	 * @return Returns `false` if iteration was broke.
-	 */
 
 	/**
 	 * Inserts new nodes to the start of the container.
@@ -469,27 +487,10 @@ declare abstract class Container_<Child extends Node = ChildNode> extends Node {
 		selectorFilter: RegExp | string,
 		callback: (rule: Rule, index: number) => false | void
 	): false | undefined
+
 	walkRules(
 		callback: (rule: Rule, index: number) => false | void
 	): false | undefined
-
-	/**
-	 * The container’s first child.
-	 *
-	 * ```js
-	 * rule.first === rules.nodes[0]
-	 * ```
-	 */
-	get first(): Child | undefined
-
-	/**
-	 * The container’s last child.
-	 *
-	 * ```js
-	 * rule.last === rule.nodes[rule.nodes.length - 1]
-	 * ```
-	 */
-	get last(): Child | undefined
 }
 
 declare class Container<

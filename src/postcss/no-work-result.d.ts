@@ -29,14 +29,6 @@ declare class NoWorkResult_ implements LazyResult<Root> {
 
 	constructor(processor: Processor, css: string, opts: ResultOptions)
 
-	async(): Promise<Result<Root>>
-
-	sync(): Result<Root>
-
-	toString(): string
-
-	warnings(): Warning[]
-
 	get content(): string
 
 	get css(): string
@@ -52,6 +44,14 @@ declare class NoWorkResult_ implements LazyResult<Root> {
 	get root(): Root
 
 	get [Symbol.toStringTag](): string
+
+	async(): Promise<Result<Root>>
+
+	sync(): Result<Root>
+
+	toString(): string
+
+	warnings(): Warning[]
 }
 
 declare class NoWorkResult extends NoWorkResult_ {

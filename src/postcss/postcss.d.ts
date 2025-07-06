@@ -175,9 +175,9 @@ declare namespace postcss {
 	}
 
 	export interface PluginCreator<PluginOptions> {
-		(opts?: PluginOptions): Plugin | Processor
-
 		postcss: true
+
+		(opts?: PluginOptions): Plugin | Processor
 	}
 
 	export interface Transformer extends TransformCallback {
@@ -190,9 +190,9 @@ declare namespace postcss {
 	}
 
 	export interface OldPlugin<T> extends Transformer {
-		(opts?: T): Transformer
-
 		postcss: Transformer
+
+		(opts?: T): Transformer
 	}
 
 	export type AcceptedPlugin =

@@ -106,6 +106,20 @@ declare class Input_ {
 	 */
 	constructor(css: string, opts?: ProcessOptions)
 
+	/**
+	 * The CSS source identifier. Contains `Input#file` if the user
+	 * set the `from` option, or `Input#id` if they did not.
+	 *
+	 * ```js
+	 * const root = postcss.parse(css, { from: 'a.css' })
+	 * root.source.input.from //=> "/home/ai/a.css"
+	 *
+	 * const root = postcss.parse(css)
+	 * root.source.input.from //=> "<input css 1>"
+	 * ```
+	 */
+	get from(): string
+
 	error(
 		message: string,
 		start:
@@ -175,20 +189,6 @@ declare class Input_ {
 		endLine?: number,
 		endColumn?: number
 	): false | Input.FilePosition
-
-	/**
-	 * The CSS source identifier. Contains `Input#file` if the user
-	 * set the `from` option, or `Input#id` if they did not.
-	 *
-	 * ```js
-	 * const root = postcss.parse(css, { from: 'a.css' })
-	 * root.source.input.from //=> "/home/ai/a.css"
-	 *
-	 * const root = postcss.parse(css)
-	 * root.source.input.from //=> "<input css 1>"
-	 * ```
-	 */
-	get from(): string
 }
 
 declare class Input extends Input_ {

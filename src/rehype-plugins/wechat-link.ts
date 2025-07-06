@@ -27,25 +27,25 @@ export class WechatLink extends BaseProcess {
 				// 检查是否已经是脚注格式的链接
 				// 1. 检查是否已经是脚注引用（如 #fn-123）
 				const isFootnoteRef = href.startsWith('#fn-');
-				
+
 				// 2. 检查是否是脚注中的返回链接（如 #fnref-123）
 				const isFootnoteBackRef = href.startsWith('#fnref-');
-				
+
 				// 3. 检查是否是服务于脚注系统的链接
 				const parentIsSup = link.parentElement?.tagName === 'SUP';
-				const hasFootnoteClass = link.classList.contains('footnote-ref') || 
-										link.classList.contains('footnote-backref');
-				
+				const hasFootnoteClass = link.classList.contains('footnote-ref') ||
+					link.classList.contains('footnote-backref');
+
 				// 如果已经是脚注相关的链接，去除a标签但保留上标效果
 				if (isFootnoteRef || isFootnoteBackRef || hasFootnoteClass || parentIsSup) {
 					// logger.debug("Processing footnote link, removing a tag but keeping sup:", href);
-					
+
 					if (parentIsSup) {
 						// 如果父元素是sup，保留sup但去除a标签
 						const supElement = link.parentElement;
 						const linkText = link.textContent;
 						link.replaceWith(linkText || '');
-						
+
 						// 确保还是sup样式
 						if (supElement && linkText) {
 							supElement.textContent = linkText;

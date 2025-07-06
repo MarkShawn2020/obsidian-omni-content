@@ -1,10 +1,10 @@
 import {App, FileSystemAdapter, Notice, PluginSettingTab, Setting, TextAreaComponent,} from "obsidian";
 import OmniContentPlugin from "./main";
 import {cleanMathCache} from "./remark-plugins/math";
-import {LinkDescriptionMode, LinkFootnoteMode, NMPSettings} from "./settings";
+import {LinkDescriptionMode, NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {logger} from "./utils";
-import { PlatformType } from "src/types";
+import {PlatformType} from "src/types";
 
 export class OmniContentSettingTab extends PluginSettingTab {
 	plugin: OmniContentPlugin;

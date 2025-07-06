@@ -13,8 +13,8 @@ import {LinkRenderer} from "./link";
 import {LocalFile} from "./local-file";
 import {MathRenderer} from "./math";
 import {TextHighlight} from "./text-highlight";
-import { logger } from "src/utils";
-import { ExtensionManager } from "./extension-manager";
+import {logger} from "src/utils";
+import {ExtensionManager} from "./extension-manager";
 
 const markedOptiones = {
 	gfm: true,
@@ -79,13 +79,13 @@ export class MarkedParser {
 				new MathRenderer(app, settings, assetsManager, callback)
 			);
 		}
-		
+
 		logger.debug(`初始化了 ${this.extensions.length} 个markdown扩展插件`);
-		
+
 		// 设置ExtensionManager实例
 		ExtensionManager.getInstance().setParser(this);
 	}
-	
+
 	/**
 	 * 获取所有已注册的扩展插件
 	 * @returns 扩展插件数组
@@ -93,7 +93,7 @@ export class MarkedParser {
 	getExtensions(): Extension[] {
 		return [...this.extensions];
 	}
-	
+
 	/**
 	 * 获取所有启用的扩展插件
 	 * @returns 启用的扩展插件数组
@@ -101,7 +101,7 @@ export class MarkedParser {
 	getEnabledExtensions(): Extension[] {
 		return this.extensions.filter(ext => ext.isEnabled());
 	}
-	
+
 	/**
 	 * 根据名称获取扩展插件
 	 * @param name 插件名称
@@ -110,7 +110,7 @@ export class MarkedParser {
 	getExtensionByName(name: string): Extension | null {
 		return this.extensions.find(ext => ext.getName() === name) || null;
 	}
-	
+
 	/**
 	 * 设置扩展插件启用状态
 	 * @param name 插件名称
@@ -131,11 +131,11 @@ export class MarkedParser {
 	async buildMarked() {
 		this.marked = new Marked();
 		this.marked.use(markedOptiones);
-		
+
 		// 只对启用的扩展应用marked扩展
 		const enabledExtensions = this.getEnabledExtensions();
 		logger.debug(`构建marked实例，使用 ${enabledExtensions.length}/${this.extensions.length} 个启用的扩展插件`);
-		
+
 		for (const ext of enabledExtensions) {
 			this.marked.use(ext.markedExtension());
 			ext.marked = this.marked;

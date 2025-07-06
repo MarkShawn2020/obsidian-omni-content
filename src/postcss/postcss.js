@@ -3,12 +3,20 @@
 		if (typeof exports === "object" && typeof module !== "undefined") {
 			module.exports =
 				f()
-		} else if (typeof define === "function" && define.amd) {define([], f)} else {
+		} else if (typeof define === "function" && define.amd) {
+			define([], f)
+		} else {
 			var g;
-			if (typeof window !== "undefined") {g = window} else if (typeof global !== "undefined") {
+			if (typeof window !== "undefined") {
+				g = window
+			} else if (typeof global !== "undefined") {
 				g =
 					global
-			} else if (typeof self !== "undefined") {g = self} else {g = this}
+			} else if (typeof self !== "undefined") {
+				g = self
+			} else {
+				g = this
+			}
 			g.postcss = f()
 		}
 	}
@@ -316,7 +324,11 @@
 									try {
 										var arr = new Uint8Array(1)
 										arr.__proto__ =
-											{__proto__: Uint8Array.prototype, foo: function () { return 42 }}
+											{
+												__proto__: Uint8Array.prototype, foo: function () {
+													return 42
+												}
+											}
 										return arr.foo() === 42
 									} catch (e) {
 										return false
@@ -2454,7 +2466,8 @@
 					for (; nBits > 0; e =
 						(
 							e * 256
-						) + buffer[offset + i], i += d, nBits -= 8) {}
+						) + buffer[offset + i], i += d, nBits -= 8) {
+					}
 
 					m =
 						e &
@@ -2474,7 +2487,8 @@
 					for (; nBits > 0; m =
 						(
 							m * 256
-						) + buffer[offset + i], i += d, nBits -= 8) {}
+						) + buffer[offset + i], i += d, nBits -= 8) {
+					}
 
 					if (e === 0) {
 						e = 1 - eBias
@@ -2557,14 +2571,16 @@
 						}
 					}
 
-					for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+					for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {
+					}
 
 					e =
 						(
 							e << mLen
 						) | m
 					eLen += mLen
-					for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+					for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {
+					}
 
 					buffer[offset + i - d] |= s * 128
 				}
@@ -2713,6 +2729,16 @@
 				}
 
 				class Container extends Node {
+					get first() {
+						if (!this.proxyOf.nodes) return undefined
+						return this.proxyOf.nodes[0]
+					}
+
+					get last() {
+						if (!this.proxyOf.nodes) return undefined
+						return this.proxyOf.nodes[this.proxyOf.nodes.length - 1]
+					}
+
 					append(...children) {
 						for (let child of children) {
 							let nodes = this.normalize(child, this.last)
@@ -3079,16 +3105,6 @@
 							}
 						})
 					}
-
-					get first() {
-						if (!this.proxyOf.nodes) return undefined
-						return this.proxyOf.nodes[0]
-					}
-
-					get last() {
-						if (!this.proxyOf.nodes) return undefined
-						return this.proxyOf.nodes[this.proxyOf.nodes.length - 1]
-					}
 				}
 
 				Container.registerParse = dependant => {
@@ -3441,6 +3457,10 @@
 						if (this.map) this.map.file = this.from
 					}
 
+					get from() {
+						return this.file || this.id
+					}
+
 					error(message, line, column, opts = {}) {
 						let result, endLine, endColumn
 
@@ -3620,10 +3640,6 @@
 							}
 						}
 						return json
-					}
-
-					get from() {
-						return this.file || this.id
 					}
 				}
 
@@ -3805,6 +3821,38 @@
 												return plugin
 											}
 										})
+									}
+
+									get content() {
+										return this.stringify().content
+									}
+
+									get css() {
+										return this.stringify().css
+									}
+
+									get map() {
+										return this.stringify().map
+									}
+
+									get messages() {
+										return this.sync().messages
+									}
+
+									get opts() {
+										return this.result.opts
+									}
+
+									get processor() {
+										return this.result.processor
+									}
+
+									get root() {
+										return this.sync().root
+									}
+
+									get [Symbol.toStringTag]() {
+										return 'LazyResult'
 									}
 
 									async() {
@@ -4162,38 +4210,6 @@
 
 									warnings() {
 										return this.sync().warnings()
-									}
-
-									get content() {
-										return this.stringify().content
-									}
-
-									get css() {
-										return this.stringify().css
-									}
-
-									get map() {
-										return this.stringify().map
-									}
-
-									get messages() {
-										return this.sync().messages
-									}
-
-									get opts() {
-										return this.result.opts
-									}
-
-									get processor() {
-										return this.result.processor
-									}
-
-									get root() {
-										return this.sync().root
-									}
-
-									get [Symbol.toStringTag]() {
-										return 'LazyResult'
 									}
 								}
 
@@ -4721,48 +4737,6 @@
 										}
 									}
 
-									async() {
-										if (this.error) return Promise.reject(this.error)
-										return Promise.resolve(this.result)
-									}
-
-									catch(onRejected) {
-										return this.async().catch(onRejected)
-									}
-
-									finally(onFinally) {
-										return this.async().then(onFinally, onFinally)
-									}
-
-									sync() {
-										if (this.error) throw this.error
-										return this.result
-									}
-
-									then(onFulfilled, onRejected) {
-										if (process.env.NODE_ENV !== 'production') {
-											if (!(
-												'from' in this._opts
-											)) {
-												warnOnce(
-													'Without `from` option PostCSS could generate wrong source map ' +
-													'and will not find Browserslist config. Set it to CSS file path ' +
-													'or to `undefined` to prevent this warning.'
-												)
-											}
-										}
-
-										return this.async().then(onFulfilled, onRejected)
-									}
-
-									toString() {
-										return this._css
-									}
-
-									warnings() {
-										return []
-									}
-
 									get content() {
 										return this.result.css
 									}
@@ -4811,6 +4785,48 @@
 
 									get [Symbol.toStringTag]() {
 										return 'NoWorkResult'
+									}
+
+									async() {
+										if (this.error) return Promise.reject(this.error)
+										return Promise.resolve(this.result)
+									}
+
+									catch(onRejected) {
+										return this.async().catch(onRejected)
+									}
+
+									finally(onFinally) {
+										return this.async().then(onFinally, onFinally)
+									}
+
+									sync() {
+										if (this.error) throw this.error
+										return this.result
+									}
+
+									then(onFulfilled, onRejected) {
+										if (process.env.NODE_ENV !== 'production') {
+											if (!(
+												'from' in this._opts
+											)) {
+												warnOnce(
+													'Without `from` option PostCSS could generate wrong source map ' +
+													'and will not find Browserslist config. Set it to CSS file path ' +
+													'or to `undefined` to prevent this warning.'
+												)
+											}
+										}
+
+										return this.async().then(onFulfilled, onRejected)
+									}
+
+									toString() {
+										return this._css
+									}
+
+									warnings() {
+										return []
 									}
 								}
 
@@ -4879,6 +4895,10 @@
 								this[name] = defaults[name]
 							}
 						}
+					}
+
+					get proxyOf() {
+						return this
 					}
 
 					addToError(error) {
@@ -5201,10 +5221,6 @@
 						let data = {node: this}
 						for (let i in opts) data[i] = opts[i]
 						return result.warn(text, data)
-					}
-
-					get proxyOf() {
-						return this
 					}
 				}
 
@@ -6138,6 +6154,10 @@
 						this.map = undefined
 					}
 
+					get content() {
+						return this.css
+					}
+
 					toString() {
 						return this.css
 					}
@@ -6157,10 +6177,6 @@
 
 					warnings() {
 						return this.messages.filter(i => i.type === 'warning')
-					}
-
-					get content() {
-						return this.css
 					}
 				}
 
@@ -7158,7 +7174,8 @@
 				process.version = ''; // empty string to avoid regexp issues
 				process.versions = {};
 
-				function noop() {}
+				function noop() {
+				}
 
 				process.on = noop;
 				process.addListener = noop;
@@ -7170,17 +7187,23 @@
 				process.prependListener = noop;
 				process.prependOnceListener = noop;
 
-				process.listeners = function (name) { return [] }
+				process.listeners = function (name) {
+					return []
+				}
 
 				process.binding = function (name) {
 					throw new Error('process.binding is not supported');
 				};
 
-				process.cwd = function () { return '/' };
+				process.cwd = function () {
+					return '/'
+				};
 				process.chdir = function (dir) {
 					throw new Error('process.chdir is not supported');
 				};
-				process.umask = function () { return 0; };
+				process.umask = function () {
+					return 0;
+				};
 
 			}, {}
 		], "postcss": [

@@ -22,8 +22,8 @@ interface ImageInfo {
 }
 
 export class LocalImageManager {
-	private images: Map<string, ImageInfo>;
 	private static instance: LocalImageManager;
+	private images: Map<string, ImageInfo>;
 
 	private constructor() {
 		this.images = new Map<string, ImageInfo>();

@@ -48,16 +48,16 @@ declare namespace Comment {
 declare class Comment_ extends Node {
 	parent: Container | undefined
 	raws: Comment.CommentRaws
+	type: 'comment'
+
+	constructor(defaults?: Comment.CommentProps)
 
 	/**
 	 * The comment's text.
 	 */
 	get text(): string
+
 	set text(value: string)
-
-	type: 'comment'
-
-	constructor(defaults?: Comment.CommentProps)
 
 	assign(overrides: Comment.CommentProps | object): this
 

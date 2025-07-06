@@ -1,6 +1,6 @@
-import { BaseProcess } from "src/rehype-plugins/base-process";
-import { NMPSettings } from "src/settings";
-import { logger } from "src/utils";
+import {BaseProcess} from "src/rehype-plugins/base-process";
+import {NMPSettings} from "src/settings";
+import {logger} from "src/utils";
 
 /**
  * 列表处理插件 - 处理微信公众号中的列表格式，特别是嵌套列表
@@ -123,9 +123,9 @@ export class Lists extends BaseProcess {
 		// 处理列表项
 		const listItems = Array.from(list.querySelectorAll(":scope > li"));
 		for (const item of listItems) {
-            // 获取原始列表项的颜色（如果有）
+			// 获取原始列表项的颜色（如果有）
 			const originalColor = window.getComputedStyle(list).color;
-            // logger.info("item: ", item, "color: ", originalColor)
+			// logger.info("item: ", item, "color: ", originalColor)
 
 			// 创建新的列表项
 			const newItem = document.createElement("li");
@@ -150,7 +150,7 @@ export class Lists extends BaseProcess {
 
 			// 创建微信格式的内容容器
 			const section = document.createElement("section");
-			
+
 			// 对于列表内容，我们需要明确指定颜色还原到文本颜色
 			// 使用CSS变量来自动调整文本颜色，而非硬编码
 			section.style.color = "var(--text-secondary, currentColor)";
@@ -164,7 +164,7 @@ export class Lists extends BaseProcess {
 		}
 
 		// 处理嵌套列表
-		for (const { parentItem, list: childList } of nestedLists) {
+		for (const {parentItem, list: childList} of nestedLists) {
 			// 递归转换子列表
 			const newChildList = this.transformList(
 				childList,

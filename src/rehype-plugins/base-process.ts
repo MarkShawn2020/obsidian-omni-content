@@ -4,31 +4,32 @@ import {App} from "obsidian";
 
 // 为 window 接口扩展，添加 app 属性
 declare global {
-    interface Window {
-        app: App;
-    }
+	interface Window {
+		app: App;
+	}
 }
 
 // 定义插件类型接口
 interface ObsidianPlugin {
-    saveSettings: () => Promise<void>;
+	saveSettings: () => Promise<void>;
 }
 
 // 插件管理器类型
 interface PluginManager {
-    plugins: {
-        [key: string]: ObsidianPlugin;
-    };
+	plugins: {
+		[key: string]: ObsidianPlugin;
+	};
 }
 
 /**
  * 插件配置接口 - 定义插件配置的基本结构
  */
 export interface PluginConfig {
-	// 使用更缩窄的类型而非 any
-	[key: string]: string | number | boolean | null | undefined | string[] | number[] | Record<string, unknown>;
 	// 插件启用状态，默认为 true
 	enabled?: boolean;
+
+	// 使用更缩窄的类型而非 any
+	[key: string]: string | number | boolean | null | undefined | string[] | number[] | Record<string, unknown>;
 }
 
 /**
@@ -85,20 +86,20 @@ export interface IProcessPlugin {
 	 * @returns 更新后的配置
 	 */
 	updateConfig(config: PluginConfig): PluginConfig;
-	
+
 	/**
 	 * 获取插件配置的元数据
 	 * 包含控件类型、标题、选项等UI交互相关信息
 	 * @returns 插件配置的元数据
 	 */
 	getMetaConfig(): PluginMetaConfig;
-	
+
 	/**
 	 * 检查插件是否启用
 	 * @returns 插件是否启用
 	 */
 	isEnabled(): boolean;
-	
+
 	/**
 	 * 设置插件启用状态
 	 * @param enabled 是否启用
@@ -116,71 +117,81 @@ export abstract class BaseProcess implements IProcessPlugin {
 	protected _config: PluginConfig = {
 		enabled: true // 默认启用
 	};
-	
+
 	/**
 	 * 插件构造函数
 	 */
-	constructor(enabled=true) {
+	constructor(enabled = true) {
 		this._config = {enabled}
 		// 从设置中加载插件配置
 		this.loadConfigFromSettings();
 	}
-	
+
 	/**
-	 * 从用户设置中加载插件配置
+	 * 获取插件配置
+	 * @returns 插件的当前配置
 	 */
-	private loadConfigFromSettings(): void {
-		try {
-			const settings = NMPSettings.getInstance();
-			const pluginName = this.getName();
-			
-			// 如果设置中有该插件的配置，使用它
-			if (settings.pluginsConfig && settings.pluginsConfig[pluginName]) {
-				this._config = { ...this._config, ...settings.pluginsConfig[pluginName] };
-				logger.debug(`从设置中加载了 ${pluginName} 插件配置:`, this._config);
-			}
-		} catch (error) {
-			logger.error(`加载插件配置失败:`, error);
-		}
+	getConfig(): PluginConfig {
+		return {...this._config};
 	}
-	
+
 	/**
-	 * 保存插件配置到用户设置
+	 * 更新插件配置
+	 * @param config 新的配置对象
+	 * @returns 更新后的配置
 	 */
-	private saveConfigToSettings(): void {
-		try {
-			const settings = NMPSettings.getInstance();
-			const pluginName = this.getName();
-			
-			// 初始化存储如果不存在
-			if (!settings.pluginsConfig) {
-				settings.pluginsConfig = {};
-			}
-			
-			// 更新插件配置
-			settings.pluginsConfig[pluginName] = { ...this._config };
-			logger.debug(`已保存 ${pluginName} 插件配置到全局设置:`, this._config);
-			
-			// 触发设置保存
-			const app = window.app;
-			if (app) {
-				try {
-					// 使用类型断言安全地访问插件管理器
-					const pluginManager = app as unknown as { plugins: PluginManager };
-					if (pluginManager.plugins) {
-						const plugin = pluginManager.plugins.plugins["omni-content"];
-						if (plugin && typeof plugin.saveSettings === "function") {
-							plugin.saveSettings();
-							logger.debug(`已触发插件的 saveSettings 方法`);
-						}
-					}
-				} catch (e) {
-					logger.error(`触发设置保存时出错:`, e);
-				}
-			}
-		} catch (error) {
-			logger.error(`保存插件配置失败:`, error);
-		}
+	updateConfig(config: PluginConfig): PluginConfig {
+		// 合并新的配置到当前配置
+		this._config = {
+			...this._config,
+			...config
+		};
+
+		logger.debug(`更新了插件配置:`, this._config);
+
+		// 将更新后的配置保存到设置中
+		this.saveConfigToSettings();
+
+		return this._config;
+	}
+
+	/**
+	 * 获取插件配置的元数据
+	 * 包含控件类型、标题、选项等UI交互相关信息
+	 * @returns 插件配置的元数据
+	 */
+	getMetaConfig(): PluginMetaConfig {
+		// 默认返回空元配置，子类可以重写该方法以提供特定的元配置
+		return {};
+	}
+
+	/**
+	 * 插件名称，子类必须实现
+	 */
+	abstract getName(): string;
+
+	/**
+	 * 处理HTML内容，子类必须实现
+	 */
+	abstract process(html: string, settings: NMPSettings): string;
+
+	/**
+	 * 检查插件是否启用
+	 * @returns 插件是否启用
+	 */
+	isEnabled(): boolean {
+		// 如果没有设置enabled属性，默认为启用状态
+		return this._config.enabled !== false;
+	}
+
+	/**
+	 * 设置插件启用状态
+	 * @param enabled 是否启用
+	 */
+	setEnabled(enabled: boolean): void {
+		this._config.enabled = enabled;
+		this.saveConfigToSettings();
+		logger.debug(`插件 ${this.getName()} 的启用状态已更改为: ${enabled}`);
 	}
 
 	/**
@@ -230,69 +241,59 @@ export abstract class BaseProcess implements IProcessPlugin {
 	}
 
 	/**
-	 * 获取插件配置
-	 * @returns 插件的当前配置
+	 * 从用户设置中加载插件配置
 	 */
-	getConfig(): PluginConfig {
-		return { ...this._config };
+	private loadConfigFromSettings(): void {
+		try {
+			const settings = NMPSettings.getInstance();
+			const pluginName = this.getName();
+
+			// 如果设置中有该插件的配置，使用它
+			if (settings.pluginsConfig && settings.pluginsConfig[pluginName]) {
+				this._config = {...this._config, ...settings.pluginsConfig[pluginName]};
+				logger.debug(`从设置中加载了 ${pluginName} 插件配置:`, this._config);
+			}
+		} catch (error) {
+			logger.error(`加载插件配置失败:`, error);
+		}
 	}
 
 	/**
-	 * 更新插件配置
-	 * @param config 新的配置对象
-	 * @returns 更新后的配置
+	 * 保存插件配置到用户设置
 	 */
-	updateConfig(config: PluginConfig): PluginConfig {
-		// 合并新的配置到当前配置
-		this._config = {
-			...this._config,
-			...config
-		};
-		
-		logger.debug(`更新了插件配置:`, this._config);
-		
-		// 将更新后的配置保存到设置中
-		this.saveConfigToSettings();
-		
-		return this._config;
-	}
-	
-	/**
-	 * 获取插件配置的元数据
-	 * 包含控件类型、标题、选项等UI交互相关信息
-	 * @returns 插件配置的元数据
-	 */
-	getMetaConfig(): PluginMetaConfig {
-		// 默认返回空元配置，子类可以重写该方法以提供特定的元配置
-		return {};
-	}
+	private saveConfigToSettings(): void {
+		try {
+			const settings = NMPSettings.getInstance();
+			const pluginName = this.getName();
 
-	/**
-	 * 插件名称，子类必须实现
-	 */
-	abstract getName(): string;
+			// 初始化存储如果不存在
+			if (!settings.pluginsConfig) {
+				settings.pluginsConfig = {};
+			}
 
-	/**
-	 * 处理HTML内容，子类必须实现
-	 */
-	abstract process(html: string, settings: NMPSettings): string;
-	
-	/**
-	 * 检查插件是否启用
-	 * @returns 插件是否启用
-	 */
-	isEnabled(): boolean {
-		// 如果没有设置enabled属性，默认为启用状态
-		return this._config.enabled !== false;
-	}
-	
-	/**
-	 * 设置插件启用状态
-	 * @param enabled 是否启用
-	 */
-	setEnabled(enabled: boolean): void {
-		this._config.enabled = enabled;
-		this.saveConfigToSettings();
-		logger.debug(`插件 ${this.getName()} 的启用状态已更改为: ${enabled}`);
+			// 更新插件配置
+			settings.pluginsConfig[pluginName] = {...this._config};
+			logger.debug(`已保存 ${pluginName} 插件配置到全局设置:`, this._config);
+
+			// 触发设置保存
+			const app = window.app;
+			if (app) {
+				try {
+					// 使用类型断言安全地访问插件管理器
+					const pluginManager = app as unknown as { plugins: PluginManager };
+					if (pluginManager.plugins) {
+						const plugin = pluginManager.plugins.plugins["omni-content"];
+						if (plugin && typeof plugin.saveSettings === "function") {
+							plugin.saveSettings();
+							logger.debug(`已触发插件的 saveSettings 方法`);
+						}
+					}
+				} catch (e) {
+					logger.error(`触发设置保存时出错:`, e);
+				}
+			}
+		} catch (error) {
+			logger.error(`保存插件配置失败:`, error);
+		}
 	}
 }

@@ -19,6 +19,7 @@ export interface Highlight {
 }
 
 export default class AssetsManager {
+	private static instance: AssetsManager;
 	app: App;
 	defaultTheme: Theme = DefaultTheme;
 	manifest: PluginManifest;
@@ -32,7 +33,10 @@ export default class AssetsManager {
 	hilightCfg: string;
 	customCSSPath: string;
 	iconsPath: string;
-	private static instance: AssetsManager;
+
+	private constructor() {
+
+	}
 
 	// 静态方法，用于获取实例
 	public static getInstance(): AssetsManager {
@@ -44,22 +48,6 @@ export default class AssetsManager {
 
 	public static setup(app: App, manifest: PluginManifest) {
 		AssetsManager.getInstance()._setup(app, manifest);
-	}
-
-	private _setup(app: App, manifest: PluginManifest) {
-		this.app = app;
-		this.manifest = manifest;
-		this.assetsPath = this.app.vault.configDir + '/plugins/obsidian-omni-content/assets/';
-		this.themesPath = this.assetsPath + 'themes/';
-		this.hilightPath = this.assetsPath + 'highlights/';
-		this.themeCfg = this.assetsPath + 'themes.json';
-		this.hilightCfg = this.assetsPath + 'highlights.json';
-		this.customCSSPath = this.assetsPath + 'custom.css';
-		this.iconsPath = this.assetsPath + 'icons/';
-	}
-
-	private constructor() {
-
 	}
 
 	async loadAssets() {
@@ -328,5 +316,17 @@ export default class AssetsManager {
 			return '';
 		}
 		return parts.join('/');
+	}
+
+	private _setup(app: App, manifest: PluginManifest) {
+		this.app = app;
+		this.manifest = manifest;
+		this.assetsPath = this.app.vault.configDir + '/plugins/obsidian-omni-content/assets/';
+		this.themesPath = this.assetsPath + 'themes/';
+		this.hilightPath = this.assetsPath + 'highlights/';
+		this.themeCfg = this.assetsPath + 'themes.json';
+		this.hilightCfg = this.assetsPath + 'highlights.json';
+		this.customCSSPath = this.assetsPath + 'custom.css';
+		this.iconsPath = this.assetsPath + 'icons/';
 	}
 }

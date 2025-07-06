@@ -72,6 +72,9 @@ declare class Rule_ extends Container {
 	nodes: NonNullable<Container['nodes']>
 	parent: ContainerWithChildren | undefined
 	raws: Rule.RuleRaws
+	type: 'rule'
+
+	constructor(defaults?: Rule.RuleProps)
 
 	/**
 	 * The rule’s full selector represented as a string.
@@ -83,6 +86,7 @@ declare class Rule_ extends Container {
 	 * ```
 	 */
 	get selector(): string
+
 	set selector(value: string);
 
 	/**
@@ -101,11 +105,8 @@ declare class Rule_ extends Container {
 	 * ```
 	 */
 	get selectors(): string[]
+
 	set selectors(values: string[]);
-
-	type: 'rule'
-
-	constructor(defaults?: Rule.RuleProps)
 
 	assign(overrides: object | Rule.RuleProps): this
 

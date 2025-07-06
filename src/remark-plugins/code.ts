@@ -1,7 +1,6 @@
 import {toPng} from "html-to-image";
 import {Tokens} from "marked";
-import {MarkdownView, Notice} from "obsidian";
-import {wxUploadImage} from "../weixin-api";
+import {MarkdownView} from "obsidian";
 import {WeixinCodeFormatter} from "./weixin-code-formatter";
 import {GetCallout} from "./callouts";
 import {Extension} from "./extension";
@@ -12,17 +11,25 @@ const MermaidSectionClassName = "note-mermaid";
 const MermaidImgClassName = "note-mermaid-img";
 
 export class CodeRenderer extends Extension {
+	showLineNumber: boolean;
+	mermaidIndex: number;
+
+	static getMathType(lang: string | null) {
+		if (!lang) return null;
+		let l = lang.toLowerCase();
+		l = l.trim();
+		if (l === "am" || l === "asciimath") return "asciimath";
+		if (l === "latex" || l === "tex") return "latex";
+		return null;
+	}
+
 	getName(): string {
 		return "CodeRenderer";
 	}
 
-	showLineNumber: boolean;
-	mermaidIndex: number;
-
 	async prepare() {
 		this.mermaidIndex = 0;
 	}
-
 
 	codeRenderer(code: string, infostring: string | undefined): string {
 		console.log("codeRenderer", {code, infostring});
@@ -68,15 +75,6 @@ export class CodeRenderer extends Extension {
 
 			return '<section class="code-section"><pre><code class="hljs language-' + lang + '">' + code + '</code></pre></section>';
 		}
-	}
-
-	static getMathType(lang: string | null) {
-		if (!lang) return null;
-		let l = lang.toLowerCase();
-		l = l.trim();
-		if (l === "am" || l === "asciimath") return "asciimath";
-		if (l === "latex" || l === "tex") return "latex";
-		return null;
 	}
 
 	parseCard(htmlString: string) {
@@ -175,7 +173,7 @@ export class CodeRenderer extends Extension {
 			// 检查第一行是否是 title: xxx 格式
 			const firstLine = lines[0].trim();
 			const titleMatch = firstLine.match(/^title:\s*(.+)$/);
-			
+
 			if (titleMatch) {
 				// 如果第一行是 title: xxx 格式，使用指定的标题
 				title = titleMatch[1].trim();

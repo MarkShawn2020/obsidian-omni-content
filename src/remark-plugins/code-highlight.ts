@@ -14,7 +14,7 @@ export class CodeHighlight extends Extension {
 			langPrefix: 'hljs language-',
 			highlight(code, lang, info) {
 				console.log("CodeHighlight处理代码:", {lang, codePreview: code.substring(0, 100)});
-				
+
 				const type = CodeRenderer.getMathType(lang)
 				if (type) return code;
 				if (lang && lang.trim().toLocaleLowerCase() == 'mpcard') return code;

@@ -4,11 +4,11 @@ import {logger} from "./utils";
 
 // 定义模板数据类型
 export interface TemplateData {
-	// 注意：索引类型必须包含所有特定属性类型
-	[key: string]: string | string[] | number | boolean | object | undefined;
-
 	epigraph?: string[];
 	content?: string;
+
+	// 注意：索引类型必须包含所有特定属性类型
+	[key: string]: string | string[] | number | boolean | object | undefined;
 }
 
 export interface Template {
