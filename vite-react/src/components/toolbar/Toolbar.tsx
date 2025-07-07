@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
-import {Accordion} from "../ui/Accordion";
+import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from "../ui/accordion";
 import {ConfigComponent} from "./PluginConfigComponent";
 import {UnifiedPluginData, ViteReactSettings} from "../../types";
 
@@ -47,16 +47,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		setExpandedSections([...settings.expandedAccordionSections]);
 	}, [settings.expandedAccordionSections]);
 
-	const handleAccordionToggle = (sectionId: string, isExpanded: boolean) => {
-		let newSections: string[];
-		if (isExpanded) {
-			newSections = expandedSections.includes(sectionId)
-				? expandedSections
-				: [...expandedSections, sectionId];
-		} else {
-			newSections = expandedSections.filter(id => id !== sectionId);
-		}
-
+	const handleAccordionChange = (value: string | undefined) => {
+		const newSections = value ? [value] : [];
+		
 		// 更新本地状态
 		setExpandedSections(newSections);
 
@@ -99,7 +92,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 				>
 
 					{/* 手风琴容器 */}
-					<div
+					<Accordion
+						type="single"
+						value={expandedSections[0] || ""}
+						onValueChange={handleAccordionChange}
+						collapsible
 						className="accordion-container"
 						style={{
 							width: "100%",
@@ -110,30 +107,25 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 					>
 						{/* 样式设置 */}
 						{settings.showStyleUI && (
-							<Accordion
-								title="样式设置"
-								sectionId="accordion-样式设置"
-								expandedSections={expandedSections}
-								onToggle={handleAccordionToggle}
-							>
-								<StyleSettings
-									settings={settings}
-									onTemplateChange={onTemplateChange}
-									onThemeChange={onThemeChange}
-									onHighlightChange={onHighlightChange}
-									onThemeColorToggle={onThemeColorToggle}
-									onThemeColorChange={onThemeColorChange}
-								/>
-							</Accordion>
+							<AccordionItem value="accordion-样式设置">
+								<AccordionTrigger className="!text-red-500">样式设置</AccordionTrigger>
+								<AccordionContent>
+									<StyleSettings
+										settings={settings}
+										onTemplateChange={onTemplateChange}
+										onThemeChange={onThemeChange}
+										onHighlightChange={onHighlightChange}
+										onThemeColorToggle={onThemeColorToggle}
+										onThemeColorChange={onThemeColorChange}
+									/>
+								</AccordionContent>
+							</AccordionItem>
 						)}
 
 						{/* 统一插件管理 */}
-						<Accordion
-							title="插件管理"
-							sectionId="accordion-plugins"
-							expandedSections={expandedSections}
-							onToggle={handleAccordionToggle}
-						>
+						<AccordionItem value="accordion-plugins">
+							<AccordionTrigger>插件管理</AccordionTrigger>
+							<AccordionContent>
 							<div className="plugins-container" style={{width: "100%"}}>
 								{plugins.length > 0 ? (
 									<>
@@ -150,7 +142,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 														type="plugin"
 														expandedSections={expandedSections}
 														onToggle={(sectionId, isExpanded) => {
-															handleAccordionToggle(sectionId, isExpanded);
+															// ConfigComponent 内部的 Accordion 切换，这里暂时保持原有逻辑
+															let newSections: string[];
+															if (isExpanded) {
+																newSections = expandedSections.includes(sectionId)
+																	? expandedSections
+																	: [...expandedSections, sectionId];
+															} else {
+																newSections = expandedSections.filter(id => id !== sectionId);
+															}
+															setExpandedSections(newSections);
+															if (onExpandedSectionsChange) {
+																onExpandedSectionsChange(newSections);
+															}
+															onSaveSettings();
 														}}
 														onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 														onConfigChange={async (pluginName, key, value) => {
@@ -191,7 +196,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 														type="plugin"
 														expandedSections={expandedSections}
 														onToggle={(sectionId, isExpanded) => {
-															handleAccordionToggle(sectionId, isExpanded);
+															// ConfigComponent 内部的 Accordion 切换，这里暂时保持原有逻辑
+															let newSections: string[];
+															if (isExpanded) {
+																newSections = expandedSections.includes(sectionId)
+																	? expandedSections
+																	: [...expandedSections, sectionId];
+															} else {
+																newSections = expandedSections.filter(id => id !== sectionId);
+															}
+															setExpandedSections(newSections);
+															if (onExpandedSectionsChange) {
+																onExpandedSectionsChange(newSections);
+															}
+															onSaveSettings();
 														}}
 														onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 														onConfigChange={async (pluginName, key, value) => {
@@ -223,8 +241,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 									<p className="no-plugins-message">未找到任何插件</p>
 								)}
 							</div>
-						</Accordion>
-					</div>
+							</AccordionContent>
+						</AccordionItem>
+					</Accordion>
 				</div>
 			</div>
 		</div>

@@ -21,6 +21,10 @@
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": false,
 		"allowSyntheticDefaultImports": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"]
+		}
 	},
 	"include": [
 		"src"

@@ -1,6 +1,7 @@
 import {createRoot, Root} from "react-dom/client";
 import {OmniContentReact} from "./components/OmniContentReact";
 import {type OmniContentReactLib, OmniContentReactProps} from "./types";
+import "./index.css";
 
 // Store for managing React roots
 const rootStore = new Map<HTMLElement, Root>();

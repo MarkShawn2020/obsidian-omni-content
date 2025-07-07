@@ -102,6 +102,11 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			script.textContent = scriptContent;
 			document.head.appendChild(script);
 
+			// 加载对应的CSS文件
+			if (actualPath) {
+				await this.loadExternalCSS(actualPath);
+			}
+
 			// 等待一下确保脚本执行完成
 			await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -119,6 +124,35 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			logger.error("加载外部React应用失败:", error);
 			// 回退方案：使用原始的React组件
 			this.loadFallbackComponent();
+		}
+	}
+
+	private async loadExternalCSS(jsPath: string) {
+		try {
+			// 对于 omni-content-react.umd.cjs，我们需要加载 style.css
+			let cssPath = jsPath.replace(/omni-content-react\.umd\.cjs$/, 'style.css');
+			
+			// 尝试加载CSS文件
+			const adapter = this.app.vault.adapter;
+			const cssContent = await adapter.read(cssPath);
+			
+			// 检查是否已经有这个CSS
+			const existingStyle = document.querySelector('style[data-omni-content-react]');
+			if (existingStyle) {
+				existingStyle.remove();
+			}
+			
+			// 创建style标签并插入CSS
+			const style = document.createElement('style');
+			style.setAttribute('data-omni-content-react', 'true');
+			style.textContent = cssContent;
+			document.head.appendChild(style);
+			
+			logger.info("成功加载外部CSS:", cssPath);
+
+		} catch (error) {
+			logger.warn("加载外部CSS失败:", error.message);
+			// CSS加载失败不应该阻止应用运行
 		}
 	}
 

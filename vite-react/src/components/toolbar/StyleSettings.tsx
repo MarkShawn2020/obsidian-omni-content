@@ -1,5 +1,5 @@
 import React from "react";
-import {Select, SelectOption} from "../ui/Select";
+import {SelectWrapper as Select, SelectOption} from "../ui/Select";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {ViteReactSettings} from "../../types";
 

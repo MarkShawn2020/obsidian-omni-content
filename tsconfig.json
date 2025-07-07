@@ -18,7 +18,10 @@
 			"DOM", "DOM.Iterable", "ES5", "ES6", "ES7"
 		],
 		"noUnusedLocals": false,
-		"noUnusedParameters": false
+		"noUnusedParameters": false,
+		"paths": {
+			"@/*": ["./vite-react/src/*"]
+		}
 	},
 	"include": [
 		"**/*.ts", "**/*.tsx"

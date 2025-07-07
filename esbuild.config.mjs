@@ -54,7 +54,6 @@ const context = await esbuild.context({
 				{ from: ['./themes.json'], to: ['./assets/themes.json'], outDir: './dist' },
 				{ from: ['./highlights.json'], to: ['./assets/highlights.json'], outDir: './dist' },
 				{ from: ["./css-snippets/black-h2.css"], to: ["./assets/custom.css"], outDir: './dist' },
-				{ from: ['./src/assets/omni-content-react.umd.cjs'], to: ['./src/assets/omni-content-react.umd.cjs'], outDir: './dist' },
 			],
 			verbose: false, // 输出复制操作的日志
 		}),

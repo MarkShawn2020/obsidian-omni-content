@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
-import {Select} from "../ui/Select";
+import {SelectWrapper} from "../ui/Select";
 import {PluginData} from "../../types";
 
 const STORAGE_KEY_PREFIX = 'omni-content-config';
@@ -238,7 +238,7 @@ export const ConfigComponent = <T extends PluginData>({
 											size="small"
 										/>
 									) : meta.type === "select" ? (
-										<Select
+										<SelectWrapper
 											value={String(localConfig[key] || "")}
 											options={meta.options || []}
 											onChange={(value) => handleConfigChange(key, value)}
