@@ -82,7 +82,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 			}}
 		>
 			{/* 品牌区域 */}
-			<BrandSection/>
+			<BrandSection onCopy={onCopy} onDistribute={onDistribute}/>
 
 			{/* 工具栏内容 */}
 			<div
@@ -97,11 +97,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 						padding: "10px",
 					}}
 				>
-					{/* 操作按钮组 */}
-					<ActionButtons
-						onCopy={onCopy}
-						onDistribute={onDistribute}
-					/>
 
 					{/* 手风琴容器 */}
 					<div
