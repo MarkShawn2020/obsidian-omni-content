@@ -486,14 +486,23 @@ ${customCSS}`;
 			if (!pluginManager) return [];
 
 			const plugins = pluginManager.getPlugins();
-			return plugins.map((plugin: any) => ({
-				name: plugin.getName ? plugin.getName() : 'Unknown Plugin',
-				type: plugin.getType ? plugin.getType() : 'unknown',
-				description: plugin.getDescription ? plugin.getDescription() : '',
-				enabled: plugin.isEnabled ? plugin.isEnabled() : true,
-				config: plugin.getConfig ? plugin.getConfig() : {},
-				metaConfig: plugin.getMetaConfig ? plugin.getMetaConfig() : {}
-			}));
+			return plugins.map((plugin: any) => {
+				let description = '';
+				if (plugin.getMetadata && plugin.getMetadata().description) {
+					description = plugin.getMetadata().description;
+				} else if (plugin.getPluginDescription) {
+					description = plugin.getPluginDescription();
+				}
+				
+				return {
+					name: plugin.getName ? plugin.getName() : 'Unknown Plugin',
+					type: plugin.getType ? plugin.getType() : 'unknown',
+					description: description,
+					enabled: plugin.isEnabled ? plugin.isEnabled() : true,
+					config: plugin.getConfig ? plugin.getConfig() : {},
+					metaConfig: plugin.getMetaConfig ? plugin.getMetaConfig() : {}
+				};
+			});
 		} catch (error) {
 			logger.warn("无法获取统一插件数据:", error);
 			return [];
