@@ -14,6 +14,10 @@ export class EmbedBlockMark extends UnifiedRehypePlugin {
 		return "EmbedBlockMark";
 	}
 
+	getPluginDescription(): string {
+		return "嵌入块标记处理，支持Obsidian的嵌入语法";
+	}
+
 	markedExtension(): MarkedExtension {
 		return {
 			extensions: [{

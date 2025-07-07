@@ -10,6 +10,10 @@ export class WechatLink extends UnifiedRemarkPlugin {
 		return "微信链接处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "微信链接处理，将链接转换为脚注或其他微信适配格式";
+	}
+
 	process(html: string, settings: NMPSettings): string {
 
 		try {

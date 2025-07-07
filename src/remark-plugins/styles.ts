@@ -11,6 +11,10 @@ export class Styles extends UnifiedRemarkPlugin {
 		return "样式处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "为微信公众号内容应用内联样式，确保外部CSS兼容性";
+	}
+
 	process(html: string, settings: NMPSettings): string {
 		try {
 			// 创建临时DOM元素

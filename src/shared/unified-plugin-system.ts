@@ -195,7 +195,8 @@ export abstract class RemarkPlugin extends UnifiedPlugin implements IRemarkPlugi
 	getMetadata(): PluginMetadata {
 		return {
 			name: this.getPluginName(),
-			type: PluginType.REMARK
+			type: PluginType.REMARK,
+			description: this.getPluginDescription()
 		};
 	}
 	
@@ -203,6 +204,13 @@ export abstract class RemarkPlugin extends UnifiedPlugin implements IRemarkPlugi
 	 * 获取插件名称 - 子类必须实现
 	 */
 	abstract getPluginName(): string;
+	
+	/**
+	 * 获取插件描述 - 子类可选实现
+	 */
+	getPluginDescription(): string {
+		return "";
+	}
 	
 	/**
 	 * 处理HTML内容 - 子类必须实现
@@ -274,7 +282,8 @@ export abstract class RehypePlugin extends UnifiedPlugin implements IRehypePlugi
 	getMetadata(): PluginMetadata {
 		return {
 			name: this.getPluginName(),
-			type: PluginType.REHYPE
+			type: PluginType.REHYPE,
+			description: this.getPluginDescription()
 		};
 	}
 	
@@ -282,6 +291,13 @@ export abstract class RehypePlugin extends UnifiedPlugin implements IRehypePlugi
 	 * 获取插件名称 - 子类必须实现
 	 */
 	abstract getPluginName(): string;
+	
+	/**
+	 * 获取插件描述 - 子类可选实现
+	 */
+	getPluginDescription(): string {
+		return "";
+	}
 	
 	/**
 	 * 获取Marked扩展 - 子类必须实现

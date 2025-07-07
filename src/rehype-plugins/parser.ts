@@ -101,12 +101,19 @@ export class MarkedParser {
 		const allExtensions = this.getExtensions();
 		logger.debug(`构建marked实例，使用 ${enabledExtensions.length}/${allExtensions.length} 个启用的扩展插件`);
 
+		// 首先为所有启用的扩展设置marked实例
 		for (const ext of enabledExtensions) {
-			this.marked.use(ext.markedExtension());
-			// 设置marked实例到插件中
 			if ('marked' in ext) {
 				(ext as any).marked = this.marked;
+				logger.debug(`为插件 ${ext.getName()} 设置marked实例`);
+			} else {
+				logger.warn(`插件 ${ext.getName()} 没有marked属性`);
 			}
+		}
+
+		// 然后应用扩展并准备
+		for (const ext of enabledExtensions) {
+			this.marked.use(ext.markedExtension());
 			await ext.prepare();
 		}
 		this.marked.use({renderer: customRenderer});

@@ -76,6 +76,10 @@ export class LocalFile extends UnifiedRehypePlugin {
 		return "LocalFile";
 	}
 
+	getPluginDescription(): string {
+		return "本地文件处理，包括图片和附件的路径解析和上传";
+	}
+
 	generateId() {
 		this.index += 1;
 		return `fid-${this.index}`;

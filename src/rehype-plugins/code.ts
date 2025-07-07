@@ -27,6 +27,10 @@ export class CodeRenderer extends UnifiedRehypePlugin {
 		return "CodeRenderer";
 	}
 
+	getPluginDescription(): string {
+		return "代码渲染器，处理代码块的渲染和图片转换";
+	}
+
 	async prepare() {
 		this.mermaidIndex = 0;
 	}

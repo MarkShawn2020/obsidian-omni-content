@@ -8,6 +8,10 @@ export class TextHighlight extends UnifiedRehypePlugin {
 		return "TextHighlight";
 	}
 
+	getPluginDescription(): string {
+		return "文本高亮处理，将==高亮==语法转换为高亮显示";
+	}
+
 	markedExtension(): MarkedExtension {
 		return {
 			extensions: [{

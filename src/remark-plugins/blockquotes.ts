@@ -11,6 +11,10 @@ export class Blockquotes extends UnifiedRemarkPlugin {
 		return "引用块处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "处理微信公众号中的引用块格式，强制设置样式以覆盖微信编辑器的默认样式";
+	}
+
 	process(html: string, settings: NMPSettings): string {
 		try {
 			const parser = new DOMParser();

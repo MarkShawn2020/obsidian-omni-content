@@ -10,6 +10,10 @@ export class Tables extends UnifiedRemarkPlugin {
 		return "表格处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "表格格式处理，优化微信公众号中的表格显示";
+	}
+
 	process(html: string, settings: NMPSettings): string {
 		try {
 			const parser = new DOMParser();

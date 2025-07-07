@@ -13,6 +13,10 @@ export class Headings extends UnifiedRemarkPlugin {
 		return "标题处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "标题处理插件，支持添加标题序号和分隔符换行功能";
+	}
+
 	/**
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据

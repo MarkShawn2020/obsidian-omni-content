@@ -11,6 +11,10 @@ export class Lists extends UnifiedRemarkPlugin {
 		return "列表处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "列表格式处理，特别优化微信公众号中的嵌套列表显示效果";
+	}
+
 	process(html: string, settings: NMPSettings): string {
 		try {
 			const parser = new DOMParser();

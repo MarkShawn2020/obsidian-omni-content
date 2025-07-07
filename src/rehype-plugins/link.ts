@@ -8,6 +8,10 @@ export class LinkRenderer extends UnifiedRehypePlugin {
 		return "LinkRenderer";
 	}
 
+	getPluginDescription(): string {
+		return "链接处理插件，优化链接显示和邮箱地址处理";
+	}
+
 	// 检查是否为邮箱格式
 	isEmailAddress(text: string): boolean {
 		// 简单的邮箱格式检测

@@ -181,9 +181,17 @@ export class CalloutRenderer extends UnifiedRehypePlugin {
 		return "CalloutRenderer";
 	}
 
+	getPluginDescription(): string {
+		return "将Obsidian样式的Callout块（如>[!note]）转换为带有图标和样式的可视化块";
+	}
+
 	async renderer(token: Tokens.Blockquote) {
 		let callout = matchCallouts(token.text);
 		if (callout == "") {
+			if (!this.marked) {
+				console.error('CalloutRenderer: marked实例未初始化');
+				return `<blockquote>Marked实例未初始化</blockquote>`;
+			}
 			const body = this.marked.parser(token.tokens);
 			return `<blockquote>${body}</blockquote>`;
 		}
@@ -202,7 +210,12 @@ export class CalloutRenderer extends UnifiedRehypePlugin {
 		let body = "";
 		if (index > 0) {
 			token.text = token.text.slice(index + 1);
-			body = await this.marked.parse(token.text);
+			if (!this.marked) {
+				console.error('CalloutRenderer: marked实例未初始化 (parse)');
+				body = "Marked实例未初始化";
+			} else {
+				body = await this.marked.parse(token.text);
+			}
 		}
 
 		return `<section class="ad ${info?.style}"><section class="ad-title-wrap"><span class="ad-icon">${info?.icon}</span><span class="ad-title">${title}<span></section><section class="ad-content">${body}</section></section>`;

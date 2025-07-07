@@ -15,6 +15,10 @@ export class Images extends UnifiedRemarkPlugin {
 		return "图片处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "处理微信公众号中的图片格式，包括添加data-src属性、设置图片样式和控制图片说明显示";
+	}
+
 	/**
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据

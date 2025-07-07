@@ -137,6 +137,10 @@ export class MathRenderer extends UnifiedRehypePlugin {
 		return "MathRenderer";
 	}
 
+	getPluginDescription(): string {
+		return "数学公式渲染，将LaTeX/AsciiMath公式转换为可视化公式";
+	}
+
 	renderer(token: Tokens.Generic, inline: boolean, type: string = '') {
 		if (type === '') {
 			type = this.settings.math;

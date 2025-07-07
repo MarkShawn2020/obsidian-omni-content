@@ -123,8 +123,17 @@ export class PluginRegistry {
 /**
  * 初始化插件系统的便捷函数
  */
+let isInitialized = false;
 export function initializePluginSystem(app: App, settings: NMPSettings, assetsManager: AssetsManager, callback: any): UnifiedPluginManager {
     const registry = PluginRegistry.getInstance();
-    registry.registerAllPlugins(app, settings, assetsManager, callback);
+    
+    if (!isInitialized) {
+        registry.registerAllPlugins(app, settings, assetsManager, callback);
+        isInitialized = true;
+        logger.debug("插件系统初始化完成");
+    } else {
+        logger.debug("插件系统已初始化，跳过重复初始化");
+    }
+    
     return registry.getPluginManager();
 }

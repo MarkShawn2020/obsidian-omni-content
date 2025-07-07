@@ -157,7 +157,27 @@ export const ConfigComponent = <T extends PluginData>({
 							size="small"
 						/>
 					</div>
-					<div className="accordion-title">{item.name}</div>
+					<div className="accordion-title">
+						<div className="plugin-title">{item.name}</div>
+						{item.description && (
+							<div 
+								className="plugin-description"
+								style={{
+									fontSize: "11px",
+									color: "var(--text-muted)",
+									marginTop: "2px",
+									lineHeight: "1.3",
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									whiteSpace: "nowrap",
+									maxWidth: "200px"
+								}}
+								title={item.description}
+							>
+								{item.description}
+							</div>
+						)}
+					</div>
 				</div>
 
 				{hasConfigOptions && (

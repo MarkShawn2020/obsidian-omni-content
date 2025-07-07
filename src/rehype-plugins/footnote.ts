@@ -139,4 +139,8 @@ export class FootnoteRenderer extends UnifiedRehypePlugin {
 	getPluginName(): string {
 		return "FootnoteRenderer";
 	}
+
+	getPluginDescription(): string {
+		return "脚注处理，将Markdown脚注转换为可视化的脚注显示";
+	}
 }

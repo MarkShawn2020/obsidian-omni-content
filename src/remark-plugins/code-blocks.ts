@@ -96,6 +96,10 @@ export class CodeBlocks extends UnifiedRemarkPlugin {
 		return "代码块处理插件";
 	}
 
+	getPluginDescription(): string {
+		return "代码块样式优化，支持行号显示和Mermaid图表处理，将图表转换为图片用于微信公众号";
+	}
+
 	/**
 	 * 获取插件配置的元数据
 	 * @returns 插件配置的元数据

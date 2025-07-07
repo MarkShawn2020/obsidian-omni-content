@@ -8,6 +8,10 @@ export class SVGIcon extends UnifiedRehypePlugin {
 		return "SVGIcon";
 	}
 
+	getPluginDescription(): string {
+		return "SVG图标处理，将图标标记转换为SVG图标显示";
+	}
+
 	isNumeric(str: string): boolean {
 		return !isNaN(Number(str)) && str.trim() !== '';
 	}

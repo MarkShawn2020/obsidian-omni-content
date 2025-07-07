@@ -9,6 +9,10 @@ export class CodeHighlight extends UnifiedRehypePlugin {
 		return "CodeHighlight";
 	}
 
+	getPluginDescription(): string {
+		return "代码语法高亮处理，使用highlight.js为代码块添加语法着色";
+	}
+
 	markedExtension(): MarkedExtension {
 		return markedHighlight({
 			langPrefix: 'hljs language-',
