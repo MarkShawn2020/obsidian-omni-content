@@ -1,5 +1,5 @@
 import React from "react";
-import {SelectWrapper as Select, SelectOption} from "../ui/Select";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/Select";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {ViteReactSettings} from "../../types";
 
@@ -21,28 +21,29 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 																onThemeColorChange,
 															}) => {
 	// 模板选项（静态提供）
-	const templateOptions: SelectOption[] = [
-		{value: "", text: "不使用模板"},
+	const templateOptions = [
+		{value: "none", text: "不使用模板"},
 		{value: "default", text: "默认模板"},
 		{value: "minimal", text: "极简模板"},
 	];
 
 	// 主题选项（静态提供）
-	const themeOptions: SelectOption[] = [
+	const themeOptions = [
 		{value: "default", text: "默认主题"},
 		{value: "dark", text: "深色主题"},
 		{value: "light", text: "浅色主题"},
 	];
 
 	// 高亮选项（静态提供）
-	const highlightOptions: SelectOption[] = [
+	const highlightOptions = [
 		{value: "default", text: "默认高亮"},
 		{value: "github", text: "GitHub"},
 		{value: "vscode", text: "VSCode"},
 	];
 
 	const handleTemplateChange = (value: string) => {
-		onTemplateChange(value);
+		// 将 "none" 转换为空字符串，保持向后兼容
+		onTemplateChange(value === "none" ? "" : value);
 	};
 
 	const handleColorInput = (e: React.FormEvent<HTMLInputElement>) => {
@@ -56,10 +57,10 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 	};
 
 	return (
-		<div style={{width: "100%"}}>
+		<div className="w-full space-y-3">
 			{/* 模板选择器 */}
-			<div className="toolbar-group">
-				<div className="toolbar-label">
+			<div className="space-y-1.5">
+				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 					<svg
 						width="16"
 						height="16"
@@ -75,18 +76,23 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 					</svg>
 					<span>模板</span>
 				</div>
-				<div className="select-wrapper">
-					<Select
-						value={settings.useTemplate ? settings.defaultTemplate : ""}
-						options={templateOptions}
-						onChange={handleTemplateChange}
-					/>
-				</div>
+				<Select value={settings.useTemplate ? settings.defaultTemplate : "none"} onValueChange={handleTemplateChange}>
+					<SelectTrigger className="w-full h-8 text-sm">
+						<SelectValue placeholder="选择模板" />
+					</SelectTrigger>
+					<SelectContent>
+						{templateOptions.map((option) => (
+							<SelectItem key={option.value} value={option.value}>
+								{option.text}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</div>
 
 			{/* 主题选择器 */}
-			<div className="toolbar-group">
-				<div className="toolbar-label">
+			<div className="space-y-1.5">
+				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 					<svg
 						width="16"
 						height="16"
@@ -101,18 +107,23 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 					</svg>
 					<span>主题</span>
 				</div>
-				<div className="select-wrapper">
-					<Select
-						value={settings.defaultStyle}
-						options={themeOptions}
-						onChange={onThemeChange}
-					/>
-				</div>
+				<Select value={settings.defaultStyle} onValueChange={onThemeChange}>
+					<SelectTrigger className="w-full h-8 text-sm">
+						<SelectValue placeholder="选择主题" />
+					</SelectTrigger>
+					<SelectContent>
+						{themeOptions.map((option) => (
+							<SelectItem key={option.value} value={option.value}>
+								{option.text}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</div>
 
 			{/* 代码高亮选择器 */}
-			<div className="toolbar-group">
-				<div className="toolbar-label">
+			<div className="space-y-1.5">
+				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 					<svg
 						width="16"
 						height="16"
@@ -128,18 +139,23 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 					</svg>
 					<span>代码高亮</span>
 				</div>
-				<div className="select-wrapper">
-					<Select
-						value={settings.defaultHighlight}
-						options={highlightOptions}
-						onChange={onHighlightChange}
-					/>
-				</div>
+				<Select value={settings.defaultHighlight} onValueChange={onHighlightChange}>
+					<SelectTrigger className="w-full h-8 text-sm">
+						<SelectValue placeholder="选择高亮主题" />
+					</SelectTrigger>
+					<SelectContent>
+						{highlightOptions.map((option) => (
+							<SelectItem key={option.value} value={option.value}>
+								{option.text}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</div>
 
 			{/* 主题色选择器 */}
-			<div className="toolbar-group">
-				<div className="toolbar-label">
+			<div className="space-y-2">
+				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 					<svg
 						width="16"
 						height="16"
@@ -155,26 +171,21 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 					<span>主题色</span>
 				</div>
 
-				<div className="color-control-wrapper">
-					<div className="enable-switch">
+				<div className="space-y-2">
+					<div className="flex items-center gap-2">
 						<ToggleSwitch
 							size={'small'}
 							checked={settings.enableThemeColor}
 							onChange={onThemeColorToggle}
 						/>
-						<span className="toggle-text">
-              {settings.enableThemeColor ? "启用自定义色" : "使用主题色"}
-            </span>
+						<span className="text-xs text-muted-foreground">
+							{settings.enableThemeColor ? "启用自定义色" : "使用主题色"}
+						</span>
 					</div>
 
-					<div
-						className="color-picker-wrapper"
-						style={{
-							opacity: settings.enableThemeColor ? "1" : "0.5",
-						}}
-					>
+					<div className={`flex items-center gap-2 transition-opacity ${settings.enableThemeColor ? 'opacity-100' : 'opacity-50'}`}>
 						<input
-							className="toolbar-color-picker"
+							className="w-8 h-6 rounded border border-border cursor-pointer disabled:cursor-not-allowed"
 							type="color"
 							value={settings.themeColor || "#7852ee"}
 							disabled={!settings.enableThemeColor}
@@ -182,11 +193,14 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 							onChange={handleColorChange}
 						/>
 						<div
-							className="color-preview"
+							className="w-4 h-4 rounded border border-border"
 							style={{
 								backgroundColor: settings.themeColor || "#7852ee",
 							}}
 						/>
+						<span className="text-xs text-muted-foreground font-mono">
+							{settings.themeColor || "#7852ee"}
+						</span>
 					</div>
 				</div>
 			</div>
