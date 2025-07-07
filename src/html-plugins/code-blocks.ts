@@ -1,4 +1,4 @@
-import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
+import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 import {Notice} from "obsidian";
@@ -50,7 +50,7 @@ const MermaidImgClassName = "note-mermaid-img";
 /**
  * 代码块处理插件 - 处理微信公众号中的代码格式和行号显示
  */
-export class CodeBlocks extends UnifiedRemarkPlugin {
+export class CodeBlocks extends UnifiedHtmlPlugin {
 	/**
 	 * 将base64图片转换为Blob对象
 	 * @param src base64图片数据

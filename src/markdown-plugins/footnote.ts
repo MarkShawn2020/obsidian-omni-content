@@ -1,5 +1,5 @@
 import {MarkedExtension, Tokens} from "marked";
-import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
+import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 
 interface FootnoteRefToken extends Tokens.Generic {
 	type: 'footnoteRef';
@@ -11,7 +11,7 @@ type FootnoteDefinition = {
 	content: string;
 };
 
-export class FootnoteRenderer extends UnifiedRehypePlugin {
+export class FootnoteRenderer extends UnifiedMarkdownPlugin {
 	// 存储所有脚注定义
 	footnotes: Map<string, string> = new Map();
 	// 存储脚注引用的顺序

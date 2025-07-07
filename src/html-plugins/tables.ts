@@ -1,11 +1,11 @@
-import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
+import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
 /**
  * 表格处理插件 - 处理微信公众号中的表格格式
  */
-export class Tables extends UnifiedRemarkPlugin {
+export class Tables extends UnifiedHtmlPlugin {
 	getPluginName(): string {
 		return "表格处理插件";
 	}

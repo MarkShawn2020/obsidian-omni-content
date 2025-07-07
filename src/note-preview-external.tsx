@@ -3,10 +3,10 @@ import {FRONT_MATTER_REGEX, VIEW_TYPE_NOTE_PREVIEW} from "src/constants";
 
 import AssetsManager from "./assets";
 import InlineCSS from "./inline-css";
-import {CardDataManager} from "./remark-plugins/code-blocks";
-import {MDRendererCallback} from "./rehype-plugins/rehype-plugin";
-import {LocalImageManager} from "./rehype-plugins/local-file";
-import {MarkedParser} from "./rehype-plugins/parser";
+import {CardDataManager} from "./html-plugins/code-blocks";
+import {MDRendererCallback} from "./markdown-plugins/rehype-plugin";
+import {LocalImageManager} from "./markdown-plugins/local-file";
+import {MarkedParser} from "./markdown-plugins/parser";
 import {UnifiedPluginManager} from "./shared/unified-plugin-system";
 import {initializePluginSystem} from "./shared/plugin-registry";
 import {NMPSettings} from "./settings";
@@ -483,9 +483,13 @@ ${customCSS}`;
 	private getUnifiedPlugins() {
 		try {
 			const pluginManager = UnifiedPluginManager.getInstance();
-			if (!pluginManager) return [];
+			if (!pluginManager) {
+				logger.warn("UnifiedPluginManager 实例为空");
+				return [];
+			}
 
 			const plugins = pluginManager.getPlugins();
+			logger.debug(`获取到 ${plugins.length} 个插件`);
 			return plugins.map((plugin: any) => {
 				let description = '';
 				if (plugin.getMetadata && plugin.getMetadata().description) {
@@ -494,14 +498,21 @@ ${customCSS}`;
 					description = plugin.getPluginDescription();
 				}
 				
-				return {
+				// 将新的类型映射回React组件期望的类型（按照标准remark/rehype概念）
+				const pluginType = plugin.getType ? plugin.getType() : 'unknown';
+				const mappedType = pluginType === 'html' ? 'rehype' : pluginType === 'markdown' ? 'remark' : pluginType;
+				
+				const pluginData = {
 					name: plugin.getName ? plugin.getName() : 'Unknown Plugin',
-					type: plugin.getType ? plugin.getType() : 'unknown',
+					type: mappedType,
 					description: description,
 					enabled: plugin.isEnabled ? plugin.isEnabled() : true,
 					config: plugin.getConfig ? plugin.getConfig() : {},
 					metaConfig: plugin.getMetaConfig ? plugin.getMetaConfig() : {}
 				};
+				
+				logger.debug(`插件数据: ${pluginData.name} (${pluginType} -> ${mappedType})`);
+				return pluginData;
 			});
 		} catch (error) {
 			logger.warn("无法获取统一插件数据:", error);

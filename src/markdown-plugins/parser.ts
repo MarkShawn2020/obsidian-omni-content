@@ -3,7 +3,7 @@ import {App, Vault} from "obsidian";
 import {NMPSettings} from "src/settings";
 import AssetsManager from "../assets";
 import {logger} from "src/utils";
-import {UnifiedPluginManager, IRehypePlugin} from "src/shared/unified-plugin-system";
+import {UnifiedPluginManager, IMarkdownPlugin} from "src/shared/unified-plugin-system";
 import {initializePluginSystem} from "src/shared/plugin-registry";
 import {FootnoteRenderer} from "./footnote";
 
@@ -46,24 +46,24 @@ export class MarkedParser {
 		// 初始化统一插件系统
 		this.pluginManager = initializePluginSystem(app, settings, assetsManager, callback);
 
-		const rehypePlugins = this.pluginManager.getRehypePlugins();
-		logger.debug(`初始化了 ${rehypePlugins.length} 个markdown扩展插件`);
+		const markdownPlugins = this.pluginManager.getMarkdownPlugins();
+		logger.debug(`初始化了 ${markdownPlugins.length} 个markdown扩展插件`);
 	}
 
 	/**
 	 * 获取所有已注册的扩展插件
 	 * @returns 扩展插件数组
 	 */
-	getExtensions(): IRehypePlugin[] {
-		return this.pluginManager.getRehypePlugins();
+	getExtensions(): IMarkdownPlugin[] {
+		return this.pluginManager.getMarkdownPlugins();
 	}
 
 	/**
 	 * 获取所有启用的扩展插件
 	 * @returns 启用的扩展插件数组
 	 */
-	getEnabledExtensions(): IRehypePlugin[] {
-		return this.pluginManager.getRehypePlugins().filter(ext => ext.isEnabled());
+	getEnabledExtensions(): IMarkdownPlugin[] {
+		return this.pluginManager.getMarkdownPlugins().filter(ext => ext.isEnabled());
 	}
 
 	/**
@@ -71,8 +71,8 @@ export class MarkedParser {
 	 * @param name 插件名称
 	 * @returns 扩展插件实例或null
 	 */
-	getExtensionByName(name: string): IRehypePlugin | null {
-		return this.pluginManager.getRehypePlugins().find(ext => ext.getName() === name) || null;
+	getExtensionByName(name: string): IMarkdownPlugin | null {
+		return this.pluginManager.getMarkdownPlugins().find(ext => ext.getName() === name) || null;
 	}
 
 	/**

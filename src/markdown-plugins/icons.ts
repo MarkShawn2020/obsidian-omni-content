@@ -1,9 +1,9 @@
 import {MarkedExtension, Tokens} from "marked";
-import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
+import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 
 const iconsRegex = /^\[:(.*?):\]/;
 
-export class SVGIcon extends UnifiedRehypePlugin {
+export class SVGIcon extends UnifiedMarkdownPlugin {
 	getPluginName(): string {
 		return "SVGIcon";
 	}

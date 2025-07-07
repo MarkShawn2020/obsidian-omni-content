@@ -1,11 +1,11 @@
-import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
+import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
 /**
  * 链接处理插件 - 根据设置将链接转换为脚注或其他格式
  */
-export class WechatLink extends UnifiedRemarkPlugin {
+export class WechatLink extends UnifiedHtmlPlugin {
 	getPluginName(): string {
 		return "微信链接处理插件";
 	}

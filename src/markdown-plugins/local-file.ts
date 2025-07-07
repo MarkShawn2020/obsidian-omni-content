@@ -1,7 +1,7 @@
 import {MarkedExtension, Token, Tokens} from "marked";
 import {MarkdownView, requestUrl, TAbstractFile, TFile} from "obsidian";
 import {NMPSettings} from "../settings";
-import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
+import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 
 declare module 'obsidian' {
 	interface Vault {
@@ -69,7 +69,7 @@ export class LocalImageManager {
 }
 
 
-export class LocalFile extends UnifiedRehypePlugin {
+export class LocalFile extends UnifiedMarkdownPlugin {
 	index: number = 0;
 
 	getPluginName(): string {

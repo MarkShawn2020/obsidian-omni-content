@@ -1,7 +1,7 @@
 import {MarkedExtension, Token, Tokens} from "marked";
 import {requestUrl} from "obsidian";
 import {NMPSettings} from "src/settings";
-import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
+import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 import {MDRendererCallback} from "./parser";
 
 const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1/;
@@ -131,7 +131,7 @@ export class MathRendererQueue {
 }
 
 
-export class MathRenderer extends UnifiedRehypePlugin {
+export class MathRenderer extends UnifiedMarkdownPlugin {
 
 	getPluginName(): string {
 		return "MathRenderer";

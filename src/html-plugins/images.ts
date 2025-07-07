@@ -1,4 +1,4 @@
-import {RemarkPlugin as UnifiedRemarkPlugin, PluginType, PluginMetadata} from "src/shared/unified-plugin-system";
+import {HtmlPlugin as UnifiedHtmlPlugin, PluginType, PluginMetadata} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 import {UniversalPluginMetaConfig} from "src/shared/plugin-config-manager";
@@ -10,7 +10,7 @@ import {UniversalPluginMetaConfig} from "src/shared/plugin-config-manager";
  * 2. 添加data-src属性: 微信编辑器需要
  * 3. 设置图片样式和对齐方式
  */
-export class Images extends UnifiedRemarkPlugin {
+export class Images extends UnifiedHtmlPlugin {
 	getPluginName(): string {
 		return "图片处理插件";
 	}

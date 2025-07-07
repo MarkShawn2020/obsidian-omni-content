@@ -2,9 +2,9 @@ import hljs from "highlight.js";
 import {MarkedExtension} from "marked";
 import {markedHighlight} from "marked-highlight";
 import {CodeRenderer} from "./code";
-import {RehypePlugin as UnifiedRehypePlugin} from "src/shared/unified-plugin-system";
+import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 
-export class CodeHighlight extends UnifiedRehypePlugin {
+export class CodeHighlight extends UnifiedMarkdownPlugin {
 	getPluginName(): string {
 		return "CodeHighlight";
 	}

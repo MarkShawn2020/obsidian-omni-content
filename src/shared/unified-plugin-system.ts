@@ -10,8 +10,8 @@ import AssetsManager from "src/assets";
  * 插件类型枚举
  */
 export enum PluginType {
-	REMARK = "remark",
-	REHYPE = "rehype"
+	HTML = "html",
+	MARKDOWN = "markdown"
 }
 
 /**
@@ -71,9 +71,9 @@ export interface IUnifiedPlugin {
 }
 
 /**
- * Remark插件接口（用于HTML后处理）
+ * HTML插件接口（用于HTML后处理）
  */
-export interface IRemarkPlugin extends IUnifiedPlugin {
+export interface IHtmlPlugin extends IUnifiedPlugin {
 	/**
 	 * 处理HTML内容
 	 */
@@ -81,9 +81,9 @@ export interface IRemarkPlugin extends IUnifiedPlugin {
 }
 
 /**
- * Rehype插件接口（用于Markdown解析扩展）
+ * Markdown插件接口（用于Markdown解析扩展）
  */
-export interface IRehypePlugin extends IUnifiedPlugin {
+export interface IMarkdownPlugin extends IUnifiedPlugin {
 	/**
 	 * 获取Marked扩展
 	 */
@@ -186,16 +186,16 @@ export abstract class UnifiedPlugin implements IUnifiedPlugin {
 }
 
 /**
- * Remark插件基类
+ * HTML插件基类
  */
-export abstract class RemarkPlugin extends UnifiedPlugin implements IRemarkPlugin {
+export abstract class HtmlPlugin extends UnifiedPlugin implements IHtmlPlugin {
 	/**
 	 * 获取插件元数据
 	 */
 	getMetadata(): PluginMetadata {
 		return {
 			name: this.getPluginName(),
-			type: PluginType.REMARK,
+			type: PluginType.HTML,
 			description: this.getPluginDescription()
 		};
 	}
@@ -257,9 +257,9 @@ export abstract class RemarkPlugin extends UnifiedPlugin implements IRemarkPlugi
 }
 
 /**
- * Rehype插件基类
+ * Markdown插件基类
  */
-export abstract class RehypePlugin extends UnifiedPlugin implements IRehypePlugin {
+export abstract class MarkdownPlugin extends UnifiedPlugin implements IMarkdownPlugin {
 	app: App;
 	vault: Vault;
 	assetsManager: AssetsManager;
@@ -282,7 +282,7 @@ export abstract class RehypePlugin extends UnifiedPlugin implements IRehypePlugi
 	getMetadata(): PluginMetadata {
 		return {
 			name: this.getPluginName(),
-			type: PluginType.REHYPE,
+			type: PluginType.MARKDOWN,
 			description: this.getPluginDescription()
 		};
 	}
@@ -361,49 +361,49 @@ export class UnifiedPluginManager extends BasePluginManager<IUnifiedPlugin> {
 	}
 	
 	/**
-	 * 获取所有Remark插件
+	 * 获取所有HTML插件
 	 */
-	public getRemarkPlugins(): IRemarkPlugin[] {
-		return this.getPluginsByType(PluginType.REMARK) as IRemarkPlugin[];
+	public getHtmlPlugins(): IHtmlPlugin[] {
+		return this.getPluginsByType(PluginType.HTML) as IHtmlPlugin[];
 	}
 	
 	/**
-	 * 获取所有Rehype插件
+	 * 获取所有Markdown插件
 	 */
-	public getRehypePlugins(): IRehypePlugin[] {
-		return this.getPluginsByType(PluginType.REHYPE) as IRehypePlugin[];
+	public getMarkdownPlugins(): IMarkdownPlugin[] {
+		return this.getPluginsByType(PluginType.MARKDOWN) as IMarkdownPlugin[];
 	}
 	
 	/**
-	 * 处理HTML内容 - 应用所有启用的Remark插件
+	 * 处理HTML内容 - 应用所有启用的HTML插件
 	 */
 	public processContent(html: string, settings: NMPSettings): string {
-		const remarkPlugins = this.getRemarkPlugins();
-		logger.debug(`开始处理内容，共有 ${remarkPlugins.length} 个Remark插件`);
+		const htmlPlugins = this.getHtmlPlugins();
+		logger.debug(`开始处理内容，共有 ${htmlPlugins.length} 个HTML插件`);
 		
 		let appliedPluginCount = 0;
 		
-		const result = remarkPlugins.reduce((processedHtml, plugin) => {
+		const result = htmlPlugins.reduce((processedHtml, plugin) => {
 			if (plugin.isEnabled()) {
-				logger.debug(`应用Remark插件: ${plugin.getName()}`);
+				logger.debug(`应用HTML插件: ${plugin.getName()}`);
 				appliedPluginCount++;
 				return plugin.process(processedHtml, settings);
 			} else {
-				logger.debug(`跳过禁用的Remark插件: ${plugin.getName()}`);
+				logger.debug(`跳过禁用的HTML插件: ${plugin.getName()}`);
 				return processedHtml;
 			}
 		}, html);
 		
-		logger.debug(`内容处理完成，实际应用了 ${appliedPluginCount} 个Remark插件`);
+		logger.debug(`内容处理完成，实际应用了 ${appliedPluginCount} 个HTML插件`);
 		return result;
 	}
 	
 	/**
-	 * 获取所有启用的Rehype插件扩展
+	 * 获取所有启用的Markdown插件扩展
 	 */
-	public getEnabledRehypeExtensions(): MarkedExtension[] {
-		const rehypePlugins = this.getRehypePlugins();
-		return rehypePlugins
+	public getEnabledMarkdownExtensions(): MarkedExtension[] {
+		const markdownPlugins = this.getMarkdownPlugins();
+		return markdownPlugins
 			.filter(plugin => plugin.isEnabled())
 			.map(plugin => plugin.markedExtension());
 	}

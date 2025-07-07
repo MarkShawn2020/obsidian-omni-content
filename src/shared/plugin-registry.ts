@@ -1,25 +1,25 @@
 import { UnifiedPluginManager, PluginType } from "./unified-plugin-system";
 import { logger } from "src/utils";
 
-import { CalloutRenderer } from "src/rehype-plugins/callouts";
-import { LocalFile } from "src/rehype-plugins/local-file";
-import { CodeHighlight } from "src/rehype-plugins/code-highlight";
-import { EmbedBlockMark } from "src/rehype-plugins/embed-block-mark";
-import { SVGIcon } from "src/rehype-plugins/icons";
-import { LinkRenderer } from "src/rehype-plugins/link";
-import { FootnoteRenderer } from "src/rehype-plugins/footnote";
-import { TextHighlight } from "src/rehype-plugins/text-highlight";
-import { CodeRenderer } from "src/rehype-plugins/code";
-import { MathRenderer } from "src/rehype-plugins/math";
+import { CalloutRenderer } from "src/markdown-plugins/callouts";
+import { LocalFile } from "src/markdown-plugins/local-file";
+import { CodeHighlight } from "src/markdown-plugins/code-highlight";
+import { EmbedBlockMark } from "src/markdown-plugins/embed-block-mark";
+import { SVGIcon } from "src/markdown-plugins/icons";
+import { LinkRenderer } from "src/markdown-plugins/link";
+import { FootnoteRenderer } from "src/markdown-plugins/footnote";
+import { TextHighlight } from "src/markdown-plugins/text-highlight";
+import { CodeRenderer } from "src/markdown-plugins/code";
+import { MathRenderer } from "src/markdown-plugins/math";
 
-import { Images } from "src/remark-plugins/images";
-import { Blockquotes } from "src/remark-plugins/blockquotes";
-import { CodeBlocks } from "src/remark-plugins/code-blocks";
-import { Headings } from "src/remark-plugins/headings";
-import { Lists } from "src/remark-plugins/lists";
-import { Styles } from "src/remark-plugins/styles";
-import { Tables } from "src/remark-plugins/tables";
-import { WechatLink } from "src/remark-plugins/wechat-link";
+import { Images } from "src/html-plugins/images";
+import { Blockquotes } from "src/html-plugins/blockquotes";
+import { CodeBlocks } from "src/html-plugins/code-blocks";
+import { Headings } from "src/html-plugins/headings";
+import { Lists } from "src/html-plugins/lists";
+import { Styles } from "src/html-plugins/styles";
+import { Tables } from "src/html-plugins/tables";
+import { WechatLink } from "src/html-plugins/wechat-link";
 
 
 
@@ -46,12 +46,12 @@ export class PluginRegistry {
     }
     
     /**
-     * 注册所有Remark插件（HTML后处理）
+     * 注册所有HTML插件（HTML后处理）
      */
-    public registerRemarkPlugins(): void {
-        logger.info("正在注册Remark插件...");
+    public registerHtmlPlugins(): void {
+        logger.info("正在注册HTML插件...");
         
-        const remarkPlugins = [
+        const htmlPlugins = [
             new Images(),
             new Blockquotes(false),
             new CodeBlocks(),
@@ -62,17 +62,17 @@ export class PluginRegistry {
             new WechatLink(),
         ];
         
-        this.pluginManager.registerPlugins(remarkPlugins as any);
-        logger.info(`Remark插件注册完成，共注册了 ${remarkPlugins.length} 个插件`);
+        this.pluginManager.registerPlugins(htmlPlugins as any);
+        logger.info(`HTML插件注册完成，共注册了 ${htmlPlugins.length} 个插件`);
     }
     
     /**
-     * 注册所有Rehype插件（Markdown解析扩展）
+     * 注册所有Markdown插件（Markdown解析扩展）
      */
-    public registerRehypePlugins(app: App, settings: NMPSettings, assetsManager: AssetsManager, callback: any): void {
-        logger.info("正在注册Rehype插件...");
+    public registerMarkdownPlugins(app: App, settings: NMPSettings, assetsManager: AssetsManager, callback: any): void {
+        logger.info("正在注册Markdown插件...");
         
-        const rehypePlugins = [
+        const markdownPlugins = [
             new CalloutRenderer(app, settings, assetsManager, callback),
             new LocalFile(app, settings, assetsManager, callback),
             new CodeHighlight(app, settings, assetsManager, callback),
@@ -86,11 +86,11 @@ export class PluginRegistry {
 
         // 只有在有效授权key时才添加MathRenderer
         if (settings.isAuthKeyVaild()) {
-            rehypePlugins.push(new MathRenderer(app, settings, assetsManager, callback));
+            markdownPlugins.push(new MathRenderer(app, settings, assetsManager, callback));
         }
         
-        this.pluginManager.registerPlugins(rehypePlugins as any);
-        logger.info(`Rehype插件注册完成，共注册了 ${rehypePlugins.length} 个插件`);
+        this.pluginManager.registerPlugins(markdownPlugins as any);
+        logger.info(`Markdown插件注册完成，共注册了 ${markdownPlugins.length} 个插件`);
     }
     
     /**
@@ -99,17 +99,17 @@ export class PluginRegistry {
     public registerAllPlugins(app: App, settings: NMPSettings, assetsManager: AssetsManager, callback: any): void {
         logger.info("开始注册所有插件...");
         
-        // 先注册不需要额外参数的Remark插件（HTML后处理）
-        this.registerRemarkPlugins();
+        // 先注册不需要额外参数的HTML插件（HTML后处理）
+        this.registerHtmlPlugins();
         
-        // 再注册需要额外参数的Rehype插件（Markdown解析扩展）
-        this.registerRehypePlugins(app, settings, assetsManager, callback);
+        // 再注册需要额外参数的Markdown插件（Markdown解析扩展）
+        this.registerMarkdownPlugins(app, settings, assetsManager, callback);
         
         const totalPlugins = this.pluginManager.getPlugins().length;
-        const remarkCount = this.pluginManager.getRemarkPlugins().length;
-        const rehypeCount = this.pluginManager.getRehypePlugins().length;
+        const htmlCount = this.pluginManager.getHtmlPlugins().length;
+        const markdownCount = this.pluginManager.getMarkdownPlugins().length;
         
-        logger.info(`所有插件注册完成！总计：${totalPlugins}个，其中 Remark：${remarkCount}个，Rehype：${rehypeCount}个`);
+        logger.info(`所有插件注册完成！总计：${totalPlugins}个，其中 HTML：${htmlCount}个，Markdown：${markdownCount}个`);
     }
     
     /**

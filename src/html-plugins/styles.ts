@@ -1,4 +1,4 @@
-import {RemarkPlugin as UnifiedRemarkPlugin} from "src/shared/unified-plugin-system";
+import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
 import {logger} from "src/utils";
 
@@ -6,7 +6,7 @@ import {logger} from "src/utils";
  * 样式处理插件 - 为微信公众号内容应用内联样式
  * 由于微信编辑器对外部CSS支持有限，需要将关键样式内联到HTML元素上
  */
-export class Styles extends UnifiedRemarkPlugin {
+export class Styles extends UnifiedHtmlPlugin {
 	getPluginName(): string {
 		return "样式处理插件";
 	}
