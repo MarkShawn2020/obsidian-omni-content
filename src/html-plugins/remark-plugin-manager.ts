@@ -1,7 +1,7 @@
 import {IRemarkPlugin} from "src/html-plugins/remark-plugin";
 import {NMPSettings} from "src/settings";
-import {logger} from "src/utils";
 import {BasePluginManager} from "src/shared/base-plugin-manager";
+import {logger} from "../logger";
 
 /**
  * 插件管理器 - 集中管理所有处理插件

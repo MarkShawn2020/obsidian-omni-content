@@ -74,7 +74,6 @@ export interface OmniContentReactProps {
 	onHighlightChange: (highlight: string) => void;
 	onThemeColorToggle: (enabled: boolean) => void;
 	onThemeColorChange: (color: string) => void;
-	onRenderArticle: () => void;
 	onSaveSettings: () => void;
 	onUpdateCSSVariables: () => void;
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;

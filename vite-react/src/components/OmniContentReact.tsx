@@ -3,6 +3,8 @@ import {OmniContentReactProps} from "../types";
 import {Toolbar} from "./toolbar/Toolbar";
 import {MessageModal} from "./preview/MessageModal";
 
+import {logger} from "../../../src/logger.js";
+
 export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  settings,
 																	  articleHTML,
@@ -15,7 +17,6 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onHighlightChange,
 																	  onThemeColorToggle,
 																	  onThemeColorChange,
-																	  onRenderArticle,
 																	  onSaveSettings,
 																	  onUpdateCSSVariables,
 																	  onPluginToggle,
@@ -32,21 +33,16 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 	// 拖拽调整大小的状态
 	const [renderWidth, setRenderWidth] = useState<string>("flex: 1");
 
-	// 更新CSS样式
-	useEffect(() => {
-		if (styleElRef.current) {
-			styleElRef.current.textContent = cssContent;
-		}
-	}, [cssContent]);
-
 	// 更新文章内容
 	useEffect(() => {
+		logger.info("[article-css-useEffect] enter")
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
 			// 应用CSS变量更新
+			logger.info("[article-css-useEffect] update css")
 			onUpdateCSSVariables();
 		}
-	}, [articleHTML, onUpdateCSSVariables]);
+	}, [articleHTML, cssContent, onUpdateCSSVariables]);
 
 	// 显示加载消息
 	const showLoading = useCallback((msg: string) => {
@@ -61,12 +57,6 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		setShowOkButton(true);
 		setIsMessageVisible(true);
 	}, []);
-
-	// 暴露方法给外部使用（示例，实际使用时需要通过 ref 传递）
-	// React.useImperativeHandle(ref, () => ({
-	//   showLoading,
-	//   showMsg,
-	// }));
 
 	// 为了避免编译错误，我们保持这些方法的引用
 	// showLoading 和 showMsg 方法在实际使用中会被调用
@@ -185,7 +175,6 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 					onHighlightChange={onHighlightChange}
 					onThemeColorToggle={onThemeColorToggle}
 					onThemeColorChange={onThemeColorChange}
-					onRenderArticle={onRenderArticle}
 					onSaveSettings={onSaveSettings}
 					onPluginToggle={onPluginToggle}
 					onPluginConfigChange={onPluginConfigChange}

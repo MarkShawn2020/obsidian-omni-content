@@ -1,5 +1,6 @@
 import {wxKeyInfo} from './weixin-api';
-import {logger} from './utils';
+
+import {logger} from "./logger";
 
 export enum LinkFootnoteMode {
 	None = 'none',

@@ -1,6 +1,7 @@
 import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
-import {logger} from "src/utils";
+
+import {logger} from "../logger";
 
 /**
  * 样式处理插件 - 为微信公众号内容应用内联样式

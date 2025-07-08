@@ -10,8 +10,9 @@ import {MarkedParser} from "./markdown-plugins/parser";
 import {UnifiedPluginManager} from "./shared/unified-plugin-system";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
-import {logger, uevent} from "./utils";
+import {uevent} from "./utils";
 import {OmniContentReactProps} from "@/types";
+import {logger} from "./logger";
 
 // External React App Interface
 interface ExternalReactLib {
@@ -159,13 +160,6 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	async renderMarkdown() {
 		this.articleHTML = await this.getArticleContent();
 		this.updateExternalReactComponent();
-	}
-
-	async renderArticleOnly() {
-		this.markedParser.buildMarked();
-		this.articleHTML = await this.getArticleContent();
-		this.updateExternalReactComponent();
-		logger.debug("仅渲染文章内容，跳过工具栏更新");
 	}
 
 	async copyArticle() {
@@ -384,6 +378,7 @@ ${customCSS}`;
 				uevent("distribute");
 			},
 			onTemplateChange: async (template: string) => {
+				logger.info(`[onTemplateChange]: ${template}`)
 				if (template === "") {
 					this.settings.useTemplate = false;
 					this.settings.lastSelectedTemplate = "";
@@ -396,6 +391,7 @@ ${customCSS}`;
 				await this.renderMarkdown();
 			},
 			onThemeChange: async (theme: string) => {
+				logger.info(`[onThemeChange]: ${theme}`)
 				this.settings.defaultStyle = theme;
 				this.saveSettingsToPlugin();
 				await this.renderMarkdown()
@@ -414,9 +410,6 @@ ${customCSS}`;
 				this.settings.themeColor = color;
 				this.saveSettingsToPlugin();
 				await this.renderMarkdown();
-			},
-			onRenderArticle: async () => {
-				await this.renderArticleOnly();
 			},
 			onSaveSettings: () => {
 				this.saveSettingsToPlugin();

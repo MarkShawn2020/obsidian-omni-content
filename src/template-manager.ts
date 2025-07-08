@@ -1,6 +1,7 @@
 import Handlebars from 'handlebars';
 import {App, Notice} from 'obsidian';
-import {logger} from "./utils";
+
+import {logger} from "./logger";
 
 // 定义模板数据类型
 export interface TemplateData {

@@ -15,7 +15,6 @@ interface ToolbarProps {
 	onHighlightChange: (highlight: string) => void;
 	onThemeColorToggle: (enabled: boolean) => void;
 	onThemeColorChange: (color: string) => void;
-	onRenderArticle: () => void;
 	onSaveSettings: () => void;
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
@@ -32,7 +31,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onHighlightChange,
 													onThemeColorToggle,
 													onThemeColorChange,
-													onRenderArticle,
 													onSaveSettings,
 													onPluginToggle,
 													onPluginConfigChange,
@@ -183,11 +181,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 																	console.error(`[Toolbar] Remark插件配置更新失败:`, error);
 																}
 															}
-
-															setTimeout(() => {
-																console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
-																onRenderArticle();
-															}, 200);
 														}}
 													/>
 												))}
@@ -241,11 +234,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 																	console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
 																}
 															}
-
-															setTimeout(() => {
-																console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
-																onRenderArticle();
-															}, 200);
 														}}
 													/>
 												))}

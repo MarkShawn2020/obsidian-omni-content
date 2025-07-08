@@ -1,10 +1,10 @@
 import { MarkedExtension } from "marked";
 import { App, Vault } from "obsidian";
 import { NMPSettings } from "src/settings";
-import { logger } from "src/utils";
 import { BasePluginManager } from "./base-plugin-manager";
 import { PluginConfigManager, UniversalPluginConfig, UniversalPluginMetaConfig } from "./plugin-config-manager";
 import AssetsManager from "src/assets";
+import {logger} from "../logger";
 
 /**
  * 插件类型枚举
@@ -378,6 +378,8 @@ export class UnifiedPluginManager extends BasePluginManager<IUnifiedPlugin> {
 	 * 处理HTML内容 - 应用所有启用的HTML插件
 	 */
 	public processContent(html: string, settings: NMPSettings): string {
+		logger.info("[processContent]", settings)
+
 		const htmlPlugins = this.getHtmlPlugins();
 		logger.debug(`开始处理内容，共有 ${htmlPlugins.length} 个HTML插件`);
 		

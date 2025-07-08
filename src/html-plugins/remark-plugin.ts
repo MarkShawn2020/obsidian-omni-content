@@ -1,7 +1,7 @@
 import {NMPSettings} from "src/settings";
-import {logger} from "src/utils";
 import {App} from "obsidian";
 import {PluginConfigManager, UniversalPluginConfig, UniversalPluginMetaConfig} from "src/shared/plugin-config-manager";
+import {logger} from "../logger";
 
 // 为 window 接口扩展，添加 app 属性
 declare global {

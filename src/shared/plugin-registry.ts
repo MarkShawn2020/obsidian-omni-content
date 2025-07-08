@@ -1,5 +1,4 @@
 import { UnifiedPluginManager, PluginType } from "./unified-plugin-system";
-import { logger } from "src/utils";
 
 import { CalloutRenderer } from "src/markdown-plugins/callouts";
 import { LocalFile } from "src/markdown-plugins/local-file";
@@ -26,6 +25,7 @@ import { WechatLink } from "src/html-plugins/wechat-link";
 import { NMPSettings } from "src/settings";
 import { App } from "obsidian";
 import AssetsManager from "src/assets";
+import {logger} from "../logger";
 
 /**
  * 插件注册器 - 统一管理所有插件的注册

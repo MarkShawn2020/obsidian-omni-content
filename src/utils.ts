@@ -1,5 +1,6 @@
 import {Platform, requestUrl} from "obsidian";
 import * as postcss from "./postcss/postcss";
+import {logger} from "./logger";
 
 let PluginVersion = "0.0.0";
 let PlugPlatform = "obsidian";
@@ -241,18 +242,3 @@ export function uevent(name: string) {
 		});
 }
 
-// 统一的日志工具
-export const logger = {
-	debug: (...args: any[]) => {
-		console.debug(`[NoteToMP] DEBUG:`, ...args);
-	},
-	info: (...args: any[]) => {
-		console.log(`[NoteToMP] INFO:`, ...args);
-	},
-	warn: (...args: any[]) => {
-		console.warn(`[NoteToMP] WARN:`, ...args);
-	},
-	error: (...args: any[]) => {
-		console.error(`[NoteToMP] ERROR:`, ...args);
-	},
-};

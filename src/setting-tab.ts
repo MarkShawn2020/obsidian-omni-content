@@ -3,8 +3,8 @@ import OmniContentPlugin from "./main";
 import {cleanMathCache} from "./markdown-plugins/math";
 import {LinkDescriptionMode, NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
-import {logger} from "./utils";
 import {PlatformType} from "src/types";
+import {logger} from "./logger";
 
 export class OmniContentSettingTab extends PluginSettingTab {
 	plugin: OmniContentPlugin;

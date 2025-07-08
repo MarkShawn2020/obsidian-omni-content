@@ -1,6 +1,6 @@
 import {MarkedExtension, Tokens} from "marked";
-import {logger} from "../utils";
 import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
+import {logger} from "../logger";
 
 export class LinkRenderer extends UnifiedMarkdownPlugin {
 

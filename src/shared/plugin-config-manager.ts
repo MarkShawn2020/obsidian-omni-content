@@ -1,5 +1,6 @@
 import { NMPSettings } from "src/settings";
-import { logger } from "src/utils";
+
+import {logger} from "../logger";
 
 /**
  * 通用插件配置接口

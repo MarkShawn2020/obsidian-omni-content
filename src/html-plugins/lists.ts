@@ -1,6 +1,7 @@
 import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
-import {logger} from "src/utils";
+
+import {logger} from "../logger";
 
 /**
  * 列表处理插件 - 处理微信公众号中的列表格式，特别是嵌套列表

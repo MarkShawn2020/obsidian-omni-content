@@ -1,7 +1,7 @@
 import {RehypePlugin} from "./rehype-plugin";
 import {MarkedParser} from "./parser";
-import {logger} from "src/utils";
 import {BasePluginManager} from "src/shared/base-plugin-manager";
+import {logger} from "../logger";
 
 /**
  * Extension管理器 - 为remark扩展系统提供类似rehype插件管理器的功能

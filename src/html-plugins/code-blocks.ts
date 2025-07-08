@@ -1,8 +1,8 @@
 import {HtmlPlugin as UnifiedHtmlPlugin} from "src/shared/unified-plugin-system";
 import {NMPSettings} from "src/settings";
-import {logger} from "src/utils";
 import {Notice} from "obsidian";
 import {wxUploadImage} from "../weixin-api";
+import {logger} from "../logger";
 
 /**
  * 微信公众号卡片数据管理器

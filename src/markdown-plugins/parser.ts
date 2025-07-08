@@ -2,10 +2,10 @@ import {Marked} from "marked";
 import {App, Vault} from "obsidian";
 import {NMPSettings} from "src/settings";
 import AssetsManager from "../assets";
-import {logger} from "src/utils";
 import {UnifiedPluginManager, IMarkdownPlugin} from "src/shared/unified-plugin-system";
 import {initializePluginSystem} from "src/shared/plugin-registry";
 import {FootnoteRenderer} from "./footnote";
+import {logger} from "../logger";
 
 export interface MDRendererCallback {
 	settings: NMPSettings;
