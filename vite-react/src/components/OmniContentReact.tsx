@@ -141,7 +141,9 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 			const newWidth = startWidth + e.clientX - startX;
 			const containerWidth = renderDivRef.current.parentElement?.getBoundingClientRect().width || 0;
 			const minWidth = 200;
-			const maxWidth = containerWidth - 250;
+			// 为toolbar预留足够的空间，考虑到toolbar的minWidth是320px，加上分隔条5px和一些余量
+			const toolbarMinWidth = 320 + 5 + 20; // toolbar最小宽度 + 分隔条 + 余量
+			const maxWidth = containerWidth - toolbarMinWidth;
 
 			if (newWidth > minWidth && newWidth < maxWidth) {
 				setRenderWidth(`0 0 ${newWidth}px`);

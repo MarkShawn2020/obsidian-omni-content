@@ -130,7 +130,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	try {
 		return (
 			<div className="h-full flex flex-col bg-white" style={{
-				border: '1px solid #ccc' // 保留调试边框但更subtle
+				border: '1px solid #ccc', // 保留调试边框但更subtle
+				minWidth: '320px'
 			}}>
 				<BrandSection onCopy={onCopy} onDistribute={onDistribute}/>
 
