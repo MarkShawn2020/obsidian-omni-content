@@ -65,13 +65,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		return 'remark';
 	});
 
+	// 插件展开状态管理
+	const [pluginExpandedSections, setPluginExpandedSections] = useState<string[]>(
+		settings.expandedAccordionSections || []
+	);
+
 	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
 		// 如果当前tab是样式设置但样式设置被关闭了，切换到插件管理
 		if (activeTab === 'style' && !settings.showStyleUI) {
 			setActiveTab('plugins');
 		}
-	}, [settings.showStyleUI, activeTab]);
+		// 同步插件展开状态
+		setPluginExpandedSections(settings.expandedAccordionSections || []);
+	}, [settings.showStyleUI, activeTab, settings.expandedAccordionSections]);
 
 	const handleTabChange = (value: string) => {
 		setActiveTab(value);
@@ -97,6 +104,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		});
 		// 触发重新渲染
 		onRenderArticle();
+	};
+
+	// 处理插件展开/折叠
+	const handlePluginToggle = (sectionId: string, isExpanded: boolean) => {
+		let newSections: string[];
+		if (isExpanded) {
+			newSections = pluginExpandedSections.includes(sectionId)
+				? pluginExpandedSections
+				: [...pluginExpandedSections, sectionId];
+		} else {
+			newSections = pluginExpandedSections.filter(id => id !== sectionId);
+		}
+		
+		// 更新本地状态
+		setPluginExpandedSections(newSections);
+		
+		// 通过回调函数更新外部settings
+		if (onExpandedSectionsChange) {
+			onExpandedSectionsChange(newSections);
+		}
+		onSaveSettings();
 	};
 
 	try {
@@ -180,21 +208,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 																	key={plugin.name}
 																	item={plugin}
 																	type="plugin"
-																	expandedSections={settings.expandedAccordionSections}
-																	onToggle={(sectionId, isExpanded) => {
-																		let newSections: string[];
-																		if (isExpanded) {
-																			newSections = settings.expandedAccordionSections.includes(sectionId)
-																				? settings.expandedAccordionSections
-																				: [...settings.expandedAccordionSections, sectionId];
-																		} else {
-																			newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
-																		}
-																		if (onExpandedSectionsChange) {
-																			onExpandedSectionsChange(newSections);
-																		}
-																		onSaveSettings();
-																	}}
+																	expandedSections={pluginExpandedSections}
+																	onToggle={handlePluginToggle}
 																	onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 																	onConfigChange={async (pluginName, key, value) => {
 																		console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
@@ -249,21 +264,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 																	key={plugin.name}
 																	item={plugin}
 																	type="plugin"
-																	expandedSections={settings.expandedAccordionSections}
-																	onToggle={(sectionId, isExpanded) => {
-																		let newSections: string[];
-																		if (isExpanded) {
-																			newSections = settings.expandedAccordionSections.includes(sectionId)
-																				? settings.expandedAccordionSections
-																				: [...settings.expandedAccordionSections, sectionId];
-																		} else {
-																			newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
-																		}
-																		if (onExpandedSectionsChange) {
-																			onExpandedSectionsChange(newSections);
-																		}
-																		onSaveSettings();
-																	}}
+																	expandedSections={pluginExpandedSections}
+																	onToggle={handlePluginToggle}
 																	onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 																	onConfigChange={async (pluginName, key, value) => {
 																		console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
