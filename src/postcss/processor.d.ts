@@ -16,8 +16,8 @@ declare namespace Processor {
  *
  * ```js
  * const processor = postcss([autoprefixer, postcssNested])
- * processor.process(css1).then(result => console.log(result.css))
- * processor.process(css2).then(result => console.log(result.css))
+ * processor.process(css1).then(result => logger.debug(result.css))
+ * processor.process(css2).then(result => logger.debug(result.css))
  * ```
  */
 declare class Processor_ {
@@ -56,7 +56,7 @@ declare class Processor_ {
 	 * ```js
 	 * processor.process(css, { from: 'a.css', to: 'a.out.css' })
 	 *   .then(result => {
-	 *      console.log(result.css)
+	 *      logger.debug(result.css)
 	 *   })
 	 * ```
 	 *

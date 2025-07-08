@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {SelectWrapper} from "../ui/Select";
 import {PluginData} from "../../types";
+import { logger } from "../../../../src/logger";
 
 const STORAGE_KEY_PREFIX = 'omni-content-config';
 
@@ -101,9 +102,9 @@ export const ConfigComponent = <T extends PluginData>({
 		saveToStorage(storageKey, newConfig);
 
 		// 调试日志
-		console.log(`[PluginConfigComponent] 配置更新: ${item.name}.${key} = ${value}`);
-		console.log(`[PluginConfigComponent] 更新后的item.config:`, {...item.config});
-		console.log(`[PluginConfigComponent] 更新后的localConfig:`, {...newConfig});
+		logger.debug(`[PluginConfigComponent] 配置更新: ${item.name}.${key} = ${value}`);
+		logger.debug(`[PluginConfigComponent] 更新后的item.config:`, {...item.config});
+		logger.debug(`[PluginConfigComponent] 更新后的localConfig:`, {...newConfig});
 
 		// 4. 调用外部回调更新原始数据
 		if (onConfigChange) {

@@ -6,6 +6,7 @@ import {OmniContentSettingTab} from "./setting-tab";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {setVersion, uevent} from "./utils";
+import {logger} from "./logger";
 
 export default class OmniContentPlugin extends Plugin {
 	settings: NMPSettings;
@@ -18,7 +19,7 @@ export default class OmniContentPlugin extends Plugin {
 	}
 
 	async onload() {
-		console.log("Loading OmniContent");
+		logger.info("Loading OmniContent");
 		setVersion(this.manifest.version);
 		uevent("load");
 		await this.loadSettings();
@@ -69,7 +70,7 @@ export default class OmniContentPlugin extends Plugin {
 		// 保存所有设置
 		try {
 			await this.saveData(NMPSettings.allSettings());
-			console.debug("Settings saved successfully");
+			console.info("Settings saved successfully");
 		} catch (error) {
 			console.error("Error while saving settings:", error);
 		}

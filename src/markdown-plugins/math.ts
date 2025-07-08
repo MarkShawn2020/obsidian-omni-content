@@ -3,6 +3,7 @@ import {requestUrl} from "obsidian";
 import {NMPSettings} from "src/settings";
 import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 import {MDRendererCallback} from "./parser";
+import {logger} from "../logger";
 
 const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1/;
 const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
@@ -64,7 +65,7 @@ export class MathRendererQueue {
 					callback(svg);
 					resolve();
 				}).catch(err => {
-					console.log(err.msg);
+					logger.debug(err.msg);
 					const svg = '渲染失败';
 					callback(svg);
 					resolve();

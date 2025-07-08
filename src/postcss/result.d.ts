@@ -51,7 +51,7 @@ declare namespace Result {
  *
  * ```js
  * postcss([autoprefixer]).process(css).then(result => {
- *  console.log(result.css)
+ *  logger.debug(result.css)
  * })
  * ```
  *

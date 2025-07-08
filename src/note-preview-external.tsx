@@ -166,41 +166,41 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		const content = await this.getArticleContent();
 
 		// 调试：分析最终的HTML内容
-		console.log("=== 复制内容分析 ===");
-		console.log("完整HTML长度:", content.length);
+		logger.debug("=== 复制内容分析 ===");
+		logger.debug("完整HTML长度:", content.length);
 
 		// 提取代码块部分进行分析
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(content, "text/html");
 		const codeBlocks = doc.querySelectorAll("pre, pre code, section.code-section");
 
-		console.log("找到代码块数量:", codeBlocks.length);
+		logger.debug("找到代码块数量:", codeBlocks.length);
 
 		codeBlocks.forEach((block, index) => {
-			console.log(`--- 代码块 ${index + 1} ---`);
-			console.log("标签名:", block.tagName);
-			console.log("类名:", block.className);
-			console.log("内联样式:", block.getAttribute("style"));
-			console.log("内容预览:", block.innerHTML.substring(0, 200));
-			console.log("父元素:", block.parentElement?.tagName, block.parentElement?.className);
-			console.log("父元素样式:", block.parentElement?.getAttribute("style"));
+			logger.debug(`--- 代码块 ${index + 1} ---`);
+			logger.debug("标签名:", block.tagName);
+			logger.debug("类名:", block.className);
+			logger.debug("内联样式:", block.getAttribute("style"));
+			logger.debug("内容预览:", block.innerHTML.substring(0, 200));
+			logger.debug("父元素:", block.parentElement?.tagName, block.parentElement?.className);
+			logger.debug("父元素样式:", block.parentElement?.getAttribute("style"));
 
 			// 详细分析换行符
 			const html = block.innerHTML;
 			const lines = html.split('\n');
-			console.log("总行数:", lines.length);
-			console.log("各行内容（带引号显示空行）:");
+			logger.debug("总行数:", lines.length);
+			logger.debug("各行内容（带引号显示空行）:");
 			lines.forEach((line, i) => {
 				if (i < 5) { // 只显示前5行
-					console.log(`  行${i}: "${line}"`);
+					logger.debug(`  行${i}: "${line}"`);
 				}
 			});
 
 			// 检查是否有高亮span元素
 			const highlightSpans = block.querySelectorAll('[class*="hljs-"]');
-			console.log("高亮span数量:", highlightSpans.length);
+			logger.debug("高亮span数量:", highlightSpans.length);
 			if (highlightSpans.length > 0) {
-				console.log("第一个高亮span:", highlightSpans[0].outerHTML.substring(0, 100));
+				logger.debug("第一个高亮span:", highlightSpans[0].outerHTML.substring(0, 100));
 			}
 		});
 
@@ -216,16 +216,18 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		// 在React组件中处理CSS变量更新
 		const noteContainer = document.querySelector(".note-to-mp") as HTMLElement;
 		if (!noteContainer) {
-			console.log("找不到.note-to-mp容器，无法更新CSS变量");
+			logger.warn("找不到 .note-to-mp 容器，无法更新CSS变量");
 			return;
 		}
 
+		logger.info(`[updateCSSVariables] 当前主题: ${this.settings.defaultStyle}`);
+
 		if (this.settings.enableThemeColor) {
 			noteContainer.style.setProperty("--primary-color", this.settings.themeColor || "#7852ee");
-			console.log(`应用自定义主题色：${this.settings.themeColor}`);
+			logger.info(`应用自定义主题色：${this.settings.themeColor}`);
 		} else {
 			noteContainer.style.removeProperty("--primary-color");
-			console.log("恢复使用主题文件中的颜色");
+			logger.info("恢复使用主题文件中的颜色");
 		}
 
 		const listItems = noteContainer.querySelectorAll("li");
@@ -345,9 +347,12 @@ ${customCSS}`;
 	private updateExternalReactComponent() {
 		if (!this.externalReactLib || !this.reactContainer) throw new Error("<UNK>");
 
+		const cssContent = this.getCSS();
 		logger.info("更新外部React组件", {
 			articleHTMLLength: this.articleHTML?.length || 0,
-			hasCSS: !!this.getCSS(),
+			cssContentLength: cssContent?.length || 0,
+			cssContentHash: cssContent ? cssContent.substring(0, 50) + "..." : "",
+			hasCSS: !!cssContent,
 			availableMethods: this.externalReactLib ? Object.keys(this.externalReactLib) : []
 		});
 
@@ -367,7 +372,7 @@ ${customCSS}`;
 				showStyleUI: this.settings.showStyleUI !== false, // 默认显示
 			},
 			articleHTML: this.articleHTML || "",
-			cssContent: this.getCSS(),
+			cssContent: cssContent,
 			plugins: this.getUnifiedPlugins(),
 			onCopy: async () => {
 				await this.copyArticle();

@@ -4,6 +4,7 @@ import {StyleSettings} from "./StyleSettings";
 import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from "../ui/accordion";
 import {ConfigComponent} from "./PluginConfigComponent";
 import {UnifiedPluginData, ViteReactSettings} from "../../types";
+import { logger } from "../../../../src/logger";
 
 interface ToolbarProps {
 	settings: ViteReactSettings;
@@ -168,7 +169,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 														}}
 														onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 														onConfigChange={async (pluginName, key, value) => {
-															console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
+															logger.debug(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
 
 															if (onPluginConfigChange) {
 																try {
@@ -176,7 +177,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 																	if (result && typeof result?.then === 'function') {
 																		await result;
 																	}
-																	console.log(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
+																	logger.debug(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
 																} catch (error) {
 																	console.error(`[Toolbar] Remark插件配置更新失败:`, error);
 																}
@@ -221,7 +222,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 														}}
 														onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
 														onConfigChange={async (pluginName, key, value) => {
-															console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
+															logger.debug(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
 
 															if (onPluginConfigChange) {
 																try {
@@ -229,7 +230,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 																	if (result && typeof result?.then === 'function') {
 																		await result;
 																	}
-																	console.log(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
+																	logger.debug(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
 																} catch (error) {
 																	console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
 																}

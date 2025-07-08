@@ -6,6 +6,7 @@ import {GetCallout} from "./callouts";
 import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
 import {MathRendererQueue} from "./math";
 import {CardDataManager} from "../html-plugins/code-blocks";
+import {logger} from "../logger";
 
 const MermaidSectionClassName = "note-mermaid";
 const MermaidImgClassName = "note-mermaid-img";
@@ -36,7 +37,7 @@ export class CodeRenderer extends UnifiedMarkdownPlugin {
 	}
 
 	codeRenderer(code: string, infostring: string | undefined): string {
-		console.log("codeRenderer", {code, infostring});
+		logger.debug("codeRenderer", {code, infostring});
 
 		const lang = (infostring || "").match(/^\S*/)?.[0];
 		code = code.replace(/\n$/, "") + "\n";

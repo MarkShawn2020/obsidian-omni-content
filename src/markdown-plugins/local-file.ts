@@ -2,6 +2,7 @@ import {MarkedExtension, Token, Tokens} from "marked";
 import {MarkdownView, requestUrl, TAbstractFile, TFile} from "obsidian";
 import {NMPSettings} from "../settings";
 import {MarkdownPlugin as UnifiedMarkdownPlugin} from "src/shared/unified-plugin-system";
+import {logger} from "../logger";
 
 declare module 'obsidian' {
 	interface Vault {
@@ -326,7 +327,7 @@ export class LocalFile extends UnifiedMarkdownPlugin {
 					let svg = '';
 					if (src === '') {
 						svg = '渲染失败';
-						console.log('Failed to get Excalidraw URL');
+						logger.debug('Failed to get Excalidraw URL');
 					} else {
 						const blob = await this.readBlob(src);
 						if (blob.type === 'image/svg+xml') {

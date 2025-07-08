@@ -29,7 +29,7 @@ declare class LazyResult_<RootNode = Document | Root>
 	 *
 	 * ```js
 	 * postcss([autoprefixer]).process(css).then(result => {
-	 *   console.log(result.css)
+	 *   logger.debug(result.css)
 	 * }).catch(error => {
 	 *   console.error(error)
 	 * })
@@ -45,7 +45,7 @@ declare class LazyResult_<RootNode = Document | Root>
 	 *
 	 * ```js
 	 * postcss([autoprefixer]).process(css).finally(() => {
-	 *   console.log('processing ended')
+	 *   logger.debug('processing ended')
 	 * })
 	 * ```
 	 */
@@ -60,7 +60,7 @@ declare class LazyResult_<RootNode = Document | Root>
 	 *
 	 * ```js
 	 * postcss([autoprefixer]).process(css, { from: cssPath }).then(result => {
-	 *   console.log(result.css)
+	 *   logger.debug(result.css)
 	 * })
 	 * ```
 	 */

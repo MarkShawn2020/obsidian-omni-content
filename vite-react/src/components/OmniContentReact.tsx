@@ -23,6 +23,13 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onPluginConfigChange,
 																	  onExpandedSectionsChange,
 																  }) => {
+	logger.info("[OmniContentReact] Component render started", {
+		articleHTMLLength: articleHTML?.length || 0,
+		cssContentLength: cssContent?.length || 0,
+		cssContentHash: cssContent ? cssContent.substring(0, 50) + "..." : "",
+		currentTheme: settings.defaultStyle
+	});
+
 	const [isMessageVisible, setIsMessageVisible] = useState(false);
 	const [messageTitle, setMessageTitle] = useState("");
 	const [showOkButton, setShowOkButton] = useState(false);
@@ -33,16 +40,75 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 	// 拖拽调整大小的状态
 	const [renderWidth, setRenderWidth] = useState<string>("flex: 1");
 
+	// 强制触发标记，确保 useEffect 能被调用
+	const [cssUpdateTrigger, setCssUpdateTrigger] = useState(0);
+	const [articleUpdateTrigger, setArticleUpdateTrigger] = useState(0);
+
+	// 组件挂载检查
+	useEffect(() => {
+		logger.info("[mount-useEffect] Component mounted");
+		return () => {
+			logger.info("[mount-useEffect] Component will unmount");
+		};
+	}, []);
+
+	// 检测 CSS 内容变化并触发更新
+	useEffect(() => {
+		logger.info("[css-detect] CSS content changed, triggering update", {
+			cssContentLength: cssContent?.length || 0
+		});
+		setCssUpdateTrigger(prev => prev + 1);
+	}, [cssContent]);
+
+	// 更新CSS样式
+	useEffect(() => {
+		logger.info("[css-useEffect] CSS update triggered", {
+			cssContentLength: cssContent?.length || 0,
+			hasStyleRef: !!styleElRef.current,
+			trigger: cssUpdateTrigger
+		});
+		if (styleElRef.current) {
+			styleElRef.current.textContent = cssContent;
+			// 强制重新应用CSS变量
+			onUpdateCSSVariables();
+		}
+	}, [cssUpdateTrigger]);
+
+	// 检测文章内容变化并触发更新
+	useEffect(() => {
+		logger.info("[article-detect] Article HTML changed, triggering update", {
+			articleHTMLLength: articleHTML?.length || 0
+		});
+		setArticleUpdateTrigger(prev => prev + 1);
+	}, [articleHTML]);
+
 	// 更新文章内容
 	useEffect(() => {
-		logger.info("[article-css-useEffect] enter")
+		logger.info("[article-useEffect] Article update triggered", {
+			articleHTMLLength: articleHTML?.length || 0,
+			hasArticleRef: !!articleDivRef.current,
+			trigger: articleUpdateTrigger
+		});
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
 			// 应用CSS变量更新
-			logger.info("[article-css-useEffect] update css")
 			onUpdateCSSVariables();
 		}
-	}, [articleHTML, cssContent, onUpdateCSSVariables]);
+	}, [articleUpdateTrigger]);
+	
+	// 直接在渲染时更新DOM（作为备用方案）
+	useEffect(() => {
+		if (styleElRef.current) {
+			styleElRef.current.textContent = cssContent;
+		}
+		if (articleDivRef.current) {
+			articleDivRef.current.innerHTML = articleHTML;
+		}
+		// 使用 setTimeout 确保 DOM 更新完成后再调用 CSS 变量更新
+		setTimeout(() => {
+			onUpdateCSSVariables();
+		}, 0);
+	});
 
 	// 显示加载消息
 	const showLoading = useCallback((msg: string) => {

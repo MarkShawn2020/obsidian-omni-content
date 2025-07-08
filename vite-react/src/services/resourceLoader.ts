@@ -1,5 +1,6 @@
-import themesData from '../../../themes.json';
-import highlightsData from '../../../highlights.json';
+import themesData from '../../../assets/themes.json';
+import highlightsData from '../../../assets/highlights.json';
+import {logger} from "../../../src/logger.js";
 
 export interface ThemeOption {
     name: string;
@@ -27,8 +28,8 @@ export interface ResourceLoader {
 class LocalResourceLoader implements ResourceLoader {
     async loadThemes(): Promise<ThemeOption[]> {
         try {
-            console.log('Loading themes from imported data');
-            console.log('Loaded themes:', themesData.length);
+            logger.debug('Loading themes from imported data');
+            logger.debug('Loaded themes:', themesData.length);
             
             return themesData.map((theme: any) => ({
                 name: theme.name,
@@ -49,8 +50,8 @@ class LocalResourceLoader implements ResourceLoader {
 
     async loadHighlights(): Promise<HighlightOption[]> {
         try {
-            console.log('Loading highlights from imported data');
-            console.log('Loaded highlights:', highlightsData.length);
+            logger.debug('Loading highlights from imported data');
+            logger.debug('Loaded highlights:', highlightsData.length);
             
             return highlightsData.map((highlight: any) => ({
                 name: highlight.name,
@@ -69,7 +70,7 @@ class LocalResourceLoader implements ResourceLoader {
 
     async loadTemplates(): Promise<TemplateOption[]> {
         try {
-            console.log('Loading templates (static list)');
+            logger.debug('Loading templates (static list)');
             return [
                 { name: "不使用模板", filename: "none" },
                 { name: "Bento 1", filename: "Bento 1" },

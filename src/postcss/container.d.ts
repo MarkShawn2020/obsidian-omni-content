@@ -476,7 +476,7 @@ declare abstract class Container_<Child extends Node = ChildNode> extends Node {
 	 * root.walkRules(rule => {
 	 *   selectors.push(rule.selector)
 	 * })
-	 * console.log(`Your CSS uses ${ selectors.length } selectors`)
+	 * logger.debug(`Your CSS uses ${ selectors.length } selectors`)
 	 * ```
 	 *
 	 * @param selector String or regular expression to filter rules by selector.

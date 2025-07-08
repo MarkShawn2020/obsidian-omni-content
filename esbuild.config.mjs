@@ -46,14 +46,7 @@ const context = await esbuild.context({
 			assets: [
 				// 复制插件所需的其他文件到 dist 目录
 				{ from: ['./manifest.json'], to: ['./manifest.json'], outDir: './dist' },
-				{ from: ['./styles.css'], to: ['./styles.css'], outDir: './dist' },
-				
-				{ from: ['./themes/**/*'], to: ['./assets/themes'], outDir: './dist' },
-				{ from: ['./highlights/**/*'], to: ['./assets/highlights'], outDir: './dist' },
-				{ from: ['./templates/**/*'], to: ['./assets/templates'], outDir: './dist' },
-				{ from: ['./themes.json'], to: ['./assets/themes.json'], outDir: './dist' },
-				{ from: ['./highlights.json'], to: ['./assets/highlights.json'], outDir: './dist' },
-				{ from: ["./css-snippets/black-h2.css"], to: ["./assets/custom.css"], outDir: './dist' },
+				{ from: ['./assets/**/*'], to: ['./assets/'], outDir: './dist' },
 			],
 			verbose: false, // 输出复制操作的日志
 		}),

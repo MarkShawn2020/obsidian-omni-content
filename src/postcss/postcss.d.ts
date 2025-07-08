@@ -418,7 +418,7 @@ declare namespace postcss {
  * let postcss = require('postcss')
  *
  * postcss(plugins).process(css, { from, to }).then(result => {
- *   console.log(result.css)
+ *   logger.debug(result.css)
  * })
  * ```
  *

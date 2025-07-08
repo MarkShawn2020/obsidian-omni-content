@@ -1,15 +1,15 @@
 // 统一的日志工具
 export const logger = {
 	debug: (...args: any[]) => {
-		console.debug(`[NoteToMP] DEBUG:`, ...args);
+		console.debug(`DEBUG:`, ...args);
 	},
 	info: (...args: any[]) => {
-		console.log(`[NoteToMP] INFO:`, ...args);
+		console.info(`INFO:`, ...args);
 	},
 	warn: (...args: any[]) => {
-		console.warn(`[NoteToMP] WARN:`, ...args);
+		console.warn(`WARN:`, ...args);
 	},
 	error: (...args: any[]) => {
-		console.error(`[NoteToMP] ERROR:`, ...args);
+		console.error(`ERROR:`, ...args);
 	},
 };
