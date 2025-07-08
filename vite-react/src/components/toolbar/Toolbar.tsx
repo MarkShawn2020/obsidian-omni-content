@@ -38,23 +38,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onPluginConfigChange,
 													onExpandedSectionsChange,
 												}) => {
-	// 使用本地状态管理展开的sections
-	const [expandedSections, setExpandedSections] = useState<string[]>(settings.expandedAccordionSections);
+	// 分离样式设置和插件管理的状态管理
+	const [styleExpandedSections, setStyleExpandedSections] = useState<string[]>(
+		settings.expandedAccordionSections.filter(section => section.startsWith('accordion-样式设置'))
+	);
+	const [pluginExpandedSections, setPluginExpandedSections] = useState<string[]>(
+		settings.expandedAccordionSections.filter(section => !section.startsWith('accordion-样式设置'))
+	);
 
 	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
-		setExpandedSections([...settings.expandedAccordionSections]);
+		const allSections = settings.expandedAccordionSections;
+		setStyleExpandedSections(allSections.filter(section => section.startsWith('accordion-样式设置')));
+		setPluginExpandedSections(allSections.filter(section => !section.startsWith('accordion-样式设置')));
 	}, [settings.expandedAccordionSections]);
 
-	const handleAccordionChange = (value: string | undefined) => {
+	// 样式设置的手风琴变化处理
+	const handleStyleAccordionChange = (value: string | undefined) => {
 		const newSections = value ? [value] : [];
 		
-		// 更新本地状态
-		setExpandedSections(newSections);
+		// 更新样式设置的本地状态
+		setStyleExpandedSections(newSections);
 
+		// 合并样式设置和插件管理的状态
+		const allSections = [...newSections, ...pluginExpandedSections];
+		
 		// 通过回调函数更新外部settings
 		if (onExpandedSectionsChange) {
-			onExpandedSectionsChange(newSections);
+			onExpandedSectionsChange(allSections);
 		}
 		onSaveSettings();
 	};
@@ -69,14 +80,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
 			<div className="flex-1 overflow-y-auto">
 				<div className="p-4 space-y-3">
-					<Accordion
-						type="single"
-						value={expandedSections[0] || ""}
-						onValueChange={handleAccordionChange}
-						collapsible
-						className="w-full space-y-2"
-					>
-						{settings.showStyleUI && (
+					{/* 样式设置独立的手风琴 */}
+					{settings.showStyleUI && (
+						<Accordion
+							type="single"
+							value={styleExpandedSections[0] || ""}
+							onValueChange={handleStyleAccordionChange}
+							collapsible
+							className="w-full space-y-2"
+						>
 							<AccordionItem value="accordion-样式设置" className="border-b border-gray-200">
 								<AccordionTrigger className="px-0 py-3 text-sm font-medium hover:no-underline">
 									样式设置
@@ -92,8 +104,31 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 									/>
 								</AccordionContent>
 							</AccordionItem>
-						)}
+						</Accordion>
+					)}
 
+					{/* 插件管理独立的手风琴 */}
+					<Accordion
+						type="single"
+						value={pluginExpandedSections[0] || ""}
+						onValueChange={(value) => {
+							const newSections = value ? [value] : [];
+							
+							// 更新插件管理的本地状态
+							setPluginExpandedSections(newSections);
+
+							// 合并样式设置和插件管理的状态
+							const allSections = [...styleExpandedSections, ...newSections];
+							
+							// 通过回调函数更新外部settings
+							if (onExpandedSectionsChange) {
+								onExpandedSectionsChange(allSections);
+							}
+							onSaveSettings();
+						}}
+						collapsible
+						className="w-full space-y-2"
+					>
 						<AccordionItem value="accordion-plugins" className="border-b border-gray-200">
 							<AccordionTrigger className="px-0 py-3 text-sm font-medium hover:no-underline">
 								插件管理 ({plugins.length})
@@ -113,20 +148,23 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 														key={plugin.name}
 														item={plugin}
 														type="plugin"
-														expandedSections={expandedSections}
+														expandedSections={pluginExpandedSections}
 														onToggle={(sectionId, isExpanded) => {
-															// ConfigComponent 内部的 Accordion 切换，这里暂时保持原有逻辑
+															// ConfigComponent 内部的 Accordion 切换，使用插件管理的独立状态
 															let newSections: string[];
 															if (isExpanded) {
-																newSections = expandedSections.includes(sectionId)
-																	? expandedSections
-																	: [...expandedSections, sectionId];
+																newSections = pluginExpandedSections.includes(sectionId)
+																	? pluginExpandedSections
+																	: [...pluginExpandedSections, sectionId];
 															} else {
-																newSections = expandedSections.filter(id => id !== sectionId);
+																newSections = pluginExpandedSections.filter(id => id !== sectionId);
 															}
-															setExpandedSections(newSections);
+															setPluginExpandedSections(newSections);
+															
+															// 合并样式设置和插件管理的状态
+															const allSections = [...styleExpandedSections, ...newSections];
 															if (onExpandedSectionsChange) {
-																onExpandedSectionsChange(newSections);
+																onExpandedSectionsChange(allSections);
 															}
 															onSaveSettings();
 														}}
@@ -168,20 +206,23 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 														key={plugin.name}
 														item={plugin}
 														type="plugin"
-														expandedSections={expandedSections}
+														expandedSections={pluginExpandedSections}
 														onToggle={(sectionId, isExpanded) => {
-															// ConfigComponent 内部的 Accordion 切换，这里暂时保持原有逻辑
+															// ConfigComponent 内部的 Accordion 切换，使用插件管理的独立状态
 															let newSections: string[];
 															if (isExpanded) {
-																newSections = expandedSections.includes(sectionId)
-																	? expandedSections
-																	: [...expandedSections, sectionId];
+																newSections = pluginExpandedSections.includes(sectionId)
+																	? pluginExpandedSections
+																	: [...pluginExpandedSections, sectionId];
 															} else {
-																newSections = expandedSections.filter(id => id !== sectionId);
+																newSections = pluginExpandedSections.filter(id => id !== sectionId);
 															}
-															setExpandedSections(newSections);
+															setPluginExpandedSections(newSections);
+															
+															// 合并样式设置和插件管理的状态
+															const allSections = [...styleExpandedSections, ...newSections];
 															if (onExpandedSectionsChange) {
-																onExpandedSectionsChange(newSections);
+																onExpandedSectionsChange(allSections);
 															}
 															onSaveSettings();
 														}}

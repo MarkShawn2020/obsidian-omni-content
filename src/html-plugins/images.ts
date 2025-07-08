@@ -42,21 +42,21 @@ export class Images extends UnifiedHtmlPlugin {
 			const config = this.getConfig();
 			const showImageCaption = config.showImageCaption !== false; // 默认显示
 
-			logger.info("图片处理插件开始处理，showImageCaption设置:", showImageCaption);
-			logger.info("处理前的HTML片段:", html.substring(0, 500) + "...");
+			logger.debug("图片处理插件开始处理，showImageCaption设置:", showImageCaption);
+			logger.debug("处理前的HTML片段:", html.substring(0, 500) + "...");
 			const parser = new DOMParser();
 			const doc = parser.parseFromString(html, "text/html");
 
 			// 查找所有图片元素
 			const images = doc.querySelectorAll("img");
-			logger.info("找到图片数量:", images.length);
+			logger.debug("找到图片数量:", images.length);
 
 			images.forEach((img, index) => {
 				const src = img.getAttribute("src");
 				const alt = img.getAttribute("alt");
 				const title = img.getAttribute("title");
 
-				logger.info(`处理第${index + 1}张图片:`, {
+				logger.debug(`处理第${index + 1}张图片:`, {
 					src: src?.substring(0, 50) + "...",
 					alt,
 					title,
@@ -88,7 +88,7 @@ export class Images extends UnifiedHtmlPlugin {
 						figcaption = figureParent.querySelector("figcaption");
 					}
 
-					logger.info(`第${index + 1}张图片父元素信息:`, {
+					logger.debug(`第${index + 1}张图片父元素信息:`, {
 						parentTagName: parent?.tagName,
 						hasFigureParent: !!figureParent,
 						hasFigcaption: !!figcaption,
@@ -96,7 +96,7 @@ export class Images extends UnifiedHtmlPlugin {
 					});
 
 					if (!showImageCaption) {
-						logger.info(`隐藏第${index + 1}张图片的说明文字`);
+						logger.debug(`隐藏第${index + 1}张图片的说明文字`);
 						// 移除alt属性以隐藏说明文字
 						img.removeAttribute("alt");
 						img.removeAttribute("title");
@@ -104,14 +104,14 @@ export class Images extends UnifiedHtmlPlugin {
 						// 查找并移除可能的caption元素
 						if (figcaption) {
 							figcaption.remove();
-							logger.info(`移除了第${index + 1}张图片的figcaption`);
+							logger.debug(`移除了第${index + 1}张图片的figcaption`);
 						}
 					} else {
-						logger.info(`保持第${index + 1}张图片的说明文字显示`);
+						logger.debug(`保持第${index + 1}张图片的说明文字显示`);
 
 						// 如果有alt属性但没有figcaption，创建caption显示
 						if (alt && alt.trim() && !figcaption) {
-							logger.info(`为第${index + 1}张图片创建可见的caption`);
+							logger.debug(`为第${index + 1}张图片创建可见的caption`);
 
 							// 创建一个段落元素，使用与现有内容相似的结构
 							const captionP = doc.createElement("p");
@@ -148,8 +148,8 @@ export class Images extends UnifiedHtmlPlugin {
 			});
 
 			const result = doc.body.innerHTML;
-			logger.info("图片处理完成，结果长度:", result.length);
-			logger.info("处理后的HTML片段:", result.substring(0, 500) + "...");
+			logger.debug("图片处理完成，结果长度:", result.length);
+			logger.debug("处理后的HTML片段:", result.substring(0, 500) + "...");
 			return result;
 		} catch (error) {
 			logger.error("处理图片时出错:", error);
