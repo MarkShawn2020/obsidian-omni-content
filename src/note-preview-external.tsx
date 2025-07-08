@@ -143,7 +143,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		// 确保React应用已加载
 		await this.loadExternalReactApp();
 
-		this.buildUI();
+		await this.buildUI();
 		this.listeners = [this.workspace.on("active-leaf-change", () => this.update()),];
 
 		this.renderMarkdown();
@@ -161,17 +161,19 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	async update() {
 		LocalImageManager.getInstance().cleanup();
 		CardDataManager.getInstance().cleanup();
-		this.renderMarkdown();
+		await this.renderMarkdown();
 	}
 
 	async renderMarkdown() {
+		// 强制刷新assets，确保CSS在渲染前准备好
+		await this.assetsManager.loadAssets();
 		this.articleHTML = await this.getArticleContent();
-		this.updateExternalReactComponent();
+		await this.updateExternalReactComponent();
 	}
 
 	async renderArticleOnly() {
 		this.articleHTML = await this.getArticleContent();
-		this.updateExternalReactComponent();
+		await this.updateExternalReactComponent();
 	}
 
 	async copyArticle() {
@@ -253,6 +255,11 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		listItems.forEach((item) => {
 			(item as HTMLElement).style.display = "list-item";
 		});
+
+		// 强制触发重绘，确保CSS变更立即生效
+		noteContainer.style.display = 'none';
+		noteContainer.offsetHeight; // 触发重排
+		noteContainer.style.display = '';
 	}
 
 	wrapArticleContent(article: string): string {
@@ -309,9 +316,14 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	}
 
 	getCSS() {
+		logger.info(`[getCSS] 当前主题: ${this.currentTheme}, 设置中的主题: ${this.settings.defaultStyle}`);
+		
 		const theme = this.assetsManager.getTheme(this.currentTheme);
 		const highlight = this.assetsManager.getHighlight(this.currentHighlight);
 		const customCSS = this.settings.useCustomCss ? this.assetsManager.customCSS : "";
+
+		logger.info(`[getCSS] 主题对象:`, theme ? `${theme.name}` : 'undefined');
+		logger.info(`[getCSS] 主题CSS长度:`, theme?.css?.length || 0);
 
 		let themeColorCSS = "";
 
@@ -327,7 +339,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		const highlightCss = highlight?.css || "";
 		const themeCss = theme?.css || "";
 
-		return `${themeColorCSS}
+		const finalCSS = `${themeColorCSS}
 
 ${InlineCSS}
 
@@ -336,6 +348,9 @@ ${highlightCss}
 ${themeCss}
 
 ${customCSS}`;
+
+		logger.info(`[getCSS] 最终CSS长度:`, finalCSS.length);
+		return finalCSS;
 	}
 
 	updateElementByID(id: string, html: string): void {
@@ -368,10 +383,10 @@ ${customCSS}`;
 		});
 
 		// 渲染外部React组件
-		this.updateExternalReactComponent();
+		await this.updateExternalReactComponent();
 	}
 
-	private updateExternalReactComponent() {
+	private async updateExternalReactComponent() {
 		if (!this.externalReactLib || !this.reactContainer) {
 			logger.warn("外部React应用未加载或容器不存在", {
 				externalReactLib: !!this.externalReactLib,
@@ -450,24 +465,20 @@ ${customCSS}`;
 					await this.renderMarkdown();
 				},
 				onThemeChange: async (theme: string) => {
+					logger.info(`[onThemeChange] 切换主题: ${theme}`);
 					this.settings.defaultStyle = theme;
 					this.saveSettingsToPlugin();
-					
-					// 强制刷新 assetsManager 的主题缓存
-					await this.assetsManager.loadAssets();
-					
-					// 第一次渲染
+					logger.info(`[onThemeChange] 设置已更新，开始渲染`);
 					await this.renderMarkdown();
+					logger.info(`[onThemeChange] 渲染完成`);
 					
-					// 短暂延迟后再次渲染，确保所有状态正确同步
-					setTimeout(async () => {
-						await this.renderMarkdown();
-					}, 100);
+					// 直接异步调用update
+					await this.update();
 				},
 				onHighlightChange: async (highlight: string) => {
 					this.settings.defaultHighlight = highlight;
 					this.saveSettingsToPlugin();
-					this.updateExternalReactComponent();
+					await this.updateExternalReactComponent();
 				},
 				onThemeColorToggle: async (enabled: boolean) => {
 					this.settings.enableThemeColor = enabled;
@@ -500,8 +511,8 @@ ${customCSS}`;
 				}
 			};
 
-			// 使用外部React应用进行渲染
-			this.externalReactLib.update(this.reactContainer, props);
+			// 使用外部React应用进行渲染，等待渲染完成
+			await this.externalReactLib.update(this.reactContainer, props);
 			logger.info("外部React组件更新成功", {
 				containerChildrenAfterUpdate: this.reactContainer.children.length,
 				containerInnerHTML: this.reactContainer.innerHTML.substring(0, 200) + "..."

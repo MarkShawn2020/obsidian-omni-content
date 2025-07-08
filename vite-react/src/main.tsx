@@ -30,13 +30,24 @@ const OmniContentReactLib: OmniContentReactLib = {
 	},
 
 	update: (container: HTMLElement, props: OmniContentReactProps) => {
-		const root = rootStore.get(container);
-		if (root) {
-			root.render(<OmniContentReact {...props} />);
-		} else {
-			// If no root exists, create one
-			OmniContentReactLib.mount(container, props);
-		}
+		return new Promise<void>((resolve) => {
+			const root = rootStore.get(container);
+			if (root) {
+				root.render(<OmniContentReact {...props} />);
+				// 使用多个requestAnimationFrame确保React的useEffect完全执行完毕
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						// 调用CSS变量更新
+						props.onUpdateCSSVariables();
+						resolve();
+					});
+				});
+			} else {
+				// If no root exists, create one
+				OmniContentReactLib.mount(container, props);
+				resolve();
+			}
+		});
 	}
 };
 

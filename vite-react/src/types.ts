@@ -87,5 +87,5 @@ export interface OmniContentReactProps {
 export interface OmniContentReactLib {
 	mount: (container: HTMLElement, props: OmniContentReactProps) => void;
 	unmount: (container: HTMLElement) => void;
-	update: (container: HTMLElement, props: OmniContentReactProps) => void;
+	update: (container: HTMLElement, props: OmniContentReactProps) => Promise<void>;
 }
