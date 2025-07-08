@@ -1,3 +1,6 @@
+import themesData from '../../../themes.json';
+import highlightsData from '../../../highlights.json';
+
 export interface ThemeOption {
     name: string;
     className: string;
@@ -22,13 +25,12 @@ export interface ResourceLoader {
 }
 
 class LocalResourceLoader implements ResourceLoader {
-    private basePath = '../../dist/assets/';
-
     async loadThemes(): Promise<ThemeOption[]> {
         try {
-            const response = await fetch(`${this.basePath}themes.json`);
-            const themes = await response.json();
-            return themes.map((theme: any) => ({
+            console.log('Loading themes from imported data');
+            console.log('Loaded themes:', themesData.length);
+            
+            return themesData.map((theme: any) => ({
                 name: theme.name,
                 className: theme.className,
                 desc: theme.desc,
@@ -36,6 +38,7 @@ class LocalResourceLoader implements ResourceLoader {
             }));
         } catch (error) {
             console.error('Failed to load themes:', error);
+            console.error('Using fallback themes');
             return [
                 { name: "默认主题", className: "default" },
                 { name: "深色主题", className: "dark" },
@@ -46,14 +49,16 @@ class LocalResourceLoader implements ResourceLoader {
 
     async loadHighlights(): Promise<HighlightOption[]> {
         try {
-            const response = await fetch(`${this.basePath}highlights.json`);
-            const highlights = await response.json();
-            return highlights.map((highlight: any) => ({
+            console.log('Loading highlights from imported data');
+            console.log('Loaded highlights:', highlightsData.length);
+            
+            return highlightsData.map((highlight: any) => ({
                 name: highlight.name,
                 url: highlight.url
             }));
         } catch (error) {
             console.error('Failed to load highlights:', error);
+            console.error('Using fallback highlights');
             return [
                 { name: "default" },
                 { name: "github" },
@@ -64,33 +69,7 @@ class LocalResourceLoader implements ResourceLoader {
 
     async loadTemplates(): Promise<TemplateOption[]> {
         try {
-            const response = await fetch(`${this.basePath}templates/`);
-            const text = await response.text();
-            
-            // 解析HTML目录列表来获取模板文件
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            const links = doc.querySelectorAll('a');
-            
-            const templates: TemplateOption[] = [
-                { name: "不使用模板", filename: "none" }
-            ];
-            
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && href.endsWith('.html')) {
-                    const filename = href.substring(0, href.lastIndexOf('.html'));
-                    templates.push({
-                        name: filename,
-                        filename: filename
-                    });
-                }
-            });
-            
-            return templates;
-        } catch (error) {
-            console.error('Failed to load templates:', error);
-            // 返回静态模板列表作为fallback
+            console.log('Loading templates (static list)');
             return [
                 { name: "不使用模板", filename: "none" },
                 { name: "Bento 1", filename: "Bento 1" },
@@ -102,6 +81,14 @@ class LocalResourceLoader implements ResourceLoader {
                 { name: "手工川 - 2", filename: "手工川 - 2" },
                 { name: "手工川 - 3", filename: "手工川 - 3" },
                 { name: "手工川 - 张小珺风格", filename: "手工川 - 张小珺风格" }
+            ];
+        } catch (error) {
+            console.error('Failed to load templates:', error);
+            console.error('Using fallback templates');
+            return [
+                { name: "不使用模板", filename: "none" },
+                { name: "默认模板", filename: "default" },
+                { name: "极简模板", filename: "minimal" }
             ];
         }
     }
