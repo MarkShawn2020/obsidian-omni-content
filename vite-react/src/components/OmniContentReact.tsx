@@ -10,6 +10,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  articleHTML,
 																	  cssContent,
 																	  plugins,
+																	  onRefresh,
 																	  onCopy,
 																	  onDistribute,
 																	  onTemplateChange,
@@ -17,6 +18,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onHighlightChange,
 																	  onThemeColorToggle,
 																	  onThemeColorChange,
+																	  onRenderArticle,
 																	  onSaveSettings,
 																	  onUpdateCSSVariables,
 																	  onPluginToggle,
@@ -69,8 +71,10 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		});
 		if (styleElRef.current) {
 			styleElRef.current.textContent = cssContent;
-			// 强制重新应用CSS变量
-			onUpdateCSSVariables();
+			// 延迟应用CSS变量，确保DOM更新完成
+			setTimeout(() => {
+				onUpdateCSSVariables();
+			}, 100);
 		}
 	}, [cssUpdateTrigger]);
 
@@ -91,8 +95,10 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		});
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
-			// 应用CSS变量更新
-			onUpdateCSSVariables();
+			// 延迟应用CSS变量更新，确保DOM更新完成
+			setTimeout(() => {
+				onUpdateCSSVariables();
+			}, 100);
 		}
 	}, [articleUpdateTrigger]);
 	
@@ -107,7 +113,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		// 使用 setTimeout 确保 DOM 更新完成后再调用 CSS 变量更新
 		setTimeout(() => {
 			onUpdateCSSVariables();
-		}, 0);
+		}, 200);
 	});
 
 	// 显示加载消息
@@ -229,23 +235,36 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 					overflowX: "hidden",
 					backgroundColor: "var(--background-secondary-alt)",
 					borderLeft: "1px solid var(--background-modifier-border)",
+					minWidth: "300px"
 				}}
 			>
-				<Toolbar
-					settings={settings}
-					plugins={plugins}
-					onCopy={onCopy}
-					onDistribute={onDistribute}
-					onTemplateChange={onTemplateChange}
-					onThemeChange={onThemeChange}
-					onHighlightChange={onHighlightChange}
-					onThemeColorToggle={onThemeColorToggle}
-					onThemeColorChange={onThemeColorChange}
-					onSaveSettings={onSaveSettings}
-					onPluginToggle={onPluginToggle}
-					onPluginConfigChange={onPluginConfigChange}
-					onExpandedSectionsChange={onExpandedSectionsChange}
-				/>
+				{(() => {
+					logger.info("[OmniContentReact] 渲染工具栏", {
+						pluginsCount: plugins?.length || 0,
+						settingsKeys: Object.keys(settings || {}),
+						hasOnCopy: !!onCopy,
+						hasOnDistribute: !!onDistribute
+					});
+					return (
+						<Toolbar
+							settings={settings}
+							plugins={plugins}
+							onRefresh={onRefresh}
+							onCopy={onCopy}
+							onDistribute={onDistribute}
+							onTemplateChange={onTemplateChange}
+							onThemeChange={onThemeChange}
+							onHighlightChange={onHighlightChange}
+							onThemeColorToggle={onThemeColorToggle}
+							onThemeColorChange={onThemeColorChange}
+							onRenderArticle={onRenderArticle}
+							onSaveSettings={onSaveSettings}
+							onPluginToggle={onPluginToggle}
+							onPluginConfigChange={onPluginConfigChange}
+							onExpandedSectionsChange={onExpandedSectionsChange}
+						/>
+					);
+				})()}
 			</div>
 
 			{/* 消息模态框 */}

@@ -67,6 +67,7 @@ export interface OmniContentReactProps {
 	articleHTML: string;
 	cssContent: string;
 	plugins: UnifiedPluginData[];
+	onRefresh: () => void;
 	onCopy: () => void;
 	onDistribute: () => void;
 	onTemplateChange: (template: string) => void;
@@ -74,6 +75,7 @@ export interface OmniContentReactProps {
 	onHighlightChange: (highlight: string) => void;
 	onThemeColorToggle: (enabled: boolean) => void;
 	onThemeColorChange: (color: string) => void;
+	onRenderArticle: () => void;
 	onSaveSettings: () => void;
 	onUpdateCSSVariables: () => void;
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;

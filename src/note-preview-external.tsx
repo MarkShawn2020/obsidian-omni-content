@@ -91,9 +91,19 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				(window as any).omniContentReact;
 
 			if (this.externalReactLib) {
-				logger.info("外部React应用加载成功");
+				logger.info("外部React应用加载成功", {
+					availableMethods: Object.keys(this.externalReactLib),
+					hasMount: typeof this.externalReactLib.mount === 'function',
+					hasUpdate: typeof this.externalReactLib.update === 'function',
+					hasUnmount: typeof this.externalReactLib.unmount === 'function'
+				});
 			} else {
-				logger.error("找不到外部React应用的全局对象，可用的全局变量:", Object.keys(window).filter(key => key.includes('Omni') || key.includes('React')));
+				logger.error("找不到外部React应用的全局对象", {
+					windowKeys: Object.keys(window).filter(key => key.includes('Omni') || key.includes('React') || key.includes('react')),
+					omniContentReact: !!(window as any).OmniContentReact,
+					omniContentReactLib: !!(window as any).OmniContentReactLib,
+					omniContentReactLowerCase: !!(window as any).omniContentReact
+				});
 			}
 		} catch (error) {
 			logger.error("加载外部React应用失败:", error);
@@ -162,6 +172,11 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		this.updateExternalReactComponent();
 	}
 
+	async renderArticleOnly() {
+		this.articleHTML = await this.getArticleContent();
+		this.updateExternalReactComponent();
+	}
+
 	async copyArticle() {
 		const content = await this.getArticleContent();
 
@@ -214,7 +229,14 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 
 	updateCSSVariables() {
 		// 在React组件中处理CSS变量更新
-		const noteContainer = document.querySelector(".note-to-mp") as HTMLElement;
+		// 首先尝试在React容器中查找
+		let noteContainer = this.reactContainer?.querySelector(".note-to-mp") as HTMLElement;
+		
+		// 如果React容器中没有找到，则在整个document中查找
+		if (!noteContainer) {
+			noteContainer = document.querySelector(".note-to-mp") as HTMLElement;
+		}
+		
 		if (!noteContainer) {
 			logger.warn("找不到 .note-to-mp 容器，无法更新CSS变量");
 			return;
@@ -338,26 +360,52 @@ ${customCSS}`;
 		this.reactContainer = document.createElement('div');
 		this.reactContainer.style.width = '100%';
 		this.reactContainer.style.height = '100%';
+		this.reactContainer.id = 'omni-content-react-container';
 		this.container.appendChild(this.reactContainer);
+
+		logger.info("UI构建完成", {
+			containerExists: !!this.container,
+			reactContainerExists: !!this.reactContainer,
+			reactContainerInDOM: document.contains(this.reactContainer),
+			containerChildren: this.container.children.length
+		});
 
 		// 渲染外部React组件
 		this.updateExternalReactComponent();
 	}
 
 	private updateExternalReactComponent() {
-		if (!this.externalReactLib || !this.reactContainer) throw new Error("<UNK>");
+		if (!this.externalReactLib || !this.reactContainer) {
+			logger.warn("外部React应用未加载或容器不存在", {
+				externalReactLib: !!this.externalReactLib,
+				reactContainer: !!this.reactContainer
+			});
 
-		const cssContent = this.getCSS();
-		logger.info("更新外部React组件", {
-			articleHTMLLength: this.articleHTML?.length || 0,
-			cssContentLength: cssContent?.length || 0,
-			cssContentHash: cssContent ? cssContent.substring(0, 50) + "..." : "",
-			hasCSS: !!cssContent,
-			availableMethods: this.externalReactLib ? Object.keys(this.externalReactLib) : []
-		});
+			// 如果没有外部React应用，显示一个简单的错误消息
+			if (this.reactContainer) {
+				this.reactContainer.innerHTML = `
+					<div style="padding: 20px; text-align: center; color: var(--text-muted);">
+						<h3>React应用加载失败</h3>
+						<p>请检查控制台日志获取更多信息</p>
+						<p>插件可能需要重新安装或构建</p>
+					</div>
+				`;
+			}
+			return;
+		}
 
-		const props: OmniContentReactProps = {
-			settings: {
+		try {
+			logger.info("更新外部React组件", {
+				articleHTMLLength: this.articleHTML?.length || 0,
+				hasCSS: !!this.getCSS(),
+				availableMethods: this.externalReactLib ? Object.keys(this.externalReactLib) : [],
+				reactContainerInDOM: this.reactContainer ? document.contains(this.reactContainer) : false,
+				reactContainerElement: this.reactContainer ? this.reactContainer.tagName : null,
+				reactContainerChildren: this.reactContainer ? this.reactContainer.children.length : 0
+			});
+
+			// 转换设置对象以适配外部React应用的接口
+			const externalSettings = {
 				defaultStyle: this.settings.defaultStyle,
 				defaultHighlight: this.settings.defaultHighlight,
 				defaultTemplate: this.settings.defaultTemplate,
@@ -370,73 +418,100 @@ ${customCSS}`;
 				wxInfo: this.settings.wxInfo,
 				expandedAccordionSections: this.settings.expandedAccordionSections || [],
 				showStyleUI: this.settings.showStyleUI !== false, // 默认显示
-			},
-			articleHTML: this.articleHTML || "",
-			cssContent: cssContent,
-			plugins: this.getUnifiedPlugins(),
-			onCopy: async () => {
-				await this.copyArticle();
-				uevent("copy");
-			},
-			onDistribute: async () => {
-				this.openDistributionModal();
-				uevent("distribute");
-			},
-			onTemplateChange: async (template: string) => {
-				logger.info(`[onTemplateChange]: ${template}`)
-				if (template === "") {
-					this.settings.useTemplate = false;
-					this.settings.lastSelectedTemplate = "";
-				} else {
-					this.settings.useTemplate = true;
-					this.settings.defaultTemplate = template;
-					this.settings.lastSelectedTemplate = template;
-				}
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown();
-			},
-			onThemeChange: async (theme: string) => {
-				logger.info(`[onThemeChange]: ${theme}`)
-				this.settings.defaultStyle = theme;
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown()
-			},
-			onHighlightChange: async (highlight: string) => {
-				this.settings.defaultHighlight = highlight;
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown()
-			},
-			onThemeColorToggle: async (enabled: boolean) => {
-				this.settings.enableThemeColor = enabled;
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown();
-			},
-			onThemeColorChange: async (color: string) => {
-				this.settings.themeColor = color;
-				this.saveSettingsToPlugin();
-				await this.renderMarkdown();
-			},
-			onSaveSettings: () => {
-				this.saveSettingsToPlugin();
-			},
-			onUpdateCSSVariables: () => {
-				this.updateCSSVariables();
-			},
-			onPluginToggle: (pluginName: string, enabled: boolean) => {
-				this.handleUnifiedPluginToggle(pluginName, enabled);
-			},
-			onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
-				this.handleUnifiedPluginConfigChange(pluginName, key, value);
-			},
-			onExpandedSectionsChange: (sections: string[]) => {
-				this.settings.expandedAccordionSections = sections;
-				this.saveSettingsToPlugin();
-			}
-		};
+			};
 
-		// 使用外部React应用进行渲染
-		this.externalReactLib.update(this.reactContainer, props);
-		logger.info("外部React组件更新成功");
+			// 获取统一插件数据
+			const plugins = this.getUnifiedPlugins();
+
+			const props = {
+				settings: externalSettings,
+				articleHTML: this.articleHTML || "",
+				cssContent: this.getCSS(),
+				plugins: plugins,
+				onRefresh: async () => {
+					await this.renderMarkdown();
+					uevent("refresh");
+				},
+				onCopy: async () => {
+					await this.copyArticle();
+					uevent("copy");
+				},
+				onDistribute: async () => {
+					this.openDistributionModal();
+					uevent("distribute");
+				},
+				onTemplateChange: async (template: string) => {
+					if (template === "") {
+						this.settings.useTemplate = false;
+						this.settings.lastSelectedTemplate = "";
+					} else {
+						this.settings.useTemplate = true;
+						this.settings.defaultTemplate = template;
+						this.settings.lastSelectedTemplate = template;
+					}
+					this.saveSettingsToPlugin();
+					await this.renderMarkdown();
+				},
+				onThemeChange: async (theme: string) => {
+					this.settings.defaultStyle = theme;
+					this.saveSettingsToPlugin();
+					this.updateExternalReactComponent();
+				},
+				onHighlightChange: async (highlight: string) => {
+					this.settings.defaultHighlight = highlight;
+					this.saveSettingsToPlugin();
+					this.updateExternalReactComponent();
+				},
+				onThemeColorToggle: async (enabled: boolean) => {
+					this.settings.enableThemeColor = enabled;
+					this.saveSettingsToPlugin();
+					await this.renderMarkdown();
+				},
+				onThemeColorChange: async (color: string) => {
+					this.settings.themeColor = color;
+					this.saveSettingsToPlugin();
+					await this.renderMarkdown();
+				},
+				onRenderArticle: async () => {
+					await this.renderArticleOnly();
+				},
+				onSaveSettings: () => {
+					this.saveSettingsToPlugin();
+				},
+				onUpdateCSSVariables: () => {
+					this.updateCSSVariables();
+				},
+				onPluginToggle: (pluginName: string, enabled: boolean) => {
+					this.handleUnifiedPluginToggle(pluginName, enabled);
+				},
+				onPluginConfigChange: (pluginName: string, key: string, value: string | boolean) => {
+					this.handleUnifiedPluginConfigChange(pluginName, key, value);
+				},
+				onExpandedSectionsChange: (sections: string[]) => {
+					this.settings.expandedAccordionSections = sections;
+					this.saveSettingsToPlugin();
+				}
+			};
+
+			// 使用外部React应用进行渲染
+			this.externalReactLib.update(this.reactContainer, props);
+			logger.info("外部React组件更新成功", {
+				containerChildrenAfterUpdate: this.reactContainer.children.length,
+				containerInnerHTML: this.reactContainer.innerHTML.substring(0, 200) + "..."
+			});
+
+		} catch (error) {
+			logger.error("更新外部React组件时出错:", error);
+			if (this.reactContainer) {
+				this.reactContainer.innerHTML = `
+					<div style="padding: 20px; text-align: center; color: var(--text-error);">
+						<h3>React组件更新失败</h3>
+						<p>错误: ${error.message}</p>
+						<p>请检查控制台日志获取详细信息</p>
+					</div>
+				`;
+			}
+		}
 	}
 
 	private getUnifiedPlugins() {

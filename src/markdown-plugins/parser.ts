@@ -107,7 +107,9 @@ export class MarkedParser {
 				(ext as any).marked = this.marked;
 				logger.debug(`为插件 ${ext.getName()} 设置marked实例`);
 			} else {
-				logger.warn(`插件 ${ext.getName()} 没有marked属性`);
+				// 尝试直接设置marked属性，因为所有插件都应该继承自MarkdownPlugin
+				(ext as any).marked = this.marked;
+				logger.debug(`为插件 ${ext.getName()} 直接设置marked实例（原本检查失败）`);
 			}
 		}
 

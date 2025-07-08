@@ -13,6 +13,7 @@ export class TextHighlight extends UnifiedMarkdownPlugin {
 	}
 
 	markedExtension(): MarkedExtension {
+		const self = this;
 		return {
 			extensions: [{
 				name: 'InlineHighlight',
@@ -41,7 +42,7 @@ export class TextHighlight extends UnifiedMarkdownPlugin {
 					const lexer = new Lexer();
 					const tokens = lexer.lex(token.text);
 					// TODO: 优化一下
-					let body = this.parser.parse(tokens)
+					let body = self.marked.parser(tokens)
 					body = body.replace('<p>', '')
 					body = body.replace('</p>', '')
 					return `<span class="note-highlight">${body}</span>`;

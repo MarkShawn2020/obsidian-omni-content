@@ -24,6 +24,9 @@ export default defineConfig({
 			output: {
 				exports: 'named'
 			}
-		}
+		},
+
+		// 将 minify 设置为 false 来禁用压缩
+		minify: false,
 	}
 })
