@@ -72,9 +72,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		if (styleElRef.current) {
 			styleElRef.current.textContent = cssContent;
 			// 延迟应用CSS变量，确保DOM更新完成
-			setTimeout(() => {
-				onUpdateCSSVariables();
-			}, 100);
+			onUpdateCSSVariables();
 		}
 	}, [cssUpdateTrigger]);
 
@@ -96,12 +94,10 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
 			// 延迟应用CSS变量更新，确保DOM更新完成
-			setTimeout(() => {
-				onUpdateCSSVariables();
-			}, 100);
+			onUpdateCSSVariables();
 		}
 	}, [articleUpdateTrigger]);
-	
+
 	// 直接在渲染时更新DOM（作为备用方案）
 	useEffect(() => {
 		if (styleElRef.current) {
@@ -110,10 +106,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
 		}
-		// 使用 setTimeout 确保 DOM 更新完成后再调用 CSS 变量更新
-		setTimeout(() => {
-			onUpdateCSSVariables();
-		}, 200);
+		onUpdateCSSVariables();
 	});
 
 	// 显示加载消息

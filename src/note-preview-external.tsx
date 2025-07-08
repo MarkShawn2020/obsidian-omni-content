@@ -82,9 +82,6 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			// 加载对应的CSS文件
 			await this.loadExternalCSS(pluginDir);
 
-			// 等待一下确保脚本执行完成
-			await new Promise(resolve => setTimeout(resolve, 100));
-
 			// 获取全局对象
 			this.externalReactLib = (window as any).OmniContentReact ||
 				(window as any).OmniContentReactLib ||
@@ -455,7 +452,7 @@ ${customCSS}`;
 				onThemeChange: async (theme: string) => {
 					this.settings.defaultStyle = theme;
 					this.saveSettingsToPlugin();
-					this.updateExternalReactComponent();
+					await this.renderMarkdown();
 				},
 				onHighlightChange: async (highlight: string) => {
 					this.settings.defaultHighlight = highlight;

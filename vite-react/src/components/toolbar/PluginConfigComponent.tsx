@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {SelectWrapper} from "../ui/Select";
 import {PluginData} from "../../types";
-import { logger } from "../../../../src/logger";
+import {logger} from "../../../../src/logger";
 
 const STORAGE_KEY_PREFIX = 'omni-content-config';
 
@@ -68,10 +68,7 @@ export const ConfigComponent = <T extends PluginData>({
 			setLocalConfig({...item.config});
 		} else {
 			// 重置标记，允许下次外部更新
-			const timer = setTimeout(() => {
-				hasLocalUpdate.current = false;
-			}, 1000); // 1秒后允许外部同步
-			return () => clearTimeout(timer);
+			hasLocalUpdate.current = false;
 		}
 	}, [item.config]);
 
@@ -161,7 +158,7 @@ export const ConfigComponent = <T extends PluginData>({
 					<div className="accordion-title">
 						<div className="plugin-title">{item.name}</div>
 						{item.description && (
-							<div 
+							<div
 								className="plugin-description"
 								style={{
 									fontSize: "11px",
