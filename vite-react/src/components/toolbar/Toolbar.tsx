@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
-import {ActionButtons} from "./ActionButtons";
 import {StyleSettings} from "./StyleSettings";
 import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from "../ui/accordion";
 import {ConfigComponent} from "./PluginConfigComponent";
@@ -65,32 +64,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	const rehypePlugins = plugins.filter(plugin => plugin.type === 'rehype');
 
 	return (
-		<div className="preview-toolbar modern-toolbar h-full flex flex-col">
-			{/* 品牌区域 */}
+		<div className="h-full flex flex-col bg-white">
 			<BrandSection onCopy={onCopy} onDistribute={onDistribute}/>
 
-			{/* 工具栏内容 */}
-			<div className="toolbar-container flex-1 overflow-y-auto">
-				<div className="toolbar-content toolbar-vertical p-3 space-y-2">
-
-					{/* 手风琴容器 */}
+			<div className="flex-1 overflow-y-auto">
+				<div className="p-4 space-y-3">
 					<Accordion
 						type="single"
 						value={expandedSections[0] || ""}
 						onValueChange={handleAccordionChange}
 						collapsible
-						className="accordion-container w-full flex flex-col gap-1"
+						className="w-full space-y-2"
 					>
-						{/* 样式设置 */}
 						{settings.showStyleUI && (
-							<AccordionItem value="accordion-样式设置" className="border border-border/50 rounded-lg">
-								<AccordionTrigger className="px-4 py-3 text-sm font-medium hover:bg-accent/50 transition-colors">
-									<div className="flex items-center gap-2">
-										<div className="w-2 h-2 bg-red-500 rounded-full"></div>
-										样式设置
-									</div>
+							<AccordionItem value="accordion-样式设置" className="border-b border-gray-200">
+								<AccordionTrigger className="px-0 py-3 text-sm font-medium hover:no-underline">
+									样式设置
 								</AccordionTrigger>
-								<AccordionContent className="px-4 pb-4">
+								<AccordionContent className="px-0 pb-3">
 									<StyleSettings
 										settings={settings}
 										onTemplateChange={onTemplateChange}
@@ -103,32 +94,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							</AccordionItem>
 						)}
 
-						{/* 统一插件管理 */}
-						<AccordionItem value="accordion-plugins" className="border border-border/50 rounded-lg">
-							<AccordionTrigger className="px-4 py-3 text-sm font-medium hover:bg-accent/50 transition-colors">
-								<div className="flex items-center gap-2">
-									<div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-									插件管理
-									<span className="text-xs text-muted-foreground">({plugins.length})</span>
-								</div>
+						<AccordionItem value="accordion-plugins" className="border-b border-gray-200">
+							<AccordionTrigger className="px-0 py-3 text-sm font-medium hover:no-underline">
+								插件管理 ({plugins.length})
 							</AccordionTrigger>
-							<AccordionContent className="px-4 pb-4">
-							<div className="plugins-container w-full space-y-4">
+							<AccordionContent className="px-0 pb-3">
+							<div className="w-full space-y-6">
 								{plugins.length > 0 ? (
 									<>
-										{/* Remark 插件部分 */}
 										{remarkPlugins.length > 0 && (
-											<div className="plugin-section">
-												<div className="flex items-center gap-2 mb-3">
-													<div className="w-1 h-4 bg-green-500 rounded-full"></div>
-													<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-														Remark 插件
-													</h4>
-													<span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-														{remarkPlugins.length}
-													</span>
-												</div>
-												<div className="space-y-2">
+											<div>
+												<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
+													Remark 插件 ({remarkPlugins.length})
+												</h4>
+												<div className="space-y-1">
 													{remarkPlugins.map((plugin) => (
 													<ConfigComponent
 														key={plugin.name}
@@ -178,19 +157,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											</div>
 										)}
 
-										{/* Rehype 插件部分 */}
 										{rehypePlugins.length > 0 && (
-											<div className="plugin-section">
-												<div className="flex items-center gap-2 mb-3">
-													<div className="w-1 h-4 bg-purple-500 rounded-full"></div>
-													<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-														Rehype 插件
-													</h4>
-													<span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-														{rehypePlugins.length}
-													</span>
-												</div>
-												<div className="space-y-2">
+											<div>
+												<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
+													Rehype 插件 ({rehypePlugins.length})
+												</h4>
+												<div className="space-y-1">
 													{rehypePlugins.map((plugin) => (
 													<ConfigComponent
 														key={plugin.name}
@@ -241,8 +213,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 										)}
 									</>
 								) : (
-									<div className="flex items-center justify-center py-8">
-										<p className="text-sm text-muted-foreground">未找到任何插件</p>
+									<div className="text-center py-8">
+										<p className="text-sm text-gray-500">未找到任何插件</p>
 									</div>
 								)}
 							</div>

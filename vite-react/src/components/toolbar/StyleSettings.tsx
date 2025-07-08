@@ -2,6 +2,7 @@ import React from "react";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/Select";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {ViteReactSettings} from "../../types";
+import {useResources} from "../../hooks/useResources";
 
 interface StyleSettingsProps {
 	settings: ViteReactSettings;
@@ -20,26 +21,42 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 																onThemeColorToggle,
 																onThemeColorChange,
 															}) => {
-	// 模板选项（静态提供）
-	const templateOptions = [
-		{value: "none", text: "不使用模板"},
-		{value: "default", text: "默认模板"},
-		{value: "minimal", text: "极简模板"},
-	];
+	// 动态加载资源
+	const { themes, highlights, templates, loading, error } = useResources();
 
-	// 主题选项（静态提供）
-	const themeOptions = [
-		{value: "default", text: "默认主题"},
-		{value: "dark", text: "深色主题"},
-		{value: "light", text: "浅色主题"},
-	];
+	// 转换为选择器选项格式
+	const templateOptions = templates.map(template => ({
+		value: template.filename,
+		text: template.name
+	}));
 
-	// 高亮选项（静态提供）
-	const highlightOptions = [
-		{value: "default", text: "默认高亮"},
-		{value: "github", text: "GitHub"},
-		{value: "vscode", text: "VSCode"},
-	];
+	const themeOptions = themes.map(theme => ({
+		value: theme.className,
+		text: theme.name
+	}));
+
+	const highlightOptions = highlights.map(highlight => ({
+		value: highlight.name,
+		text: highlight.name
+	}));
+
+	// 加载状态或错误处理
+	if (loading) {
+		return (
+			<div className="w-full p-4 text-center text-gray-500">
+				<div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+				加载资源中...
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="w-full p-4 text-center text-red-500">
+				资源加载失败: {error}
+			</div>
+		);
+	}
 
 	const handleTemplateChange = (value: string) => {
 		// 将 "none" 转换为空字符串，保持向后兼容
@@ -59,11 +76,11 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 	return (
 		<div className="w-full space-y-3">
 			{/* 模板选择器 */}
-			<div className="space-y-1.5">
-				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+			<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
 					<svg
-						width="16"
-						height="16"
+						width="14"
+						height="14"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
@@ -77,7 +94,7 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 					<span>模板</span>
 				</div>
 				<Select value={settings.useTemplate ? settings.defaultTemplate : "none"} onValueChange={handleTemplateChange}>
-					<SelectTrigger className="w-full h-8 text-sm">
+					<SelectTrigger className="flex-1 h-8 text-sm">
 						<SelectValue placeholder="选择模板" />
 					</SelectTrigger>
 					<SelectContent>
@@ -91,11 +108,11 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 			</div>
 
 			{/* 主题选择器 */}
-			<div className="space-y-1.5">
-				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+			<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
 					<svg
-						width="16"
-						height="16"
+						width="14"
+						height="14"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
@@ -108,7 +125,7 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 					<span>主题</span>
 				</div>
 				<Select value={settings.defaultStyle} onValueChange={onThemeChange}>
-					<SelectTrigger className="w-full h-8 text-sm">
+					<SelectTrigger className="flex-1 h-8 text-sm">
 						<SelectValue placeholder="选择主题" />
 					</SelectTrigger>
 					<SelectContent>
@@ -122,11 +139,11 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 			</div>
 
 			{/* 代码高亮选择器 */}
-			<div className="space-y-1.5">
-				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+			<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
 					<svg
-						width="16"
-						height="16"
+						width="14"
+						height="14"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
@@ -137,10 +154,10 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 						<polyline points="16 18 22 12 16 6"/>
 						<polyline points="8 6 2 12 8 18"/>
 					</svg>
-					<span>代码高亮</span>
+					<span>高亮</span>
 				</div>
 				<Select value={settings.defaultHighlight} onValueChange={onHighlightChange}>
-					<SelectTrigger className="w-full h-8 text-sm">
+					<SelectTrigger className="flex-1 h-8 text-sm">
 						<SelectValue placeholder="选择高亮主题" />
 					</SelectTrigger>
 					<SelectContent>
@@ -155,54 +172,54 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 
 			{/* 主题色选择器 */}
 			<div className="space-y-2">
-				<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-					<svg
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<path d="M4 2v20l16-10z"/>
-					</svg>
-					<span>主题色</span>
-				</div>
-
-				<div className="space-y-2">
+				<div className="flex items-center gap-3">
+					<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
+						<svg
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="M4 2v20l16-10z"/>
+						</svg>
+						<span>主题色</span>
+					</div>
 					<div className="flex items-center gap-2">
 						<ToggleSwitch
 							size={'small'}
 							checked={settings.enableThemeColor}
 							onChange={onThemeColorToggle}
 						/>
-						<span className="text-xs text-muted-foreground">
-							{settings.enableThemeColor ? "启用自定义色" : "使用主题色"}
+						<span className="text-xs text-gray-500">
+							{settings.enableThemeColor ? "启用" : "禁用"}
 						</span>
 					</div>
+				</div>
 
-					<div className={`flex items-center gap-2 transition-opacity ${settings.enableThemeColor ? 'opacity-100' : 'opacity-50'}`}>
+				{settings.enableThemeColor && (
+					<div className="flex items-center gap-3 pl-20">
 						<input
-							className="w-8 h-6 rounded border border-border cursor-pointer disabled:cursor-not-allowed"
+							className="w-8 h-6 rounded border border-gray-300 cursor-pointer"
 							type="color"
 							value={settings.themeColor || "#7852ee"}
-							disabled={!settings.enableThemeColor}
 							onInput={handleColorInput}
 							onChange={handleColorChange}
 						/>
 						<div
-							className="w-4 h-4 rounded border border-border"
+							className="w-4 h-4 rounded border border-gray-300"
 							style={{
 								backgroundColor: settings.themeColor || "#7852ee",
 							}}
 						/>
-						<span className="text-xs text-muted-foreground font-mono">
+						<span className="text-xs text-gray-500 font-mono">
 							{settings.themeColor || "#7852ee"}
 						</span>
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	);
