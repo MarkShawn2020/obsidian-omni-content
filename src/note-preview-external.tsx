@@ -452,7 +452,17 @@ ${customCSS}`;
 				onThemeChange: async (theme: string) => {
 					this.settings.defaultStyle = theme;
 					this.saveSettingsToPlugin();
+					
+					// 强制刷新 assetsManager 的主题缓存
+					await this.assetsManager.loadAssets();
+					
+					// 第一次渲染
 					await this.renderMarkdown();
+					
+					// 短暂延迟后再次渲染，确保所有状态正确同步
+					setTimeout(async () => {
+						await this.renderMarkdown();
+					}, 100);
 				},
 				onHighlightChange: async (highlight: string) => {
 					this.settings.defaultHighlight = highlight;

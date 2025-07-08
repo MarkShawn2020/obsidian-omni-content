@@ -71,8 +71,10 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		});
 		if (styleElRef.current) {
 			styleElRef.current.textContent = cssContent;
-			// 延迟应用CSS变量，确保DOM更新完成
-			onUpdateCSSVariables();
+			// 使用requestAnimationFrame确保DOM更新完成后再应用CSS变量
+			requestAnimationFrame(() => {
+				onUpdateCSSVariables();
+			});
 		}
 	}, [cssUpdateTrigger]);
 
@@ -93,8 +95,10 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		});
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
-			// 延迟应用CSS变量更新，确保DOM更新完成
-			onUpdateCSSVariables();
+			// 使用requestAnimationFrame确保DOM更新完成后再应用CSS变量
+			requestAnimationFrame(() => {
+				onUpdateCSSVariables();
+			});
 		}
 	}, [articleUpdateTrigger]);
 
@@ -106,7 +110,10 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		if (articleDivRef.current) {
 			articleDivRef.current.innerHTML = articleHTML;
 		}
-		onUpdateCSSVariables();
+		// 使用requestAnimationFrame确保DOM更新完成后再应用CSS变量
+		requestAnimationFrame(() => {
+			onUpdateCSSVariables();
+		});
 	});
 
 	// 显示加载消息
