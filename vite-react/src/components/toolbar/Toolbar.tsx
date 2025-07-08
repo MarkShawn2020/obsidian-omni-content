@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {StyleSettings} from "./StyleSettings";
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "../ui/accordion";
+import {Tabs, TabsList, TabsTrigger, TabsContent} from "../ui/tabs";
 import {ConfigComponent} from "./PluginConfigComponent";
 import {UnifiedPluginData, ViteReactSettings} from "../../types";
 import {logger} from "../../../../src/logger";
@@ -48,21 +48,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		expandedSections: settings?.expandedAccordionSections
 	});
 
-	// 使用本地状态管理展开的sections
-	const [expandedSections, setExpandedSections] = useState<string[]>(settings.expandedAccordionSections);
+	// 使用本地状态管理当前选中的tab
+	const [activeTab, setActiveTab] = useState<string>(() => {
+		// 如果显示样式设置，默认选择样式设置，否则选择插件管理
+		return settings.showStyleUI ? 'style' : 'plugins';
+	});
 
 	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
-		setExpandedSections([...settings.expandedAccordionSections]);
-	}, [settings.expandedAccordionSections]);
+		// 如果当前tab是样式设置但样式设置被关闭了，切换到插件管理
+		if (activeTab === 'style' && !settings.showStyleUI) {
+			setActiveTab('plugins');
+		}
+	}, [settings.showStyleUI, activeTab]);
 
-	const handleAccordionChange = (value: string | undefined) => {
-		const newSections = value ? [value] : [];
-
-		// 更新本地状态
-		setExpandedSections(newSections);
-
-		// 通过回调函数更新外部settings
+	const handleTabChange = (value: string) => {
+		setActiveTab(value);
+		// 保存当前选中的tab到settings
+		const newSections = [value];
 		if (onExpandedSectionsChange) {
 			onExpandedSectionsChange(newSections);
 		}
@@ -81,20 +84,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 				<BrandSection onCopy={onCopy} onDistribute={onDistribute}/>
 
 				<div className="flex-1 overflow-y-auto">
-					<div className="p-4 space-y-3">
-						<Accordion
-							type="single"
-							value={expandedSections[0] || ""}
-							onValueChange={handleAccordionChange}
-							collapsible
-							className="w-full space-y-2"
-						>
-							{settings.showStyleUI && (
-								<AccordionItem value="accordion-样式设置" className="border-b border-gray-200">
-									<AccordionTrigger className="px-0 py-3 text-sm font-medium hover:no-underline">
+					<div className="p-4">
+						<Tabs value={activeTab} onValueChange={handleTabChange}>
+							<TabsList>
+								{settings.showStyleUI && (
+									<TabsTrigger value="style">
 										样式设置
-									</AccordionTrigger>
-									<AccordionContent className="px-0 pb-3">
+									</TabsTrigger>
+								)}
+								<TabsTrigger value="plugins">
+									插件管理 ({plugins.length})
+								</TabsTrigger>
+							</TabsList>
+							
+							{settings.showStyleUI && (
+								<TabsContent value="style">
+									<div className="mt-4">
 										<StyleSettings
 											settings={settings}
 											onTemplateChange={onTemplateChange}
@@ -103,132 +108,123 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											onThemeColorToggle={onThemeColorToggle}
 											onThemeColorChange={onThemeColorChange}
 										/>
-									</AccordionContent>
-								</AccordionItem>
+									</div>
+								</TabsContent>
 							)}
 
-							<AccordionItem value="accordion-plugins" className="border-b border-gray-200">
-								<AccordionTrigger className="px-0 py-3 text-sm font-medium hover:no-underline">
-									插件管理 ({plugins.length})
-								</AccordionTrigger>
-								<AccordionContent className="px-0 pb-3">
-									<div className="w-full space-y-6">
-										{plugins.length > 0 ? (
-											<>
-												{remarkPlugins.length > 0 && (
-													<div>
-														<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
-															Remark 插件 ({remarkPlugins.length})
-														</h4>
-														<div className="space-y-1">
-															{remarkPlugins.map((plugin) => (
-																<ConfigComponent
-																	key={plugin.name}
-																	item={plugin}
-																	type="plugin"
-																	expandedSections={expandedSections}
-																	onToggle={(sectionId, isExpanded) => {
-																		// ConfigComponent 内部的 Accordion 切换，这里暂时保持原有逻辑
-																		let newSections: string[];
-																		if (isExpanded) {
-																			newSections = expandedSections.includes(sectionId)
-																				? expandedSections
-																				: [...expandedSections, sectionId];
-																		} else {
-																			newSections = expandedSections.filter(id => id !== sectionId);
-																		}
-																		setExpandedSections(newSections);
-																		if (onExpandedSectionsChange) {
-																			onExpandedSectionsChange(newSections);
-																		}
-																		onSaveSettings();
-																	}}
-																	onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-																	onConfigChange={async (pluginName, key, value) => {
-																		console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
+							<TabsContent value="plugins">
+								<div className="mt-4 space-y-6">
+									{plugins.length > 0 ? (
+										<>
+											{remarkPlugins.length > 0 && (
+												<div>
+													<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
+														Remark 插件 ({remarkPlugins.length})
+													</h4>
+													<div className="space-y-1">
+														{remarkPlugins.map((plugin) => (
+															<ConfigComponent
+																key={plugin.name}
+																item={plugin}
+																type="plugin"
+																expandedSections={settings.expandedAccordionSections}
+																onToggle={(sectionId, isExpanded) => {
+																	let newSections: string[];
+																	if (isExpanded) {
+																		newSections = settings.expandedAccordionSections.includes(sectionId)
+																			? settings.expandedAccordionSections
+																			: [...settings.expandedAccordionSections, sectionId];
+																	} else {
+																		newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
+																	}
+																	if (onExpandedSectionsChange) {
+																		onExpandedSectionsChange(newSections);
+																	}
+																	onSaveSettings();
+																}}
+																onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+																onConfigChange={async (pluginName, key, value) => {
+																	console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
 
-																		if (onPluginConfigChange) {
-																			try {
-																				const result = onPluginConfigChange(pluginName, key, value) as any;
-																				if (result && typeof result?.then === 'function') {
-																					await result;
-																				}
-																				console.log(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
-																			} catch (error) {
-																				console.error(`[Toolbar] Remark插件配置更新失败:`, error);
+																	if (onPluginConfigChange) {
+																		try {
+																			const result = onPluginConfigChange(pluginName, key, value) as any;
+																			if (result && typeof result?.then === 'function') {
+																				await result;
 																			}
+																			console.log(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
+																		} catch (error) {
+																			console.error(`[Toolbar] Remark插件配置更新失败:`, error);
 																		}
+																	}
 
-																		console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
-																		onRenderArticle();
-																	}}
-																/>
-															))}
-														</div>
+																	console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
+																	onRenderArticle();
+																}}
+															/>
+														))}
 													</div>
-												)}
+												</div>
+											)}
 
-												{rehypePlugins.length > 0 && (
-													<div>
-														<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
-															Rehype 插件 ({rehypePlugins.length})
-														</h4>
-														<div className="space-y-1">
-															{rehypePlugins.map((plugin) => (
-																<ConfigComponent
-																	key={plugin.name}
-																	item={plugin}
-																	type="plugin"
-																	expandedSections={expandedSections}
-																	onToggle={(sectionId, isExpanded) => {
-																		// ConfigComponent 内部的 Accordion 切换，这里暂时保持原有逻辑
-																		let newSections: string[];
-																		if (isExpanded) {
-																			newSections = expandedSections.includes(sectionId)
-																				? expandedSections
-																				: [...expandedSections, sectionId];
-																		} else {
-																			newSections = expandedSections.filter(id => id !== sectionId);
-																		}
-																		setExpandedSections(newSections);
-																		if (onExpandedSectionsChange) {
-																			onExpandedSectionsChange(newSections);
-																		}
-																		onSaveSettings();
-																	}}
-																	onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-																	onConfigChange={async (pluginName, key, value) => {
-																		console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
+											{rehypePlugins.length > 0 && (
+												<div>
+													<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
+														Rehype 插件 ({rehypePlugins.length})
+													</h4>
+													<div className="space-y-1">
+														{rehypePlugins.map((plugin) => (
+															<ConfigComponent
+																key={plugin.name}
+																item={plugin}
+																type="plugin"
+																expandedSections={settings.expandedAccordionSections}
+																onToggle={(sectionId, isExpanded) => {
+																	let newSections: string[];
+																	if (isExpanded) {
+																		newSections = settings.expandedAccordionSections.includes(sectionId)
+																			? settings.expandedAccordionSections
+																			: [...settings.expandedAccordionSections, sectionId];
+																	} else {
+																		newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
+																	}
+																	if (onExpandedSectionsChange) {
+																		onExpandedSectionsChange(newSections);
+																	}
+																	onSaveSettings();
+																}}
+																onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+																onConfigChange={async (pluginName, key, value) => {
+																	console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
 
-																		if (onPluginConfigChange) {
-																			try {
-																				const result = onPluginConfigChange(pluginName, key, value) as any;
-																				if (result && typeof result?.then === 'function') {
-																					await result;
-																				}
-																				console.log(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
-																			} catch (error) {
-																				console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
+																	if (onPluginConfigChange) {
+																		try {
+																			const result = onPluginConfigChange(pluginName, key, value) as any;
+																			if (result && typeof result?.then === 'function') {
+																				await result;
 																			}
+																			console.log(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
+																		} catch (error) {
+																			console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
 																		}
+																	}
 
-																		onRenderArticle();
-																	}}
-																/>
-															))}
-														</div>
+																	onRenderArticle();
+																}}
+															/>
+														))}
 													</div>
-												)}
-											</>
-										) : (
-											<div className="text-center py-8">
-												<p className="text-sm text-gray-500">未找到任何插件</p>
-											</div>
-										)}
-									</div>
-								</AccordionContent>
-							</AccordionItem>
-						</Accordion>
+												</div>
+											)}
+										</>
+									) : (
+										<div className="text-center py-8">
+											<p className="text-sm text-gray-500">未找到任何插件</p>
+										</div>
+									)}
+								</div>
+							</TabsContent>
+						</Tabs>
 					</div>
 				</div>
 			</div>
