@@ -54,6 +54,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		return settings.showStyleUI ? 'style' : 'plugins';
 	});
 
+	// 插件管理中的子tab状态
+	const [pluginTab, setPluginTab] = useState<string>(() => {
+		// 默认选择第一个有插件的类型
+		const remarkPlugins = plugins.filter(plugin => plugin.type === 'remark');
+		const rehypePlugins = plugins.filter(plugin => plugin.type === 'rehype');
+		
+		if (remarkPlugins.length > 0) return 'remark';
+		if (rehypePlugins.length > 0) return 'rehype';
+		return 'remark';
+	});
+
 	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
 		// 如果当前tab是样式设置但样式设置被关闭了，切换到插件管理
@@ -75,6 +86,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	// 分离不同类型的插件
 	const remarkPlugins = plugins.filter(plugin => plugin.type === 'remark');
 	const rehypePlugins = plugins.filter(plugin => plugin.type === 'rehype');
+
+	// 批量操作函数
+	const handleBatchToggle = (pluginType: 'remark' | 'rehype', enabled: boolean) => {
+		const targetPlugins = pluginType === 'remark' ? remarkPlugins : rehypePlugins;
+		targetPlugins.forEach(plugin => {
+			if (onPluginToggle) {
+				onPluginToggle(plugin.name, enabled);
+			}
+		});
+		// 触发重新渲染
+		onRenderArticle();
+	};
 
 	try {
 		return (
@@ -113,110 +136,159 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							)}
 
 							<TabsContent value="plugins">
-								<div className="mt-4 space-y-6">
+								<div className="mt-4">
 									{plugins.length > 0 ? (
-										<>
+										<Tabs value={pluginTab} onValueChange={setPluginTab}>
+											<TabsList>
+												{remarkPlugins.length > 0 && (
+													<TabsTrigger value="remark">
+														Remark ({remarkPlugins.length})
+													</TabsTrigger>
+												)}
+												{rehypePlugins.length > 0 && (
+													<TabsTrigger value="rehype">
+														Rehype ({rehypePlugins.length})
+													</TabsTrigger>
+												)}
+											</TabsList>
+											
 											{remarkPlugins.length > 0 && (
-												<div>
-													<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
-														Remark 插件 ({remarkPlugins.length})
-													</h4>
-													<div className="space-y-1">
-														{remarkPlugins.map((plugin) => (
-															<ConfigComponent
-																key={plugin.name}
-																item={plugin}
-																type="plugin"
-																expandedSections={settings.expandedAccordionSections}
-																onToggle={(sectionId, isExpanded) => {
-																	let newSections: string[];
-																	if (isExpanded) {
-																		newSections = settings.expandedAccordionSections.includes(sectionId)
-																			? settings.expandedAccordionSections
-																			: [...settings.expandedAccordionSections, sectionId];
-																	} else {
-																		newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
-																	}
-																	if (onExpandedSectionsChange) {
-																		onExpandedSectionsChange(newSections);
-																	}
-																	onSaveSettings();
-																}}
-																onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-																onConfigChange={async (pluginName, key, value) => {
-																	console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
-
-																	if (onPluginConfigChange) {
-																		try {
-																			const result = onPluginConfigChange(pluginName, key, value) as any;
-																			if (result && typeof result?.then === 'function') {
-																				await result;
-																			}
-																			console.log(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
-																		} catch (error) {
-																			console.error(`[Toolbar] Remark插件配置更新失败:`, error);
+												<TabsContent value="remark">
+													<div className="mt-4">
+														<div className="flex justify-between items-center mb-4">
+															<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+																Remark 插件 ({remarkPlugins.length})
+															</h4>
+															<div className="flex space-x-2">
+																<button
+																	onClick={() => handleBatchToggle('remark', true)}
+																	className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+																>
+																	全部启用
+																</button>
+																<button
+																	onClick={() => handleBatchToggle('remark', false)}
+																	className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+																>
+																	全部关闭
+																</button>
+															</div>
+														</div>
+														<div className="space-y-1">
+															{remarkPlugins.map((plugin) => (
+																<ConfigComponent
+																	key={plugin.name}
+																	item={plugin}
+																	type="plugin"
+																	expandedSections={settings.expandedAccordionSections}
+																	onToggle={(sectionId, isExpanded) => {
+																		let newSections: string[];
+																		if (isExpanded) {
+																			newSections = settings.expandedAccordionSections.includes(sectionId)
+																				? settings.expandedAccordionSections
+																				: [...settings.expandedAccordionSections, sectionId];
+																		} else {
+																			newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
 																		}
-																	}
+																		if (onExpandedSectionsChange) {
+																			onExpandedSectionsChange(newSections);
+																		}
+																		onSaveSettings();
+																	}}
+																	onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+																	onConfigChange={async (pluginName, key, value) => {
+																		console.log(`[Toolbar] Remark插件配置变更: ${pluginName}.${key} = ${value}`);
 
-																	console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
-																	onRenderArticle();
-																}}
-															/>
-														))}
+																		if (onPluginConfigChange) {
+																			try {
+																				const result = onPluginConfigChange(pluginName, key, value) as any;
+																				if (result && typeof result?.then === 'function') {
+																					await result;
+																				}
+																				console.log(`[Toolbar] Remark插件配置更新完成: ${pluginName}.${key}`);
+																			} catch (error) {
+																				console.error(`[Toolbar] Remark插件配置更新失败:`, error);
+																			}
+																		}
+
+																		console.log(`[Toolbar] 触发重新渲染: ${pluginName}.${key}`);
+																		onRenderArticle();
+																	}}
+																/>
+															))}
+														</div>
 													</div>
-												</div>
+												</TabsContent>
 											)}
 
 											{rehypePlugins.length > 0 && (
-												<div>
-													<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider mb-3">
-														Rehype 插件 ({rehypePlugins.length})
-													</h4>
-													<div className="space-y-1">
-														{rehypePlugins.map((plugin) => (
-															<ConfigComponent
-																key={plugin.name}
-																item={plugin}
-																type="plugin"
-																expandedSections={settings.expandedAccordionSections}
-																onToggle={(sectionId, isExpanded) => {
-																	let newSections: string[];
-																	if (isExpanded) {
-																		newSections = settings.expandedAccordionSections.includes(sectionId)
-																			? settings.expandedAccordionSections
-																			: [...settings.expandedAccordionSections, sectionId];
-																	} else {
-																		newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
-																	}
-																	if (onExpandedSectionsChange) {
-																		onExpandedSectionsChange(newSections);
-																	}
-																	onSaveSettings();
-																}}
-																onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
-																onConfigChange={async (pluginName, key, value) => {
-																	console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
-
-																	if (onPluginConfigChange) {
-																		try {
-																			const result = onPluginConfigChange(pluginName, key, value) as any;
-																			if (result && typeof result?.then === 'function') {
-																				await result;
-																			}
-																			console.log(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
-																		} catch (error) {
-																			console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
+												<TabsContent value="rehype">
+													<div className="mt-4">
+														<div className="flex justify-between items-center mb-4">
+															<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+																Rehype 插件 ({rehypePlugins.length})
+															</h4>
+															<div className="flex space-x-2">
+																<button
+																	onClick={() => handleBatchToggle('rehype', true)}
+																	className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+																>
+																	全部启用
+																</button>
+																<button
+																	onClick={() => handleBatchToggle('rehype', false)}
+																	className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+																>
+																	全部关闭
+																</button>
+															</div>
+														</div>
+														<div className="space-y-1">
+															{rehypePlugins.map((plugin) => (
+																<ConfigComponent
+																	key={plugin.name}
+																	item={plugin}
+																	type="plugin"
+																	expandedSections={settings.expandedAccordionSections}
+																	onToggle={(sectionId, isExpanded) => {
+																		let newSections: string[];
+																		if (isExpanded) {
+																			newSections = settings.expandedAccordionSections.includes(sectionId)
+																				? settings.expandedAccordionSections
+																				: [...settings.expandedAccordionSections, sectionId];
+																		} else {
+																			newSections = settings.expandedAccordionSections.filter(id => id !== sectionId);
 																		}
-																	}
+																		if (onExpandedSectionsChange) {
+																			onExpandedSectionsChange(newSections);
+																		}
+																		onSaveSettings();
+																	}}
+																	onEnabledChange={(pluginName, enabled) => onPluginToggle?.(pluginName, enabled)}
+																	onConfigChange={async (pluginName, key, value) => {
+																		console.log(`[Toolbar] Rehype插件配置变更: ${pluginName}.${key} = ${value}`);
 
-																	onRenderArticle();
-																}}
-															/>
-														))}
+																		if (onPluginConfigChange) {
+																			try {
+																				const result = onPluginConfigChange(pluginName, key, value) as any;
+																				if (result && typeof result?.then === 'function') {
+																					await result;
+																				}
+																				console.log(`[Toolbar] Rehype插件配置更新完成: ${pluginName}.${key}`);
+																			} catch (error) {
+																				console.error(`[Toolbar] Rehype插件配置更新失败:`, error);
+																			}
+																		}
+
+																		onRenderArticle();
+																	}}
+																/>
+															))}
+														</div>
 													</div>
-												</div>
+												</TabsContent>
 											)}
-										</>
+										</Tabs>
 									) : (
 										<div className="text-center py-8">
 											<p className="text-sm text-gray-500">未找到任何插件</p>
