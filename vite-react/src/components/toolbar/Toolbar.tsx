@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {StyleSettings} from "./StyleSettings";
-import {CoverDesigner, type CoverData} from "./CoverDesigner";
+import {CoverDesigner} from "./CoverDesigner";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "../ui/tabs";
 import {ConfigComponent} from "./PluginConfigComponent";
 import {UnifiedPluginData, ViteReactSettings} from "../../types";
 import {logger} from "../../../../src/logger";
+import {CoverData} from "@/components/toolbar/CoverData";
 
 interface ToolbarProps {
 	settings: ViteReactSettings;

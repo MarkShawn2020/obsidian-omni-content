@@ -37,7 +37,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 					padding: "20px",
 					borderRadius: "8px",
 					boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-					minWidth: "300px",
+					minWidth: "320px",
 					textAlign: "center",
 				}}
 			>
