@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
-import {SelectWrapper} from "../ui/Select";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select";
 import {PluginData} from "../../types";
 import {logger} from "../../../../src/logger";
 
@@ -17,16 +17,6 @@ const saveToStorage = (key: string, value: any) => {
 		console.warn('Failed to save to localStorage:', error);
 	}
 };
-
-// const loadFromStorage = (key: string) => {
-// 	try {
-// 		const stored = localStorage.getItem(key);
-// 		return stored ? JSON.parse(stored) : null;
-// 	} catch (error) {
-// 		console.warn('Failed to load from localStorage:', error);
-// 		return null;
-// 	}
-// };
 
 
 interface ConfigComponentProps<T extends PluginData> {
@@ -236,12 +226,21 @@ export const ConfigComponent = <T extends PluginData>({
 											size="small"
 										/>
 									) : meta.type === "select" ? (
-										<SelectWrapper
+										<Select
 											value={String(localConfig[key] || "")}
-											options={meta.options || []}
-											onChange={(value) => handleConfigChange(key, value)}
-											className={`${type}-config-select`}
-										/>
+											onValueChange={(value) => handleConfigChange(key, value)}
+										>
+											<SelectTrigger className={`${type}-config-select w-32`}>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{(meta.options || []).map((option) => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.text}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 									) : meta.type === "input" ? (
 										<input
 											type="text"

@@ -1,5 +1,5 @@
 import React from "react";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/Select";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {ViteReactSettings} from "../../types";
 import {useResources} from "../../hooks/useResources";

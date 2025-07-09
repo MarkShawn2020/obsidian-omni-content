@@ -4,41 +4,6 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-export interface SelectOption {
-  value: string;
-  text: string;
-}
-
-interface SelectWrapperProps {
-  value: string;
-  options: SelectOption[];
-  onChange: (value: string) => void;
-  className?: string;
-}
-
-function SelectWrapper({ value, options, onChange, className }: SelectWrapperProps) {
-  // Filter out options with empty string values and provide a fallback
-  const validOptions = options.filter(option => option.value !== "");
-  
-  // If the current value is empty string, convert it to undefined for Radix UI
-  const currentValue = value === "" ? undefined : value;
-  
-  return (
-    <SelectPrimitive.Root value={currentValue} onValueChange={onChange}>
-      <SelectTrigger className={className}>
-        <SelectValue placeholder="Select an option" />
-      </SelectTrigger>
-      <SelectContent>
-        {validOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.text}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </SelectPrimitive.Root>
-  );
-}
-
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
@@ -206,7 +171,6 @@ function SelectScrollDownButton({
 
 export {
   Select,
-  SelectWrapper,
   SelectContent,
   SelectGroup,
   SelectItem,

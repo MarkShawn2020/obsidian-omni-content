@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '../ui/tabs';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../ui/select';
 import {logger} from '../../../../src/logger';
-import {imageGenerationService} from '../../services/imageGenerationService';
 import {loadImageAsBlob} from '../../utils/imageProxy';
 import {CoverPreview} from "@/components/toolbar/CoverPreview";
 import {CoverData} from "@/components/toolbar/CoverData";
+import {CoverEditor} from "@/components/toolbar/CoverEditor";
 
 export type CoverAspectRatio = '2.25:1' | '1:1' | 'custom';
 export type CoverImageSource = 'article' | 'upload' | 'ai';
@@ -22,11 +22,6 @@ interface ExtractedImage {
 	height?: number;
 }
 
-interface AIGenerateParams {
-	prompt: string;
-	style: string;
-	aspectRatio: CoverAspectRatio;
-}
 
 interface GenerationStatus {
 	isGenerating: boolean;
@@ -42,26 +37,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	// 当前选中的封面 (1 或 2)
 	const [selectedCover, setSelectedCover] = useState<1 | 2>(1);
 
-	// 封面1的状态 - 固定为2.25:1比例
-	const [cover1] = useState({id: 1, name: '封面1', aspectRatio: '2.25:1' as CoverAspectRatio});
-	const [cover1ActiveTab, setCover1ActiveTab] = useState<CoverImageSource>('article');
-	const [cover1UploadedImages, setCover1UploadedImages] = useState<File[]>([]);
-	const [cover1AiPrompt, setCover1AiPrompt] = useState<string>('');
-	const [cover1AiStyle, setCover1AiStyle] = useState<string>('realistic');
-	const [cover1GeneratedImages, setCover1GeneratedImages] = useState<string[]>([]);
-	const [cover1Title, setCover1Title] = useState<string>('');
-	const [cover1Description, setCover1Description] = useState<string>('');
+	// 封面预览状态
 	const [cover1PreviewCovers, setCover1PreviewCovers] = useState<CoverData[]>([]);
-
-	// 封面2的状态 - 固定为1:1比例
-	const [cover2] = useState({id: 2, name: '封面2', aspectRatio: '1:1' as CoverAspectRatio});
-	const [cover2ActiveTab, setCover2ActiveTab] = useState<CoverImageSource>('article');
-	const [cover2UploadedImages, setCover2UploadedImages] = useState<File[]>([]);
-	const [cover2AiPrompt, setCover2AiPrompt] = useState<string>('');
-	const [cover2AiStyle, setCover2AiStyle] = useState<string>('realistic');
-	const [cover2GeneratedImages, setCover2GeneratedImages] = useState<string[]>([]);
-	const [cover2Title, setCover2Title] = useState<string>('');
-	const [cover2Description, setCover2Description] = useState<string>('');
 	const [cover2PreviewCovers, setCover2PreviewCovers] = useState<CoverData[]>([]);
 
 	// 共享状态
@@ -246,87 +223,12 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		extractImages();
 	}, [articleHTML, extractImagesFromHTML]);
 
-	const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>, coverNum: 1 | 2) => {
-		const files = event.target.files;
-		if (!files) return;
 
-		const imageFiles = Array.from(files).filter(file =>
-			file.type.startsWith('image/')
-		);
-
-		if (coverNum === 1) {
-			setCover1UploadedImages(prev => [...prev, ...imageFiles]);
-		} else {
-			setCover2UploadedImages(prev => [...prev, ...imageFiles]);
-		}
-		logger.info(`[CoverDesigner] 封面${coverNum}上传图片`, {count: imageFiles.length});
-	}, []);
-
-	const generateAIImage = useCallback(async (params: AIGenerateParams, coverNum: 1 | 2) => {
-		setGenerationStatus({
-			isGenerating: true,
-			progress: 0,
-			message: '正在准备生成...'
-		});
-		setGenerationError('');
-		logger.info('[CoverDesigner] 开始生成AI图片', params);
-
-		try {
-			// 模拟进度更新
-			const progressUpdates = [
-				{progress: 20, message: '正在处理提示词...'},
-				{progress: 40, message: '正在生成图像...'},
-				{progress: 60, message: '正在优化细节...'},
-				{progress: 80, message: '正在后处理...'},
-				{progress: 100, message: '生成完成!'}
-			];
-
-			for (const update of progressUpdates) {
-				setGenerationStatus(prev => ({
-					...prev,
-					progress: update.progress,
-					message: update.message
-				}));
-				await new Promise(resolve => setTimeout(resolve, 500));
-			}
-
-			const dimensions = getDimensions(coverNum);
-			const result = await imageGenerationService.generateImage({
-				prompt: params.prompt,
-				style: params.style,
-				aspectRatio: params.aspectRatio,
-				width: dimensions.width,
-				height: dimensions.height
-			});
-
-			if (result.success && result.imageUrl) {
-				if (coverNum === 1) {
-					setCover1GeneratedImages(prev => [...prev, result.imageUrl!]);
-				} else {
-					setCover2GeneratedImages(prev => [...prev, result.imageUrl!]);
-				}
-				logger.info(`[CoverDesigner] 封面${coverNum} AI图片生成成功`);
-			} else {
-				throw new Error(result.error || '生成失败');
-			}
-		} catch (error) {
-			logger.error('[CoverDesigner] AI图片生成失败', error);
-			setGenerationError(error instanceof Error ? error.message : '生成失败，请重试');
-		} finally {
-			setGenerationStatus({
-				isGenerating: false,
-				progress: 0,
-				message: ''
-			});
-		}
-	}, [getDimensions]);
 
 	const createCover = useCallback(async (imageUrl: string, source: CoverImageSource, coverNum: 1 | 2) => {
 		logger.info(`[CoverDesigner] 开始创建封面${coverNum}`, {imageUrl: imageUrl.substring(0, 100), source});
 
 		const dimensions = getDimensions(coverNum);
-		const finalTitle = coverNum === 1 ? cover1Title : cover2Title;
-		const finalDescription = coverNum === 1 ? cover1Description : cover2Description;
 
 		// 直接创建封面数据，使用原始图片URL进行预览
 		const coverData: CoverData = {
@@ -335,8 +237,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 			aspectRatio: dimensions.aspectRatio,
 			width: dimensions.width,
 			height: dimensions.height,
-			title: finalTitle,
-			description: finalDescription
+			title: '',
+			description: ''
 		};
 
 		logger.info(`[CoverDesigner] 封面${coverNum}创建成功（使用原始图片预览）`, {
@@ -346,11 +248,11 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		});
 
 		if (coverNum === 1) {
-			setCover1PreviewCovers([coverData]); // 只保留最新的一个封面
+			setCover1PreviewCovers([coverData]);
 		} else {
-			setCover2PreviewCovers([coverData]); // 只保留最新的一个封面
+			setCover2PreviewCovers([coverData]);
 		}
-	}, [getDimensions, cover1Title, cover1Description, cover2Title, cover2Description]);
+	}, [getDimensions]);
 
 	const createCombinedCover = useCallback((covers: CoverData[]) => {
 		if (covers.length < 2) return null;
@@ -375,20 +277,20 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		const leftCover = covers[0];
 		const leftImg = new Image();
 		leftImg.onload = () => {
-			ctx.drawImage(leftImg, 0, 0, 225, 200);
+			ctx.drawImage(leftImg, 0, 0, 325, 200);
 
 			// 绘制右侧封面
 			const rightCover = covers[1];
 			const rightImg = new Image();
 			rightImg.onload = () => {
-				ctx.drawImage(rightImg, 225, 0, 225, 200);
+				ctx.drawImage(rightImg, 325, 0, 325, 200);
 
 				// 绘制中间分割线
 				ctx.strokeStyle = '#e0e0e0';
 				ctx.lineWidth = 2;
 				ctx.beginPath();
-				ctx.moveTo(225, 0);
-				ctx.lineTo(225, 200);
+				ctx.moveTo(325, 0);
+				ctx.lineTo(325, 200);
 				ctx.stroke();
 
 				// 创建合并封面
@@ -412,6 +314,220 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		leftImg.src = leftCover.imageUrl;
 	}, []);
 
+	// 将已加载的图片转换为本地blob URL，避免Canvas污染
+	const convertImageToBlob = useCallback(async (imageElement: HTMLImageElement): Promise<string> => {
+		const tempCanvas = document.createElement('canvas');
+		const tempCtx = tempCanvas.getContext('2d');
+		
+		if (!tempCtx) {
+			throw new Error('无法创建临时Canvas上下文');
+		}
+
+		tempCanvas.width = imageElement.naturalWidth;
+		tempCanvas.height = imageElement.naturalHeight;
+
+		// 绘制图片到临时Canvas
+		tempCtx.drawImage(imageElement, 0, 0);
+
+		// 转换为blob
+		const blob = await new Promise<Blob>((resolve, reject) => {
+			tempCanvas.toBlob((blob) => {
+				if (blob) {
+					resolve(blob);
+				} else {
+					reject(new Error('图片转换失败'));
+				}
+			}, 'image/jpeg', 0.9);
+		});
+
+		return URL.createObjectURL(blob);
+	}, []);
+
+	const createCombinedCoverForDownload = useCallback(async (covers: CoverData[]): Promise<CoverData> => {
+		if (covers.length < 2) {
+			throw new Error('需要至少两个封面才能创建合并封面');
+		}
+
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			throw new Error('Canvas元素不存在');
+		}
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) {
+			throw new Error('无法获取Canvas上下文');
+		}
+
+		// 3.25:1 比例
+		const combinedWidth = 650;
+		const combinedHeight = 200;
+		canvas.width = combinedWidth;
+		canvas.height = combinedHeight;
+
+		// 绘制背景
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		// 处理左侧封面
+		const leftCover = covers[0];
+		const leftExistingImg = document.querySelector(`img[src="${leftCover.imageUrl}"]`) as HTMLImageElement;
+		
+		if (leftExistingImg && leftExistingImg.complete && leftExistingImg.naturalWidth > 0) {
+			logger.info('[CoverDesigner] 合并封面使用页面中已加载的左侧图片', {src: leftCover.imageUrl.substring(0, 100)});
+			
+			// 如果是外部图片，先转换为本地blob
+			let leftImageUrl = leftCover.imageUrl;
+			if (leftCover.imageUrl.startsWith('http') && !leftCover.imageUrl.includes(window.location.hostname)) {
+				leftImageUrl = await convertImageToBlob(leftExistingImg);
+			}
+
+			const leftImg = new Image();
+			await new Promise<void>((resolve, reject) => {
+				leftImg.onload = () => {
+					ctx.drawImage(leftImg, 0, 0, 325, 200);
+					// 清理临时blob URL
+					if (leftImageUrl !== leftCover.imageUrl) {
+						URL.revokeObjectURL(leftImageUrl);
+					}
+					resolve();
+				};
+				leftImg.onerror = (error) => {
+					logger.error('[CoverDesigner] 左侧封面加载失败，使用占位符', { error });
+					// 绘制占位符
+					ctx.fillStyle = '#f0f0f0';
+					ctx.fillRect(0, 0, 325, 200);
+					ctx.fillStyle = '#666';
+					ctx.font = '16px Arial';
+					ctx.textAlign = 'center';
+					ctx.fillText('图片加载失败', 162.5, 100);
+					resolve();
+				};
+				leftImg.src = leftImageUrl;
+			});
+		} else {
+			// 创建新的图片元素
+			const leftImg = new Image();
+			leftImg.crossOrigin = 'anonymous';
+			
+			await new Promise<void>((resolve, reject) => {
+				leftImg.onload = () => {
+					ctx.drawImage(leftImg, 0, 0, 325, 200);
+					resolve();
+				};
+				leftImg.onerror = (error) => {
+					logger.error('[CoverDesigner] 左侧封面加载失败，使用占位符', { error });
+					// 绘制占位符
+					ctx.fillStyle = '#f0f0f0';
+					ctx.fillRect(0, 0, 325, 200);
+					ctx.fillStyle = '#666';
+					ctx.font = '16px Arial';
+					ctx.textAlign = 'center';
+					ctx.fillText('图片加载失败', 162.5, 100);
+					resolve();
+				};
+				leftImg.src = leftCover.imageUrl;
+			});
+		}
+
+		// 处理右侧封面
+		const rightCover = covers[1];
+		const rightExistingImg = document.querySelector(`img[src="${rightCover.imageUrl}"]`) as HTMLImageElement;
+		
+		if (rightExistingImg && rightExistingImg.complete && rightExistingImg.naturalWidth > 0) {
+			logger.info('[CoverDesigner] 合并封面使用页面中已加载的右侧图片', {src: rightCover.imageUrl.substring(0, 100)});
+			
+			// 如果是外部图片，先转换为本地blob
+			let rightImageUrl = rightCover.imageUrl;
+			if (rightCover.imageUrl.startsWith('http') && !rightCover.imageUrl.includes(window.location.hostname)) {
+				rightImageUrl = await convertImageToBlob(rightExistingImg);
+			}
+
+			const rightImg = new Image();
+			await new Promise<void>((resolve, reject) => {
+				rightImg.onload = () => {
+					ctx.drawImage(rightImg, 325, 0, 325, 200);
+					// 清理临时blob URL
+					if (rightImageUrl !== rightCover.imageUrl) {
+						URL.revokeObjectURL(rightImageUrl);
+					}
+					resolve();
+				};
+				rightImg.onerror = (error) => {
+					logger.error('[CoverDesigner] 右侧封面加载失败，使用占位符', { error });
+					// 绘制占位符
+					ctx.fillStyle = '#f0f0f0';
+					ctx.fillRect(325, 0, 325, 200);
+					ctx.fillStyle = '#666';
+					ctx.font = '16px Arial';
+					ctx.textAlign = 'center';
+					ctx.fillText('图片加载失败', 487.5, 100);
+					resolve();
+				};
+				rightImg.src = rightImageUrl;
+			});
+		} else {
+			// 创建新的图片元素
+			const rightImg = new Image();
+			rightImg.crossOrigin = 'anonymous';
+			
+			await new Promise<void>((resolve, reject) => {
+				rightImg.onload = () => {
+					ctx.drawImage(rightImg, 325, 0, 325, 200);
+					resolve();
+				};
+				rightImg.onerror = (error) => {
+					logger.error('[CoverDesigner] 右侧封面加载失败，使用占位符', { error });
+					// 绘制占位符
+					ctx.fillStyle = '#f0f0f0';
+					ctx.fillRect(325, 0, 325, 200);
+					ctx.fillStyle = '#666';
+					ctx.font = '16px Arial';
+					ctx.textAlign = 'center';
+					ctx.fillText('图片加载失败', 487.5, 100);
+					resolve();
+				};
+				rightImg.src = rightCover.imageUrl;
+			});
+		}
+
+		// 绘制中间分割线
+		ctx.strokeStyle = '#e0e0e0';
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.moveTo(325, 0);
+		ctx.lineTo(325, 200);
+		ctx.stroke();
+
+		// 生成下载用的blob
+		const blob = await new Promise<Blob>((resolve, reject) => {
+			canvas.toBlob((blob) => {
+				if (blob) {
+					resolve(blob);
+				} else {
+					reject(new Error('合并封面生成失败'));
+				}
+			}, 'image/jpeg', 0.9);
+		});
+
+		const combinedCover: CoverData = {
+			id: `combined-${Date.now()}`,
+			imageUrl: URL.createObjectURL(blob),
+			aspectRatio: 'custom',
+			width: combinedWidth,
+			height: combinedHeight,
+			title: '合并封面',
+			description: '公众号专用 3.25:1 比例'
+		};
+
+		logger.info('[CoverDesigner] 合并封面创建成功', {
+			width: combinedWidth,
+			height: combinedHeight,
+			aspectRatio: '3.25:1'
+		});
+
+		return combinedCover;
+	}, [convertImageToBlob]);
+
 	// 处理单个封面的Canvas渲染（用于下载）
 	const renderCoverToCanvas = useCallback(async (coverData: CoverData): Promise<CoverData> => {
 		const canvas = canvasRef.current;
@@ -428,88 +544,215 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		ctx.fillStyle = '#ffffff';
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-		// 创建图片对象
-		const img = new Image();
-
-		// 处理跨域图片
-		let finalImageUrl = coverData.imageUrl;
-		if (coverData.imageUrl.startsWith('http') && !coverData.imageUrl.includes(window.location.hostname)) {
-			try {
-				finalImageUrl = await loadImageAsBlob(coverData.imageUrl);
-				logger.info('[CoverDesigner] 下载时使用代理加载外部图片', {originalUrl: coverData.imageUrl.substring(0, 100)});
-			} catch (error) {
-				logger.error('[CoverDesigner] 代理加载失败，使用原URL', {error});
-			}
-		}
-
-		return new Promise<CoverData>((resolve, reject) => {
-			img.onload = async () => {
+		// 尝试从页面中找到已经加载的图片元素
+		const existingImg = document.querySelector(`img[src="${coverData.imageUrl}"]`) as HTMLImageElement;
+		
+		if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
+			logger.info('[CoverDesigner] 使用页面中已加载的图片', {src: coverData.imageUrl.substring(0, 100)});
+			
+			// 如果是外部图片，先转换为本地blob避免Canvas污染
+			let finalImageUrl = coverData.imageUrl;
+			if (coverData.imageUrl.startsWith('http') && !coverData.imageUrl.includes(window.location.hostname)) {
 				try {
-					// 计算绘制尺寸，保持图片比例
-					const imgRatio = img.naturalWidth / img.naturalHeight;
-					const canvasRatio = canvas.width / canvas.height;
-
-					let drawWidth, drawHeight, x, y;
-
-					if (imgRatio > canvasRatio) {
-						drawWidth = canvas.width;
-						drawHeight = canvas.width / imgRatio;
-						x = 0;
-						y = (canvas.height - drawHeight) / 2;
-					} else {
-						drawHeight = canvas.height;
-						drawWidth = canvas.height * imgRatio;
-						x = (canvas.width - drawWidth) / 2;
-						y = 0;
-					}
-
-					// 绘制图片
-					ctx.drawImage(img, x, y, drawWidth, drawHeight);
-
-					// 如果有标题，绘制标题
-					if (coverData.title) {
-						ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-						ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
-
-						ctx.fillStyle = '#ffffff';
-						ctx.font = 'bold 14px Arial';
-						ctx.textAlign = 'center';
-						ctx.fillText(coverData.title, canvas.width / 2, canvas.height - 20);
-					}
-
-					// 生成下载用的图片
-					const blobPromise = new Promise<string>((resolve, reject) => {
-						canvas.toBlob((blob) => {
-							if (blob) {
-								const url = URL.createObjectURL(blob);
-								resolve(url);
-							} else {
-								reject(new Error('Blob创建失败'));
-							}
-						}, 'image/jpeg', 0.9);
-					});
-
-					const downloadImageUrl = await blobPromise;
-
-					// 返回用于下载的封面数据
-					const downloadCoverData: CoverData = {
-						...coverData,
-						imageUrl: downloadImageUrl
-					};
-
-					resolve(downloadCoverData);
+					finalImageUrl = await convertImageToBlob(existingImg);
+					logger.info('[CoverDesigner] 外部图片已转换为本地blob', {originalUrl: coverData.imageUrl.substring(0, 100)});
 				} catch (error) {
-					reject(error);
+					logger.error('[CoverDesigner] 图片转换失败', {error});
+					throw error;
 				}
-			};
+			}
 
-			img.onerror = (error) => {
-				reject(error);
-			};
+			// 创建新的图片元素使用转换后的URL
+			const img = new Image();
+			
+			return new Promise<CoverData>((resolve, reject) => {
+				img.onload = async () => {
+					try {
+						// 计算绘制尺寸，保持图片比例
+						const imgRatio = img.naturalWidth / img.naturalHeight;
+						const canvasRatio = canvas.width / canvas.height;
 
-			img.src = finalImageUrl;
-		});
-	}, [loadImageAsBlob]);
+						let drawWidth, drawHeight, x, y;
+
+						if (imgRatio > canvasRatio) {
+							drawWidth = canvas.width;
+							drawHeight = canvas.width / imgRatio;
+							x = 0;
+							y = (canvas.height - drawHeight) / 2;
+						} else {
+							drawHeight = canvas.height;
+							drawWidth = canvas.height * imgRatio;
+							x = (canvas.width - drawWidth) / 2;
+							y = 0;
+						}
+
+						// 绘制图片
+						ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+						// 如果有标题，绘制标题
+						if (coverData.title) {
+							ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+							ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+
+							ctx.fillStyle = '#ffffff';
+							ctx.font = 'bold 14px Arial';
+							ctx.textAlign = 'center';
+							ctx.fillText(coverData.title, canvas.width / 2, canvas.height - 20);
+						}
+
+						// 生成下载用的图片
+						const blob = await new Promise<Blob>((resolve, reject) => {
+							canvas.toBlob((blob) => {
+								if (blob) {
+									resolve(blob);
+								} else {
+									reject(new Error('Blob创建失败'));
+								}
+							}, 'image/jpeg', 0.9);
+						});
+
+						const downloadImageUrl = URL.createObjectURL(blob);
+
+						// 清理临时blob URL
+						if (finalImageUrl !== coverData.imageUrl) {
+							URL.revokeObjectURL(finalImageUrl);
+						}
+
+						// 返回用于下载的封面数据
+						const downloadCoverData: CoverData = {
+							...coverData,
+							imageUrl: downloadImageUrl
+						};
+
+						resolve(downloadCoverData);
+					} catch (error) {
+						reject(error);
+					}
+				};
+
+				img.onerror = (error) => {
+					logger.error('[CoverDesigner] 图片加载失败，使用占位符', {error});
+					
+					// 如果图片加载失败，绘制占位符
+					ctx.fillStyle = '#f0f0f0';
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					
+					ctx.fillStyle = '#666';
+					ctx.font = '16px Arial';
+					ctx.textAlign = 'center';
+					ctx.fillText('图片加载失败', canvas.width / 2, canvas.height / 2);
+					
+					canvas.toBlob((blob) => {
+						if (blob) {
+							const downloadImageUrl = URL.createObjectURL(blob);
+							resolve({
+								...coverData,
+								imageUrl: downloadImageUrl
+							});
+						} else {
+							reject(new Error('占位符创建失败'));
+						}
+					}, 'image/jpeg', 0.9);
+				};
+
+				img.src = finalImageUrl;
+			});
+		} else {
+			// 如果页面中没有已加载的图片，创建新的图片元素
+			logger.info('[CoverDesigner] 创建新的图片元素', {src: coverData.imageUrl.substring(0, 100)});
+			
+			const img = new Image();
+			img.crossOrigin = 'anonymous';
+
+			return new Promise<CoverData>((resolve, reject) => {
+				img.onload = async () => {
+					try {
+						// 计算绘制尺寸，保持图片比例
+						const imgRatio = img.naturalWidth / img.naturalHeight;
+						const canvasRatio = canvas.width / canvas.height;
+
+						let drawWidth, drawHeight, x, y;
+
+						if (imgRatio > canvasRatio) {
+							drawWidth = canvas.width;
+							drawHeight = canvas.width / imgRatio;
+							x = 0;
+							y = (canvas.height - drawHeight) / 2;
+						} else {
+							drawHeight = canvas.height;
+							drawWidth = canvas.height * imgRatio;
+							x = (canvas.width - drawWidth) / 2;
+							y = 0;
+						}
+
+						// 绘制图片
+						ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+						// 如果有标题，绘制标题
+						if (coverData.title) {
+							ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+							ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+
+							ctx.fillStyle = '#ffffff';
+							ctx.font = 'bold 14px Arial';
+							ctx.textAlign = 'center';
+							ctx.fillText(coverData.title, canvas.width / 2, canvas.height - 20);
+						}
+
+						// 生成下载用的图片
+						const blob = await new Promise<Blob>((resolve, reject) => {
+							canvas.toBlob((blob) => {
+								if (blob) {
+									resolve(blob);
+								} else {
+									reject(new Error('Blob创建失败'));
+								}
+							}, 'image/jpeg', 0.9);
+						});
+
+						const downloadImageUrl = URL.createObjectURL(blob);
+
+						// 返回用于下载的封面数据
+						const downloadCoverData: CoverData = {
+							...coverData,
+							imageUrl: downloadImageUrl
+						};
+
+						resolve(downloadCoverData);
+					} catch (error) {
+						reject(error);
+					}
+				};
+
+				img.onerror = (error) => {
+					logger.error('[CoverDesigner] 图片加载失败，使用占位符', {error});
+					
+					// 如果图片加载失败，绘制占位符
+					ctx.fillStyle = '#f0f0f0';
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					
+					ctx.fillStyle = '#666';
+					ctx.font = '16px Arial';
+					ctx.textAlign = 'center';
+					ctx.fillText('图片加载失败', canvas.width / 2, canvas.height / 2);
+					
+					canvas.toBlob((blob) => {
+						if (blob) {
+							const downloadImageUrl = URL.createObjectURL(blob);
+							resolve({
+								...coverData,
+								imageUrl: downloadImageUrl
+							});
+						} else {
+							reject(new Error('占位符创建失败'));
+						}
+					}, 'image/jpeg', 0.9);
+				};
+
+				img.src = coverData.imageUrl;
+			});
+		}
+	}, [convertImageToBlob]);
 
 	const handleDownloadCovers = useCallback(async () => {
 		const allCovers = [...cover1PreviewCovers, ...cover2PreviewCovers];
@@ -521,109 +764,28 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 				allCovers.map(cover => renderCoverToCanvas(cover))
 			);
 
-			// 自动生成合并封面
+			// 自动生成合并封面（3.25:1 比例）
+			let combinedCover: CoverData | null = null;
 			if (downloadCovers.length >= 2) {
-				createCombinedCover(downloadCovers.slice(0, 2));
+				combinedCover = await createCombinedCoverForDownload(downloadCovers.slice(0, 2));
 			}
 
+			// 准备最终的下载封面列表
+			const finalCovers = [...downloadCovers];
+			if (combinedCover) {
+				finalCovers.push(combinedCover);
+			}
+
+			logger.info('[Toolbar] 下载封面', {count: finalCovers.length});
+
 			// 下载处理后的封面
-			onDownloadCovers(downloadCovers);
+			onDownloadCovers(finalCovers);
 		} catch (error) {
 			logger.error('[CoverDesigner] 下载封面失败', {error});
 		}
-	}, [cover1PreviewCovers, cover2PreviewCovers, renderCoverToCanvas, createCombinedCover, onDownloadCovers]);
+	}, [cover1PreviewCovers, cover2PreviewCovers, renderCoverToCanvas, onDownloadCovers]);
 
-	const renderImageGrid = useCallback((images: string[], onImageClick: (url: string) => Promise<void>, coverNum: 1 | 2) => {
-		logger.info(`[CoverDesigner] 封面${coverNum}渲染图片网格`, {
-			imageCount: images.length,
-			firstImageUrl: images[0]?.substring(0, 100)
-		});
 
-		return (
-			<div className="grid grid-cols-2 gap-2 mt-3">
-				{images.map((imageUrl, index) => {
-					logger.info(`[CoverDesigner] 封面${coverNum}渲染图片 ${index + 1}`, {src: imageUrl.substring(0, 100)});
-
-					return (
-						<div
-							key={index}
-							className="relative border border-gray-200 rounded overflow-hidden hover:border-blue-500 cursor-pointer transition-colors"
-							onClick={() => onImageClick(imageUrl)}
-						>
-							<img
-								src={imageUrl}
-								alt={`Image ${index + 1}`}
-								className="w-full h-20 object-cover"
-								onLoad={(e) => {
-									logger.info(`[CoverDesigner] 封面${coverNum}图片加载成功 ${index + 1}`, {
-										src: imageUrl.substring(0, 100),
-										naturalWidth: e.currentTarget.naturalWidth,
-										naturalHeight: e.currentTarget.naturalHeight
-									});
-								}}
-								onError={(e) => {
-									logger.error(`[CoverDesigner] 封面${coverNum}图片加载失败 ${index + 1}`, {
-										src: imageUrl,
-										error: e
-									});
-								}}
-							/>
-							{/* 调试信息显示 */}
-							<div className="absolute top-0 left-0 bg-black bg-opacity-50 text-white text-xs p-1">
-								{index + 1}
-							</div>
-						</div>
-					);
-				})}
-			</div>
-		);
-	}, []);
-
-	// 获取当前选中封面的状态
-	const getCurrentCoverState = () => {
-		if (selectedCover === 1) {
-			return {
-				activeTab: cover1ActiveTab,
-				setActiveTab: setCover1ActiveTab,
-				aspectRatio: cover1.aspectRatio,
-				uploadedImages: cover1UploadedImages,
-				setUploadedImages: setCover1UploadedImages,
-				aiPrompt: cover1AiPrompt,
-				setAiPrompt: setCover1AiPrompt,
-				aiStyle: cover1AiStyle,
-				setAiStyle: setCover1AiStyle,
-				generatedImages: cover1GeneratedImages,
-				title: cover1Title,
-				setTitle: setCover1Title,
-				description: cover1Description,
-				setDescription: setCover1Description,
-				previewCovers: cover1PreviewCovers,
-				setPreviewCovers: setCover1PreviewCovers
-			};
-		} else {
-			return {
-				activeTab: cover2ActiveTab,
-				setActiveTab: setCover2ActiveTab,
-				aspectRatio: cover2.aspectRatio,
-				uploadedImages: cover2UploadedImages,
-				setUploadedImages: setCover2UploadedImages,
-				aiPrompt: cover2AiPrompt,
-				setAiPrompt: setCover2AiPrompt,
-				aiStyle: cover2AiStyle,
-				setAiStyle: setCover2AiStyle,
-				generatedImages: cover2GeneratedImages,
-				title: cover2Title,
-				setTitle: setCover2Title,
-				description: cover2Description,
-				setDescription: setCover2Description,
-				previewCovers: cover2PreviewCovers,
-				setPreviewCovers: setCover2PreviewCovers
-			};
-		}
-	};
-
-	const currentState = getCurrentCoverState();
-	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	return (
 		<div className="w-full">
@@ -639,26 +801,16 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 					⚙️ 封面设置
 				</label>
 				<div className="flex space-x-2">
-					<button
-						onClick={() => setSelectedCover(1)}
-						className={`px-4 py-2 text-sm rounded border ${
-							selectedCover === 1
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						设置封面1
-					</button>
-					<button
-						onClick={() => setSelectedCover(2)}
-						className={`px-4 py-2 text-sm rounded border ${
-							selectedCover === 2
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						设置封面2
-					</button>
+					<Select value={selectedCover.toString()}
+							onValueChange={(value) => setSelectedCover(parseInt(value) as 1 | 2)}>
+						<SelectTrigger className="w-48">
+							<SelectValue placeholder="选择要设置的封面"/>
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="1">封面1 (2.25:1)</SelectItem>
+							<SelectItem value="2">封面2 (1:1)</SelectItem>
+						</SelectContent>
+					</Select>
 
 					<button
 						onClick={handleDownloadCovers}
@@ -705,163 +857,17 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 
 
 			{/* 图片来源选择 */}
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-2">
-					🖼️ {selectedCover === 1 ? '封面1' : '封面2'}图片来源
-				</label>
-				<Tabs value={currentState.activeTab}
-					  onValueChange={(value) => currentState.setActiveTab(value as CoverImageSource)}>
-					<TabsList>
-						<TabsTrigger value="article">文中图片</TabsTrigger>
-						<TabsTrigger value="upload">本地上传</TabsTrigger>
-						<TabsTrigger value="ai">AI生成</TabsTrigger>
-					</TabsList>
-
-					<TabsContent value="article">
-						<div className="space-y-4">
-							<p className="text-sm text-gray-600">
-								从文章中选择图片制作封面
-							</p>
-							<div className="mb-2 text-xs text-gray-600">
-								调试信息: 找到 {selectedImages.length} 张图片
-								{selectedImages.length > 0 && (
-									<div className="mt-1">
-										第一张: {selectedImages[0]?.src?.substring(0, 80)}...
-									</div>
-								)}
-							</div>
-
-							{selectedImages.length > 0 ? (
-								renderImageGrid(
-									selectedImages.map(img => img.src),
-									async (url) => await createCover(url, 'article', selectedCover),
-									selectedCover
-								)
-							) : (
-								<div className="text-center py-8 text-gray-500">
-									文章中没有找到图片
-								</div>
-							)}
-						</div>
-					</TabsContent>
-
-					<TabsContent value="upload">
-						<div className="space-y-4">
-							<div className="flex items-center space-x-4">
-								<button
-									onClick={() => fileInputRef.current?.click()}
-									className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-								>
-									为{selectedCover === 1 ? '封面1' : '封面2'}选择图片
-								</button>
-								<span className="text-sm text-gray-600">
-												支持 JPG、PNG、GIF 格式
-											</span>
-							</div>
-							<input
-								ref={fileInputRef}
-								type="file"
-								accept="image/*"
-								multiple
-								onChange={(e) => handleFileUpload(e, selectedCover)}
-								className="hidden"
-							/>
-							{currentState.uploadedImages.length > 0 && (
-								renderImageGrid(
-									currentState.uploadedImages.map(file => URL.createObjectURL(file)),
-									async (url) => await createCover(url, 'upload', selectedCover),
-									selectedCover
-								)
-							)}
-						</div>
-					</TabsContent>
-
-					<TabsContent value="ai">
-						<div className="space-y-3">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									描述{selectedCover === 1 ? '封面1' : '封面2'}想要的封面
-								</label>
-								<textarea
-									value={currentState.aiPrompt}
-									onChange={(e) => currentState.setAiPrompt(e.target.value)}
-									placeholder="例如：科技感蓝色背景，适合科技文章"
-									rows={2}
-									className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-								/>
-							</div>
-							<div className="grid grid-cols-2 gap-2">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-1">
-										风格
-									</label>
-									<select
-										value={currentState.aiStyle}
-										onChange={(e) => currentState.setAiStyle(e.target.value)}
-										className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-									>
-										<option value="realistic">写实</option>
-										<option value="illustration">插画</option>
-										<option value="minimalist">简约</option>
-										<option value="abstract">抽象</option>
-										<option value="tech">科技</option>
-									</select>
-								</div>
-								<div className="flex items-end">
-									<button
-										onClick={() => generateAIImage({
-											prompt: currentState.aiPrompt,
-											style: currentState.aiStyle,
-											aspectRatio: currentState.aspectRatio
-										}, selectedCover)}
-										disabled={!currentState.aiPrompt || generationStatus.isGenerating}
-										className="w-full px-3 py-1 text-sm bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-									>
-										{generationStatus.isGenerating ? '生成中' : '生成'}
-									</button>
-								</div>
-							</div>
-
-							{/* 生成进度条 */}
-							{generationStatus.isGenerating && (
-								<div className="space-y-2">
-									<div className="w-full bg-gray-200 rounded-full h-1">
-										<div
-											className="bg-purple-500 h-1 rounded-full transition-all duration-300 ease-out"
-											style={{width: `${generationStatus.progress}%`}}
-										/>
-									</div>
-									<div className="text-xs text-gray-600 text-center">
-										{generationStatus.message}
-									</div>
-								</div>
-							)}
-
-							{/* 错误信息 */}
-							{generationError && (
-								<div className="p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
-									<div className="flex items-center justify-between">
-										<span>{generationError}</span>
-										<button
-											onClick={() => setGenerationError('')}
-											className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-										>
-											重试
-										</button>
-									</div>
-								</div>
-							)}
-							{currentState.generatedImages.length > 0 && (
-								renderImageGrid(
-									currentState.generatedImages,
-									async (url) => await createCover(url, 'ai', selectedCover),
-									selectedCover
-								)
-							)}
-						</div>
-					</TabsContent>
-				</Tabs>
-			</div>
+			<CoverEditor
+				coverNumber={selectedCover}
+				aspectRatio={selectedCover === 1 ? '2.25:1' : '1:1'}
+				selectedImages={selectedImages}
+				onCreateCover={async (imageUrl, source) => await createCover(imageUrl, source, selectedCover)}
+				getDimensions={() => getDimensions(selectedCover)}
+				generationStatus={generationStatus}
+				setGenerationStatus={setGenerationStatus}
+				generationError={generationError}
+				setGenerationError={setGenerationError}
+			/>
 
 
 			{/* 隐藏的 canvas 元素 */}

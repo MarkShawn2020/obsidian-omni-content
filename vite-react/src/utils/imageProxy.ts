@@ -19,30 +19,46 @@ export async function loadImageAsBlob(imageUrl: string): Promise<string> {
 	logger.info('开始加载图片', { imageUrl: imageUrl.substring(0, 100) });
 
 	try {
-		// 使用fetch加载图片
+		// 首先尝试使用 no-cors 模式
 		const response = await fetch(imageUrl, {
-			mode: 'cors',
+			mode: 'no-cors',
 			cache: 'force-cache'
 		});
 
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-		}
-
-		// 检查内容类型
-		const contentType = response.headers.get('content-type');
-		if (!contentType || !contentType.startsWith('image/')) {
-			logger.warn('响应不是图片类型', { contentType, imageUrl });
-		}
-
-		// 转换为blob
+		// 如果是 no-cors 模式，我们无法检查状态，但可以获取 blob
 		const blob = await response.blob();
-		const blobUrl = URL.createObjectURL(blob);
+		
+		// 如果 blob 大小为 0，说明可能失败了，尝试 cors 模式
+		if (blob.size === 0) {
+			logger.warn('no-cors 模式返回空 blob，尝试 cors 模式', { imageUrl });
+			
+			const corsResponse = await fetch(imageUrl, {
+				mode: 'cors',
+				cache: 'force-cache'
+			});
 
-		// 缓存结果
+			if (!corsResponse.ok) {
+				throw new Error(`HTTP ${corsResponse.status}: ${corsResponse.statusText}`);
+			}
+
+			const corsBlob = await corsResponse.blob();
+			const blobUrl = URL.createObjectURL(corsBlob);
+			imageCache.set(imageUrl, blobUrl);
+			
+			logger.info('cors 模式图片加载成功', { 
+				imageUrl: imageUrl.substring(0, 100),
+				blobUrl: blobUrl.substring(0, 50),
+				size: corsBlob.size,
+				type: corsBlob.type
+			});
+
+			return blobUrl;
+		}
+
+		const blobUrl = URL.createObjectURL(blob);
 		imageCache.set(imageUrl, blobUrl);
 
-		logger.info('图片加载成功', { 
+		logger.info('no-cors 模式图片加载成功', { 
 			imageUrl: imageUrl.substring(0, 100),
 			blobUrl: blobUrl.substring(0, 50),
 			size: blob.size,
