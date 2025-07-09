@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { XIcon } from '../ui/XIcon';
 import { logger } from '../../../../src/logger';
 import { imageGenerationService } from '../../services/imageGenerationService';
 import { loadImageAsBlob } from '../../utils/imageProxy';
@@ -675,20 +676,10 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 				<div className="flex gap-4 items-end">
 					{/* 封面1预览 - 2.25:1 比例 */}
 					<div style={{ flex: '2.25' }}>
-						<div className="flex items-center justify-between mb-2">
-							{cover1PreviewCovers.length > 0 && (
-								<button
-									onClick={() => setCover1PreviewCovers([])}
-									className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-								>
-									清空
-								</button>
-							)}
-						</div>
 						{cover1PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
 								<div
-									className="w-full border border-gray-300 rounded overflow-hidden"
+									className="w-full border border-gray-300 rounded overflow-hidden relative group"
 									style={{ aspectRatio: '2.25 / 1' }}
 								>
 									<img
@@ -721,6 +712,15 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 									>
 										图片加载失败
 									</div>
+									{/* Hover时显示的清空按钮 */}
+									<button
+										onClick={() => setCover1PreviewCovers([])}
+										className="absolute top-2 right-2 bg-black bg-opacity-60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-80"
+										style={{ width: '24px', height: '24px', borderRadius: '50%', padding: 0, border: 'none' }}
+										title="清空封面1"
+									>
+										<XIcon />
+									</button>
 								</div>
 								{cover1PreviewCovers[0].title && (
 									<div className="mt-2 text-sm font-medium text-gray-700">
@@ -746,20 +746,10 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 
 					{/* 封面2预览 - 1:1 比例 */}
 					<div style={{ flex: '1' }}>
-						<div className="flex items-center justify-between mb-2">
-							{cover2PreviewCovers.length > 0 && (
-								<button
-									onClick={() => setCover2PreviewCovers([])}
-									className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-								>
-									清空
-								</button>
-							)}
-						</div>
 						{cover2PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
 								<div
-									className="w-full border border-gray-300 rounded overflow-hidden"
+									className="w-full border border-gray-300 rounded overflow-hidden relative group"
 									style={{ aspectRatio: '1 / 1' }}
 								>
 									<img
@@ -792,6 +782,15 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 									>
 										图片加载失败
 									</div>
+									{/* Hover时显示的清空按钮 */}
+									<button
+										onClick={() => setCover2PreviewCovers([])}
+										className="absolute top-2 right-2 bg-black bg-opacity-60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-80"
+										style={{ width: '24px', height: '24px', borderRadius: '50%', padding: 0, border: 'none' }}
+										title="清空封面2"
+									>
+										<XIcon />
+									</button>
 								</div>
 								{cover2PreviewCovers[0].title && (
 									<div className="mt-2 text-sm font-medium text-gray-700">
