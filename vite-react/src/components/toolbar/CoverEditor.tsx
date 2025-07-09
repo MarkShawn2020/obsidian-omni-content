@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { logger } from '../../../../src/logger';
 import { imageGenerationService } from '../../services/imageGenerationService';
 import { CoverData } from '@/components/toolbar/CoverData';
-import { CoverAspectRatio, CoverImageSource } from '@/components/toolbar/CoverDesigner';
+
+import {CoverAspectRatio, CoverImageSource} from "@/components/toolbar/cover/types";
 
 interface ExtractedImage {
   src: string;

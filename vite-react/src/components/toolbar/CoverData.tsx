@@ -1,4 +1,4 @@
-import {CoverAspectRatio} from "@/components/toolbar/CoverDesigner";
+import {CoverAspectRatio} from "@/components/toolbar/cover/types";
 
 interface CoverData {
 	id: string;

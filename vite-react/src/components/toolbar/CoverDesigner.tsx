@@ -4,9 +4,12 @@ import {logger} from '../../../../src/logger';
 import {CoverPreview} from "@/components/toolbar/CoverPreview";
 import {CoverData} from "@/components/toolbar/CoverData";
 import {CoverEditor} from "@/components/toolbar/CoverEditor";
-
-export type CoverAspectRatio = '2.25:1' | '1:1' | 'custom';
-export type CoverImageSource = 'article' | 'upload' | 'ai';
+import {
+	CoverAspectRatio,
+	CoverImageSource,
+	ExtractedImage,
+	GenerationStatus
+} from "@/components/toolbar/cover/types";
 
 interface CoverDesignerProps {
 	articleHTML: string;
@@ -14,19 +17,6 @@ interface CoverDesignerProps {
 	onClose: () => void;
 }
 
-interface ExtractedImage {
-	src: string;
-	alt: string;
-	width?: number;
-	height?: number;
-}
-
-
-interface GenerationStatus {
-	isGenerating: boolean;
-	progress: number;
-	message: string;
-}
 
 export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 																articleHTML,
