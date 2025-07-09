@@ -234,8 +234,9 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	}, [getDimensions]);
 
 	const handleDownloadCovers = useCallback(async () => {
-		// todo: 打包下载 cover1, cover2
-	}, [cover1PreviewCovers, cover2PreviewCovers]);
+		const covers = [...cover1PreviewCovers, ...cover2PreviewCovers];
+		onDownloadCovers(covers);
+	}, [cover1PreviewCovers, cover2PreviewCovers, onDownloadCovers]);
 
 
 	return (

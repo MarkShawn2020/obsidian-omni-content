@@ -133,18 +133,39 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	};
 
 	// 处理封面下载
-	const handleDownloadCovers = (covers: CoverData[]) => {
+	const handleDownloadCovers = async (covers: CoverData[]) => {
 		logger.info("[Toolbar] 下载封面", { count: covers.length });
 		
-		covers.forEach((cover, index) => {
-			// 创建下载链接
-			const link = document.createElement('a');
-			link.href = cover.imageUrl;
-			link.download = `cover-${index + 1}-${cover.aspectRatio}.png`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-		});
+		for (const [index, cover] of covers.entries()) {
+			try {
+				// 使用Obsidian的requestUrl API绕过CORS
+				const app = (window as any).app;
+				const { requestUrl } = require('obsidian');
+				
+				const response = await requestUrl({
+					url: cover.imageUrl,
+					method: 'GET'
+				});
+				
+				const arrayBuffer = response.arrayBuffer;
+				const uint8Array = new Uint8Array(arrayBuffer);
+				const fileName = `cover-${index + 1}-${cover.aspectRatio}.jpg`;
+				
+				// 使用Obsidian的文件系统API保存文件
+				if (app?.vault?.adapter?.write) {
+					await app.vault.adapter.write(fileName, uint8Array);
+					console.log(`封面 ${index + 1} 已保存到: ${fileName} (${uint8Array.length} bytes)`);
+				} else {
+					console.error("无法访问Obsidian文件系统API");
+				}
+			} catch (error) {
+				console.error(`下载封面 ${index + 1} 失败:`, error);
+			}
+		}
+		
+		if (covers.length > 0) {
+			alert(`已下载 ${covers.length} 个封面到vault根目录`);
+		}
 	};
 
 	try {
