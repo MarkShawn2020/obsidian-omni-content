@@ -136,6 +136,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	const handleDownloadCovers = async (covers: CoverData[]) => {
 		logger.info("[Toolbar] 下载封面", { count: covers.length });
 		
+		const cover1 = covers.find(c => c.aspectRatio === '2.25:1');
+		const cover2 = covers.find(c => c.aspectRatio === '1:1');
+		
+		// 下载单独的封面
 		for (const [index, cover] of covers.entries()) {
 			try {
 				// 使用Obsidian的requestUrl API绕过CORS
@@ -163,8 +167,92 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 			}
 		}
 		
+		// 如果有两个封面，创建拼接图
+		if (cover1 && cover2) {
+			try {
+				await createCombinedCover(cover1, cover2);
+			} catch (error) {
+				console.error("创建拼接封面失败:", error);
+			}
+		}
+		
 		if (covers.length > 0) {
-			alert(`已下载 ${covers.length} 个封面到vault根目录`);
+			alert(`已下载 ${covers.length} 个封面到vault根目录${cover1 && cover2 ? '，并创建了拼接图' : ''}`);
+		}
+	};
+
+	// 创建拼接封面
+	const createCombinedCover = async (cover1: CoverData, cover2: CoverData) => {
+		try {
+			const app = (window as any).app;
+			const { requestUrl } = require('obsidian');
+			
+			// 下载两张图片的数据
+			const [response1, response2] = await Promise.all([
+				requestUrl({ url: cover1.imageUrl, method: 'GET' }),
+				requestUrl({ url: cover2.imageUrl, method: 'GET' })
+			]);
+			
+			// 创建blob URL
+			const blob1 = new Blob([response1.arrayBuffer], { type: 'image/jpeg' });
+			const blob2 = new Blob([response2.arrayBuffer], { type: 'image/jpeg' });
+			const url1 = URL.createObjectURL(blob1);
+			const url2 = URL.createObjectURL(blob2);
+			
+			const canvas = document.createElement('canvas');
+			const ctx = canvas.getContext('2d');
+			
+			// 设置画布尺寸 (3.25:1 比例，高度200px)
+			const height = 200;
+			const width = height * 3.25;
+			canvas.width = width;
+			canvas.height = height;
+			
+			// 加载图片
+			const img1 = new Image();
+			const img2 = new Image();
+			
+			const loadImage = (img: HTMLImageElement, url: string): Promise<void> => {
+				return new Promise((resolve, reject) => {
+					img.onload = () => resolve();
+					img.onerror = reject;
+					img.src = url;
+				});
+			};
+			
+			await Promise.all([
+				loadImage(img1, url1),
+				loadImage(img2, url2)
+			]);
+			
+			// 绘制第一张图 (2.25:1 比例)
+			const img1Width = height * 2.25;
+			ctx?.drawImage(img1, 0, 0, img1Width, height);
+			
+			// 绘制第二张图 (1:1 比例)
+			const img2Width = height;
+			ctx?.drawImage(img2, img1Width, 0, img2Width, height);
+			
+			// 清理blob URL
+			URL.revokeObjectURL(url1);
+			URL.revokeObjectURL(url2);
+			
+			// 转换为blob并保存
+			canvas.toBlob(async (blob) => {
+				if (blob) {
+					const arrayBuffer = await blob.arrayBuffer();
+					const uint8Array = new Uint8Array(arrayBuffer);
+					const fileName = `cover-combined-3.25-1.jpg`;
+					
+					if (app?.vault?.adapter?.write) {
+						await app.vault.adapter.write(fileName, uint8Array);
+						console.log(`拼接封面已保存到: ${fileName} (${uint8Array.length} bytes)`);
+					}
+				}
+			}, 'image/jpeg', 0.9);
+			
+		} catch (error) {
+			console.error("创建拼接封面失败:", error);
 		}
 	};
 
