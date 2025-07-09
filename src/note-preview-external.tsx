@@ -177,46 +177,17 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	}
 
 	async copyArticle() {
-		const content = await this.getArticleContent();
+		let content = await this.getArticleContent();
 
-		// 调试：分析最终的HTML内容
-		logger.debug("=== 复制内容分析 ===");
-		logger.debug("完整HTML长度:", content.length);
+		// 在复制时将代码块转换为微信格式
+		const {CodeBlocks} = await import("./html-plugins/code-blocks");
+		content = CodeBlocks.convertToWeixinFormat(content);
 
-		// 提取代码块部分进行分析
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(content, "text/html");
-		const codeBlocks = doc.querySelectorAll("pre, pre code, section.code-section");
+		// 处理本地图片 - 转换为data URL或移除
+		content = await this.processLocalImages(content);
 
-		logger.debug("找到代码块数量:", codeBlocks.length);
-
-		codeBlocks.forEach((block, index) => {
-			logger.debug(`--- 代码块 ${index + 1} ---`);
-			logger.debug("标签名:", block.tagName);
-			logger.debug("类名:", block.className);
-			logger.debug("内联样式:", block.getAttribute("style"));
-			logger.debug("内容预览:", block.innerHTML.substring(0, 200));
-			logger.debug("父元素:", block.parentElement?.tagName, block.parentElement?.className);
-			logger.debug("父元素样式:", block.parentElement?.getAttribute("style"));
-
-			// 详细分析换行符
-			const html = block.innerHTML;
-			const lines = html.split('\n');
-			logger.debug("总行数:", lines.length);
-			logger.debug("各行内容（带引号显示空行）:");
-			lines.forEach((line, i) => {
-				if (i < 5) { // 只显示前5行
-					logger.debug(`  行${i}: "${line}"`);
-				}
-			});
-
-			// 检查是否有高亮span元素
-			const highlightSpans = block.querySelectorAll('[class*="hljs-"]');
-			logger.debug("高亮span数量:", highlightSpans.length);
-			if (highlightSpans.length > 0) {
-				logger.debug("第一个高亮span:", highlightSpans[0].outerHTML.substring(0, 100));
-			}
-		});
+		logger.debug("=== 复制内容转换完成 ===");
+		logger.debug("转换后HTML长度:", content.length);
 
 		// 复制到剪贴板
 		await navigator.clipboard.write([new ClipboardItem({
@@ -224,6 +195,78 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		}),]);
 
 		new Notice(`已复制到剪贴板！`);
+	}
+
+	/**
+	 * 处理本地图片 - 转换为data URL或移除
+	 * @param content HTML内容
+	 * @returns 处理后的HTML内容
+	 */
+	private async processLocalImages(content: string): Promise<string> {
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(content, "text/html");
+		const images = doc.querySelectorAll('img');
+		
+		for (const img of images) {
+			const src = img.getAttribute('src');
+			if (!src) continue;
+			
+			// 检查是否是本地图片路径
+			if (src.startsWith('app://') || src.startsWith('capacitor://') || src.startsWith('file://')) {
+				try {
+					// 尝试读取本地图片文件并转换为data URL
+					const dataUrl = await this.convertLocalImageToDataUrl(src);
+					if (dataUrl) {
+						img.setAttribute('src', dataUrl);
+						logger.debug(`本地图片已转换为data URL: ${src.substring(0, 50)}...`);
+					} else {
+						// 如果无法转换，移除图片或设置占位符
+						img.setAttribute('src', '');
+						img.setAttribute('alt', '本地图片（复制时无法显示）');
+						logger.warn(`无法转换本地图片: ${src}`);
+					}
+				} catch (error) {
+					logger.error(`处理本地图片时出错: ${src}`, error);
+					img.setAttribute('src', '');
+					img.setAttribute('alt', '本地图片（处理失败）');
+				}
+			}
+		}
+		
+		return doc.body.innerHTML;
+	}
+
+	/**
+	 * 将本地图片路径转换为data URL
+	 * @param localPath 本地图片路径
+	 * @returns data URL或null
+	 */
+	private async convertLocalImageToDataUrl(localPath: string): Promise<string | null> {
+		try {
+			// 通过Obsidian的资源路径获取文件内容
+			const response = await fetch(localPath);
+			if (!response.ok) {
+				return null;
+			}
+			
+			const blob = await response.blob();
+			
+			// 检查是否是图片
+			if (!blob.type.startsWith('image/')) {
+				return null;
+			}
+			
+			// 转换为data URL
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onloadend = () => resolve(reader.result as string);
+				reader.onerror = reject;
+				reader.readAsDataURL(blob);
+			});
+		} catch (error) {
+			logger.error('转换本地图片为data URL失败:', error);
+			return null;
+		}
 	}
 
 	updateCSSVariables() {

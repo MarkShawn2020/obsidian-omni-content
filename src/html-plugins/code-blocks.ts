@@ -124,14 +124,11 @@ export class CodeBlocks extends UnifiedHtmlPlugin {
 				return html;
 			}
 
-			// 调试：记录传入的HTML结构
-			logger.debug("CodeBlocks插件接收到的HTML:", html.substring(0, 500));
-
 			const parser = new DOMParser();
 			const doc = parser.parseFromString(html, "text/html");
 
-			// 查找所有代码块 - 包括各种可能的嵌套结构
-			const codeBlocks = doc.querySelectorAll("pre code, section.code-section pre code, .code-content pre code");
+			// 查找所有代码块
+			const codeBlocks = doc.querySelectorAll("pre code");
 
 			// 获取代码换行配置
 			const enableCodeWrap = this.getCodeWrapConfig();
@@ -140,73 +137,11 @@ export class CodeBlocks extends UnifiedHtmlPlugin {
 				const pre = codeBlock.parentElement;
 				if (!pre) return;
 
-				// 首先检查是否已经有高亮标记
-				const hasHighlight = codeBlock.classList.contains('hljs') ||
-					codeBlock.innerHTML.includes('<span class="hljs-') ||
-					codeBlock.innerHTML.includes('class="hljs-');
-
-				// 应用基础的微信样式（对所有代码块都应用）
-				pre.style.background = "#f8f8f8";
-				pre.style.borderRadius = "4px";
-				pre.style.padding = "16px";
-				pre.style.overflow = "auto";
-				pre.style.fontSize = "14px";
-				pre.style.lineHeight = "1.5";
-
-				if (hasHighlight) {
-					// 如果有高亮，应用基础样式并转换高亮为内联样式
-					logger.debug("检测到代码高亮，转换高亮样式为内联样式以支持微信");
-					this.convertHighlightToInlineStyles(codeBlock as HTMLElement);
-					return;
-				}
-
-				// 对没有高亮的代码块进行完整处理
-				logger.debug("处理无高亮代码块，应用完整样式和功能");
-
-				// 根据配置设置代码换行
-				if (enableCodeWrap) {
-					// 启用换行的样式
-					const wrapStyles = "white-space: pre-wrap !important; word-break: break-all !important; overflow-x: visible !important; word-wrap: break-word !important;";
-					pre.setAttribute("style", pre.getAttribute("style") + "; " + wrapStyles);
-					(codeBlock as HTMLElement).setAttribute("style", (codeBlock as HTMLElement).getAttribute("style") + "; " + wrapStyles);
-				} else {
-					// 禁用换行的样式 - 加强版
-					const noWrapStyles = "white-space: pre !important; word-break: normal !important; overflow-x: auto !important; word-wrap: normal !important; text-wrap: nowrap !important; overflow-wrap: normal !important;";
-					pre.setAttribute("style", pre.getAttribute("style") + "; " + noWrapStyles);
-					(codeBlock as HTMLElement).setAttribute("style", ((codeBlock as HTMLElement).getAttribute("style") || "") + "; " + noWrapStyles);
-				}
-
-				// 处理行号显示
-				if (settings.lineNumber) {
-					const lines = codeBlock.innerHTML.split("\n");
-					const numberedLines = lines
-						.map((line, index) => `<span class="line-number">${index + 1}</span>${line}`)
-						.join("\n");
-
-					// 添加行号样式
-					const style = document.createElement("style");
-					style.textContent = `
-                      .line-number {
-                        display: inline-block;
-                        width: 2em;
-                        text-align: right;
-                        padding-right: 1em;
-                        margin-right: 1em;
-                        color: #999;
-                        border-right: 1px solid #ddd;
-                      }
-                    `;
-					pre.appendChild(style);
-
-					// 更新代码块内容
-					codeBlock.innerHTML = numberedLines;
-				}
+				// 为Obsidian内部渲染优化代码块
+				this.optimizeForObsidianDisplay(pre, codeBlock as HTMLElement, settings.lineNumber, enableCodeWrap);
 			});
 
-			const result = doc.body.innerHTML;
-			// 调试：记录处理后的HTML结构
-			logger.debug("CodeBlocks插件处理后的HTML:", result.substring(0, 500));
-			return result;
+			return doc.body.innerHTML;
 		} catch (error) {
 			logger.error("处理代码块时出错:", error);
 			return html;
@@ -222,42 +157,248 @@ export class CodeBlocks extends UnifiedHtmlPlugin {
 	}
 
 	/**
-	 * 将highlight.js的类样式转换为内联样式，以支持微信编辑器
+	 * 为Obsidian内部渲染优化代码块
+	 * @param pre pre元素
+	 * @param codeElement 代码元素
+	 * @param showLineNumbers 是否显示行号
+	 * @param enableWrap 是否启用换行
+	 */
+	private optimizeForObsidianDisplay(pre: HTMLElement, codeElement: HTMLElement, showLineNumbers: boolean, enableWrap: boolean): void {
+		// 应用基础样式，适合Obsidian内部显示
+		this.applyObsidianStyles(pre, codeElement);
+
+		// 处理行号显示（仅在Obsidian内部显示）
+		if (showLineNumbers) {
+			this.addObsidianLineNumbers(codeElement);
+		}
+
+		// 检查是否有高亮标记，转换为内联样式
+		const hasHighlight = codeElement.classList.contains('hljs') ||
+			codeElement.innerHTML.includes('<span class="hljs-') ||
+			codeElement.innerHTML.includes('class="hljs-');
+
+		if (hasHighlight) {
+			this.convertHighlightToInlineStyles(codeElement);
+		}
+
+		// 应用换行设置
+		this.applyWrapSettings(pre, codeElement, enableWrap);
+
+		// 添加标记以便复制时识别
+		pre.setAttribute('data-code-block', 'true');
+		pre.setAttribute('data-language', this.extractLanguage(codeElement));
+		pre.setAttribute('data-wrap-enabled', enableWrap.toString());
+	}
+
+	/**
+	 * 转换为微信原生代码格式
+	 * @param pre pre元素
+	 * @param codeElement 代码元素
+	 * @param showLineNumbers 是否显示行号
+	 * @param enableWrap 是否启用换行
+	 */
+	private convertToWeixinNativeFormat(pre: HTMLElement, codeElement: HTMLElement, showLineNumbers: boolean, enableWrap: boolean): void {
+		// 获取代码内容
+		let content = codeElement.innerHTML;
+		
+		// 清理内容
+		content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+		
+		// 检查是否有高亮标记
+		const hasHighlight = codeElement.classList.contains('hljs') ||
+			content.includes('<span class="hljs-') ||
+			content.includes('class="hljs-');
+
+		if (hasHighlight) {
+			// 转换高亮样式为内联样式
+			this.convertHighlightToInlineStyles(codeElement);
+			content = codeElement.innerHTML;
+		}
+
+		// 分割行
+		const lines = content.split('\n');
+		
+		// 创建微信原生格式的代码块
+		const wrapClass = enableWrap ? 'code-snippet' : 'code-snippet_nowrap';
+		const lang = this.extractLanguage(codeElement);
+		
+		let codeElements: string[] = [];
+		
+		lines.forEach((line, index) => {
+			let lineContent = line.trim() === '' ? '<br class="ProseMirror-trailingBreak">' : line;
+			
+			if (showLineNumbers) {
+				const lineNumber = index + 1;
+				lineContent = `<span style="color: #999; display: inline-block; width: 2em; text-align: right; padding-right: 1em; margin-right: 1em; border-right: 1px solid #ddd;">${lineNumber}</span>${lineContent}`;
+			}
+			
+			codeElements.push(`<code><span leaf="">${lineContent}</span></code>`);
+		});
+		
+		// 创建新的HTML结构
+		const newHtml = `<section class="code-snippet__js"><pre class="code-snippet__js code-snippet ${wrapClass}" data-lang="${lang}">${codeElements.join('')}</pre></section>`;
+		
+		// 替换原来的pre元素
+		pre.outerHTML = newHtml;
+	}
+
+	/**
+	 * 提取语言标识
+	 * @param codeElement 代码元素
+	 * @returns 语言标识
+	 */
+	private extractLanguage(codeElement: HTMLElement): string {
+		const classList = codeElement.classList;
+		for (const className of classList) {
+			if (className.startsWith('language-')) {
+				return className.replace('language-', '');
+			}
+		}
+		return 'text';
+	}
+
+	/**
+	 * 应用Obsidian内部显示样式
+	 * @param pre pre元素
+	 * @param codeElement 代码元素
+	 */
+	private applyObsidianStyles(pre: HTMLElement, codeElement: HTMLElement): void {
+		// 为Obsidian内部显示应用样式
+		pre.style.background = "var(--code-background)";
+		pre.style.padding = "12px";
+		pre.style.margin = "0";
+		pre.style.fontSize = "14px";
+		pre.style.lineHeight = "1.5";
+		pre.style.color = "var(--code-normal)";
+		pre.style.fontFamily = "var(--font-monospace)";
+		pre.style.borderRadius = "4px";
+		pre.style.border = "1px solid var(--background-modifier-border)";
+		
+		// 代码元素样式
+		codeElement.style.background = "transparent";
+		codeElement.style.padding = "0";
+		codeElement.style.margin = "0";
+		codeElement.style.fontSize = "inherit";
+		codeElement.style.lineHeight = "inherit";
+		codeElement.style.color = "inherit";
+		codeElement.style.fontFamily = "inherit";
+	}
+
+	/**
+	 * 添加Obsidian内部显示的行号
+	 * @param codeElement 代码元素
+	 */
+	private addObsidianLineNumbers(codeElement: HTMLElement): void {
+		let content = codeElement.innerHTML;
+		
+		// 移除开头和结尾的换行符
+		content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+		
+		const lines = content.split("\n");
+		
+		const numberedLines = lines
+			.map((line, index) => {
+				const lineNumber = index + 1;
+				return `<span style="color: var(--text-faint); display: inline-block; width: 2.5em; text-align: right; padding-right: 1em; margin-right: 0.5em; border-right: 1px solid var(--background-modifier-border); user-select: none;">${lineNumber}</span>${line}`;
+			})
+			.join("\n");
+
+		codeElement.innerHTML = numberedLines;
+	}
+
+	/**
+	 * 添加行号
+	 * @param codeElement 代码元素
+	 */
+	private addLineNumbers(codeElement: HTMLElement): void {
+		let content = codeElement.innerHTML;
+		
+		// 移除开头和结尾的换行符
+		content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+		
+		const lines = content.split("\n");
+		
+		const numberedLines = lines
+			.map((line, index) => {
+				const lineNumber = index + 1;
+				return `<span style="color: #999; display: inline-block; width: 2em; text-align: right; padding-right: 1em; margin-right: 1em; border-right: 1px solid #ddd;">${lineNumber}</span>${line}`;
+			})
+			.join("\n");
+
+		codeElement.innerHTML = numberedLines;
+	}
+
+	/**
+	 * 应用换行设置
+	 * @param pre pre元素
+	 * @param codeElement 代码元素
+	 * @param enableWrap 是否启用换行
+	 */
+	private applyWrapSettings(pre: HTMLElement, codeElement: HTMLElement, enableWrap: boolean): void {
+		if (enableWrap) {
+			// 启用换行的样式
+			pre.style.whiteSpace = "pre-wrap";
+			pre.style.wordBreak = "break-all";
+			pre.style.overflowX = "visible";
+			pre.style.wordWrap = "break-word";
+			
+			codeElement.style.whiteSpace = "pre-wrap";
+			codeElement.style.wordBreak = "break-all";
+			codeElement.style.overflowX = "visible";
+			codeElement.style.wordWrap = "break-word";
+		} else {
+			// 禁用换行的样式 - 强制不换行
+			pre.style.whiteSpace = "pre";
+			pre.style.wordBreak = "normal";
+			pre.style.overflowX = "auto";
+			pre.style.wordWrap = "normal";
+			pre.style.overflowWrap = "normal";
+			
+			codeElement.style.whiteSpace = "pre";
+			codeElement.style.wordBreak = "normal";
+			codeElement.style.overflowX = "auto";
+			codeElement.style.wordWrap = "normal";
+			codeElement.style.overflowWrap = "normal";
+		}
+	}
+
+	/**
+	 * 将highlight.js的类样式转换为微信原生代码高亮类
 	 * @param codeElement 代码元素
 	 */
 	private convertHighlightToInlineStyles(codeElement: HTMLElement): void {
-		// 定义highlight.js类到颜色的映射（基于常见主题）
-		const hljs_color_map: Record<string, string> = {
-			'hljs-comment': '#999999',           // 注释 - 灰色
-			'hljs-quote': '#999999',             // 引用 - 灰色
-			'hljs-keyword': '#0000ff',           // 关键字 - 蓝色
-			'hljs-selector-tag': '#0000ff',      // 标签选择器 - 蓝色
-			'hljs-addition': '#008000',          // 添加 - 绿色
-			'hljs-number': '#0080ff',            // 数字 - 蓝色
-			'hljs-string': '#008000',            // 字符串 - 绿色
-			'hljs-meta': '#008000',              // 元数据 - 绿色
-			'hljs-literal': '#008000',           // 字面量 - 绿色
-			'hljs-doctag': '#008000',            // 文档标签 - 绿色
-			'hljs-regexp': '#008000',            // 正则表达式 - 绿色
-			'hljs-title': '#ff0000',             // 标题 - 红色
-			'hljs-section': '#ff0000',           // 章节 - 红色
-			'hljs-name': '#ff0000',              // 名称 - 红色
-			'hljs-selector-id': '#ff0000',       // ID选择器 - 红色
-			'hljs-selector-class': '#ff0000',    // 类选择器 - 红色
-			'hljs-attribute': '#ff8000',         // 属性 - 橙色
-			'hljs-attr': '#ff8000',              // 属性简写 - 橙色
-			'hljs-variable': '#ff8000',          // 变量 - 橙色
-			'hljs-template-variable': '#ff8000', // 模板变量 - 橙色
-			'hljs-type': '#ff8000',              // 类型 - 橙色
-			'hljs-symbol': '#800080',            // 符号 - 紫色
-			'hljs-bullet': '#800080',            // 列表符号 - 紫色
-			'hljs-built_in': '#800080',          // 内建 - 紫色
-			'hljs-builtin-name': '#800080',      // 内建名称 - 紫色
-			'hljs-link': '#0000ff',              // 链接 - 蓝色
-			'hljs-emphasis': 'font-style: italic', // 强调 - 斜体
-			'hljs-strong': 'font-weight: bold',    // 加粗 - 粗体
-			'hljs-formula': '#800080',           // 公式 - 紫色
-			'hljs-punctuation': '#333333',       // 标点符号 - 深灰色
+		// highlight.js类到微信原生类的映射
+		const hljs_to_weixin_map: Record<string, string> = {
+			'hljs-comment': 'code-snippet__comment',
+			'hljs-quote': 'code-snippet__comment',
+			'hljs-keyword': 'code-snippet__keyword',
+			'hljs-selector-tag': 'code-snippet__keyword',
+			'hljs-addition': 'code-snippet__addition',
+			'hljs-number': 'code-snippet__number',
+			'hljs-string': 'code-snippet__string',
+			'hljs-meta': 'code-snippet__meta',
+			'hljs-literal': 'code-snippet__literal',
+			'hljs-doctag': 'code-snippet__doctag',
+			'hljs-regexp': 'code-snippet__regexp',
+			'hljs-title': 'code-snippet__title',
+			'hljs-section': 'code-snippet__section',
+			'hljs-name': 'code-snippet__name',
+			'hljs-selector-id': 'code-snippet__selector-id',
+			'hljs-selector-class': 'code-snippet__selector-class',
+			'hljs-attribute': 'code-snippet__attribute',
+			'hljs-attr': 'code-snippet__attr',
+			'hljs-variable': 'code-snippet__variable',
+			'hljs-template-variable': 'code-snippet__template-variable',
+			'hljs-type': 'code-snippet__type',
+			'hljs-symbol': 'code-snippet__symbol',
+			'hljs-bullet': 'code-snippet__bullet',
+			'hljs-built_in': 'code-snippet__built_in',
+			'hljs-builtin-name': 'code-snippet__builtin-name',
+			'hljs-link': 'code-snippet__link',
+			'hljs-emphasis': 'code-snippet__emphasis',
+			'hljs-strong': 'code-snippet__strong',
+			'hljs-formula': 'code-snippet__formula',
+			'hljs-punctuation': 'code-snippet__punctuation',
 		};
 
 		// 查找所有包含hljs类的span元素
@@ -265,60 +406,123 @@ export class CodeBlocks extends UnifiedHtmlPlugin {
 
 		highlightSpans.forEach((span: Element) => {
 			const htmlSpan = span as HTMLElement;
-			const className = htmlSpan.className;
+			const classes = htmlSpan.className.split(/\s+/);
+			let newClasses: string[] = [];
 
-			// 查找匹配的hljs类
-			for (const [hljs_class, color] of Object.entries(hljs_color_map)) {
-				if (className.includes(hljs_class)) {
-					if (color.includes(':')) {
-						// 处理特殊样式（如斜体、粗体）
-						htmlSpan.setAttribute('style', color);
-					} else {
-						// 处理颜色样式
-						htmlSpan.setAttribute('style', `color: ${color}`);
+			// 转换hljs类为微信原生类
+			for (const className of classes) {
+				if (className.startsWith('hljs-')) {
+					const weixinClass = hljs_to_weixin_map[className];
+					if (weixinClass) {
+						newClasses.push(weixinClass);
 					}
-					break;
+				} else {
+					newClasses.push(className);
 				}
 			}
+
+			// 更新类名
+			htmlSpan.className = newClasses.join(' ');
 		});
 
-		logger.debug(`转换了 ${highlightSpans.length} 个高亮元素为内联样式`);
+		logger.debug(`转换了 ${highlightSpans.length} 个高亮元素为微信原生类`);
 
-		// 转换空格为不间断空格以保持缩进
+		// 优化空格和缩进处理
 		this.preserveIndentation(codeElement);
 	}
 
 	/**
-	 * 将代码中的空格转换为不间断空格，以在微信编辑器中保持缩进
+	 * 优化代码中的空格和缩进处理，保持微信编辑器的兼容性
 	 * @param codeElement 代码元素
 	 */
 	private preserveIndentation(codeElement: HTMLElement): void {
-		// 彻底重构换行逻辑，避免微信编辑器的自动换行转换
-		let html = codeElement.innerHTML.trim();
+		// 获取当前HTML内容
+		let html = codeElement.innerHTML;
 
-		// 按行分割，然后重新手动构建
-		const lines = html.split('\n');
-
-		// 处理每一行
-		const processedLines = lines.map((line, index) => {
-			// 替换行首空格为不间断空格
-			const processedLine = line.replace(/^( {2,})/, (match) => {
-				return '&nbsp;'.repeat(match.length);
-			});
-
-			// 如果是第一行（比如 {），不在前面加<br>
-			if (index === 0) {
-				return processedLine;
-			}
-
-			// 其他行前面加<br>来换行
-			return '<br>' + processedLine;
+		// 只处理行首的空格缩进，保持其他格式不变
+		html = html.replace(/^( {2,})/gm, (match) => {
+			return '&nbsp;'.repeat(match.length);
 		});
 
-		// 组合所有行，不使用\n分隔符
-		const result = processedLines.join('');
+		// 处理tab缩进
+		html = html.replace(/^\t+/gm, (match) => {
+			return '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(match.length);
+		});
 
-		codeElement.innerHTML = result;
-		logger.debug("已重构换行逻辑，避免微信编辑器自动转换");
+		// 保持原有的换行符，不强制转换为<br>
+		codeElement.innerHTML = html;
+
+		logger.debug("已优化缩进处理，保持格式兼容性");
 	}
+
+	/**
+	 * 将HTML中的代码块转换为微信格式（复制时调用）
+	 * @param html HTML内容
+	 * @returns 转换后的微信格式HTML
+	 */
+	static convertToWeixinFormat(html: string): string {
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(html, "text/html");
+
+		// 查找所有标记为代码块的元素
+		const codeBlocks = doc.querySelectorAll('pre[data-code-block="true"]');
+
+		codeBlocks.forEach((pre) => {
+			const codeElement = pre.querySelector('code');
+			if (!codeElement) return;
+
+			const language = pre.getAttribute('data-language') || 'text';
+			const enableWrap = pre.getAttribute('data-wrap-enabled') === 'true';
+
+			// 克隆代码元素以避免修改原始DOM
+			const clonedCode = codeElement.cloneNode(true) as HTMLElement;
+			
+			// 移除所有行号span元素
+			const lineNumberSpans = clonedCode.querySelectorAll('span[style*="user-select: none"]');
+			lineNumberSpans.forEach(span => span.remove());
+			
+			// 获取处理后的内容
+			let content = clonedCode.innerHTML;
+			
+			// 清理内容
+			content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+			
+			// 分割行并保留缩进
+			const lines = content.split('\n');
+			
+			// 创建微信原生格式的代码块
+			const wrapClass = enableWrap ? 'code-snippet' : 'code-snippet_nowrap';
+			
+			const codeElements = lines.map(line => {
+				if (line.trim() === '') {
+					return `<code><span leaf=""><br class="ProseMirror-trailingBreak"></span></code>`;
+				}
+				
+				// 保留缩进：将行首的空格转换为&nbsp;
+				const processedLine = this.preserveIndentationForWeixin(line);
+				return `<code><span leaf="">${processedLine}</span></code>`;
+			});
+			
+			// 创建新的HTML结构
+			const newHtml = `<section class="code-snippet__js"><pre class="code-snippet__js code-snippet ${wrapClass}" data-lang="${language}">${codeElements.join('')}</pre></section>`;
+			
+			// 替换原来的pre元素
+			pre.outerHTML = newHtml;
+		});
+
+		return doc.body.innerHTML;
+	}
+
+	/**
+	 * 为微信格式保留缩进
+	 * @param line 代码行
+	 * @returns 处理后的代码行
+	 */
+	private static preserveIndentationForWeixin(line: string): string {
+		// 匹配行首的空格和Tab，并转换为&nbsp;
+		return line.replace(/^([ \t]+)/, (match) => {
+			return match.replace(/ /g, '&nbsp;').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+		});
+	}
+
 }

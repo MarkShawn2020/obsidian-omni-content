@@ -43,11 +43,11 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 
 	const getDimensions = useCallback((coverNum: 1 | 2) => {
 		if (coverNum === 1) {
-			// 封面1固定为2.25:1比例
-			return {width: 450, height: 200, aspectRatio: '2.25:1' as CoverAspectRatio};
+			// 封面1固定为2.25:1比例，提高分辨率
+			return {width: 1350, height: 600, aspectRatio: '2.25:1' as CoverAspectRatio};
 		} else {
 			// 封面2固定为1:1比例，高度与封面1保持一致
-			return {width: 200, height: 200, aspectRatio: '1:1' as CoverAspectRatio};
+			return {width: 600, height: 600, aspectRatio: '1:1' as CoverAspectRatio};
 		}
 	}, []);
 

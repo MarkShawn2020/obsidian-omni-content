@@ -142,20 +142,37 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		// 下载单独的封面
 		for (const [index, cover] of covers.entries()) {
 			try {
-				// 使用Obsidian的requestUrl API绕过CORS
-				const app = (window as any).app;
-				const { requestUrl } = require('obsidian');
+				let arrayBuffer: ArrayBuffer;
 				
-				const response = await requestUrl({
-					url: cover.imageUrl,
-					method: 'GET'
-				});
+				// 检查URL类型并相应处理
+				if (cover.imageUrl.startsWith('http://') || cover.imageUrl.startsWith('https://')) {
+					// HTTP/HTTPS URL - 使用Obsidian的requestUrl API
+					const app = (window as any).app;
+					const { requestUrl } = require('obsidian');
+					
+					const response = await requestUrl({
+						url: cover.imageUrl,
+						method: 'GET'
+					});
+					
+					arrayBuffer = response.arrayBuffer;
+				} else if (cover.imageUrl.startsWith('blob:') || cover.imageUrl.startsWith('data:')) {
+					// Blob URL 或 Data URL - 使用fetch API
+					const response = await fetch(cover.imageUrl);
+					if (!response.ok) {
+						throw new Error(`Failed to fetch blob: ${response.status}`);
+					}
+					arrayBuffer = await response.arrayBuffer();
+				} else {
+					console.error(`封面 ${index + 1} URL协议不支持: ${cover.imageUrl}`);
+					continue;
+				}
 				
-				const arrayBuffer = response.arrayBuffer;
 				const uint8Array = new Uint8Array(arrayBuffer);
 				const fileName = `cover-${index + 1}-${cover.aspectRatio}.jpg`;
 				
 				// 使用Obsidian的文件系统API保存文件
+				const app = (window as any).app;
 				if (app?.vault?.adapter?.write) {
 					await app.vault.adapter.write(fileName, uint8Array);
 					console.log(`封面 ${index + 1} 已保存到: ${fileName} (${uint8Array.length} bytes)`);
@@ -184,26 +201,43 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	// 创建拼接封面
 	const createCombinedCover = async (cover1: CoverData, cover2: CoverData) => {
 		try {
-			const app = (window as any).app;
-			const { requestUrl } = require('obsidian');
+			// 获取图片数据的通用函数
+			const getImageData = async (imageUrl: string) => {
+				if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+					// HTTP/HTTPS URL - 使用Obsidian的requestUrl API
+					const app = (window as any).app;
+					const { requestUrl } = require('obsidian');
+					const response = await requestUrl({ url: imageUrl, method: 'GET' });
+					return response.arrayBuffer;
+				} else if (imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')) {
+					// Blob URL 或 Data URL - 使用fetch API
+					const response = await fetch(imageUrl);
+					if (!response.ok) {
+						throw new Error(`Failed to fetch image: ${response.status}`);
+					}
+					return await response.arrayBuffer();
+				} else {
+					throw new Error(`不支持的URL协议: ${imageUrl}`);
+				}
+			};
 			
 			// 下载两张图片的数据
-			const [response1, response2] = await Promise.all([
-				requestUrl({ url: cover1.imageUrl, method: 'GET' }),
-				requestUrl({ url: cover2.imageUrl, method: 'GET' })
+			const [arrayBuffer1, arrayBuffer2] = await Promise.all([
+				getImageData(cover1.imageUrl),
+				getImageData(cover2.imageUrl)
 			]);
 			
 			// 创建blob URL
-			const blob1 = new Blob([response1.arrayBuffer], { type: 'image/jpeg' });
-			const blob2 = new Blob([response2.arrayBuffer], { type: 'image/jpeg' });
+			const blob1 = new Blob([arrayBuffer1], { type: 'image/jpeg' });
+			const blob2 = new Blob([arrayBuffer2], { type: 'image/jpeg' });
 			const url1 = URL.createObjectURL(blob1);
 			const url2 = URL.createObjectURL(blob2);
 			
 			const canvas = document.createElement('canvas');
 			const ctx = canvas.getContext('2d');
 			
-			// 设置画布尺寸 (3.25:1 比例，高度200px)
-			const height = 200;
+			// 设置画布尺寸 (3.25:1 比例，高度600px，提高分辨率)
+			const height = 600;
 			const width = height * 3.25;
 			canvas.width = width;
 			canvas.height = height;
@@ -237,19 +271,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 			URL.revokeObjectURL(url1);
 			URL.revokeObjectURL(url2);
 			
-			// 转换为blob并保存
+			// 转换为blob并保存（提高JPEG质量到95%）
 			canvas.toBlob(async (blob) => {
 				if (blob) {
 					const arrayBuffer = await blob.arrayBuffer();
 					const uint8Array = new Uint8Array(arrayBuffer);
 					const fileName = `cover-combined-3.25-1.jpg`;
 					
+					const app = (window as any).app;
 					if (app?.vault?.adapter?.write) {
 						await app.vault.adapter.write(fileName, uint8Array);
 						console.log(`拼接封面已保存到: ${fileName} (${uint8Array.length} bytes)`);
 					}
 				}
-			}, 'image/jpeg', 0.9);
+			}, 'image/jpeg', 0.95);
 			
 		} catch (error) {
 			console.error("创建拼接封面失败:", error);

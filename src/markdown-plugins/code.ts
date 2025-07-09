@@ -51,35 +51,12 @@ export class CodeRenderer extends UnifiedMarkdownPlugin {
 			}
 		}
 
-		if (this.settings.lineNumber) {
-			const lines = code.split("\n");
-
-			let liItems = "";
-			let count = 1;
-			while (count < lines.length) {
-				liItems = liItems + `<li>${count}</li>`;
-				count = count + 1;
-			}
-
-			// Create a code-section with both line numbers and code content side by side
-			const codeContent = !lang
-				? `<pre><code>${code}</code></pre>`
-				: `<pre><code class="hljs language-${lang}">${code}</code></pre>`;
-
-			return (
-				'<section class="code-section">'
-				// + '<div class="line-numbers"><ul>' + liItems + '</ul></div>'
-				+ '<div class="code-content">' + codeContent + '</div>'
-				+ '</section>'
-			);
-		} else {
-			// No line numbers, simpler structure
-			if (!lang) {
-				return '<section class="code-section"><pre><code>' + code + '</code></pre></section>';
-			}
-
-			return '<section class="code-section"><pre><code class="hljs language-' + lang + '">' + code + '</code></pre></section>';
+		// 简化结构，去掉多余的wrapper
+		if (!lang) {
+			return `<pre><code>${code}</code></pre>`;
 		}
+
+		return `<pre><code class="hljs language-${lang}">${code}</code></pre>`;
 	}
 
 	parseCard(htmlString: string) {
