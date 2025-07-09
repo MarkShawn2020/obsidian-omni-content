@@ -518,32 +518,48 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		}, 500);
 	}, [previewCovers, createCombinedCover, onDownloadCovers]);
 
-	const renderImageGrid = useCallback((images: string[], onImageClick: (url: string) => Promise<void>) => (
-		<div className="grid grid-cols-2 gap-2 mt-3">
-			{images.map((imageUrl, index) => (
-				<div
-					key={index}
-					className="relative border border-gray-200 rounded overflow-hidden hover:border-blue-500 cursor-pointer transition-colors"
-					onClick={() => onImageClick(imageUrl)}
-				>
-					<img
-						src={imageUrl}
-						alt={`Image ${index + 1}`}
-						className="w-full h-20 object-cover"
-						onError={(e) => {
-							logger.error('[CoverDesigner] 图片加载失败', { src: imageUrl });
-							e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjgwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmNWY1ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9IjAuM2VtIiBmaWxsPSIjOTk5IiBmb250LXNpemU9IjEyIj7lm77niYfliqDovb3lpLHotKU8L3RleHQ+PC9zdmc+';
-						}}
-					/>
-					<div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-						<div className="text-white text-xs opacity-0 hover:opacity-100 transition-opacity">
-							选择
+	const renderImageGrid = useCallback((images: string[], onImageClick: (url: string) => Promise<void>) => {
+		logger.info('[CoverDesigner] 渲染图片网格', { imageCount: images.length, firstImageUrl: images[0]?.substring(0, 100) });
+		
+		return (
+			<div className="grid grid-cols-2 gap-2 mt-3">
+				{images.map((imageUrl, index) => {
+					logger.info(`[CoverDesigner] 渲染图片 ${index + 1}`, { src: imageUrl.substring(0, 100) });
+					
+					return (
+						<div
+							key={index}
+							className="relative border border-gray-200 rounded overflow-hidden hover:border-blue-500 cursor-pointer transition-colors"
+							onClick={() => onImageClick(imageUrl)}
+						>
+							<img
+								src={imageUrl}
+								alt={`Image ${index + 1}`}
+								className="w-full h-20 object-cover"
+								onLoad={(e) => {
+									logger.info(`[CoverDesigner] 图片加载成功 ${index + 1}`, { 
+										src: imageUrl.substring(0, 100),
+										naturalWidth: e.currentTarget.naturalWidth,
+										naturalHeight: e.currentTarget.naturalHeight
+									});
+								}}
+								onError={(e) => {
+									logger.error(`[CoverDesigner] 图片加载失败 ${index + 1}`, { 
+										src: imageUrl,
+										error: e
+									});
+								}}
+							/>
+							{/* 调试信息显示 */}
+							<div className="absolute top-0 left-0 bg-black bg-opacity-50 text-white text-xs p-1">
+								{index + 1}
+							</div>
 						</div>
-					</div>
-				</div>
-			))}
-		</div>
-	), []);
+					);
+				})}
+			</div>
+		);
+	}, []);
 
 	return (
 		<div className="w-full">
@@ -659,6 +675,15 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 										<p className="text-sm text-gray-600">
 											从文章中选择图片制作封面
 										</p>
+										<div className="mb-2 text-xs text-gray-600">
+											调试信息: 找到 {selectedImages.length} 张图片
+											{selectedImages.length > 0 && (
+												<div className="mt-1">
+													第一张: {selectedImages[0]?.src?.substring(0, 80)}...
+												</div>
+											)}
+										</div>
+										
 										{selectedImages.length > 0 ? (
 											renderImageGrid(
 												selectedImages.map(img => img.src),
