@@ -659,6 +659,25 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 					>
 						设置封面2
 					</button>
+
+					<button
+						onClick={handleDownloadCovers}
+						className="flex-1 px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-medium"
+						disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
+					>
+						📥 下载封面
+						({(cover1PreviewCovers.length > 0 ? 1 : 0) + (cover2PreviewCovers.length > 0 ? 1 : 0)})
+					</button>
+					<button
+						disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
+						onClick={() => {
+							setCover1PreviewCovers([]);
+							setCover2PreviewCovers([]);
+						}}
+						className="px-3 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+					>
+						清空全部
+					</button>
 				</div>
 			</div>
 
@@ -682,28 +701,6 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 					/>
 				</div>
 
-
-				{/* 下载按钮 */}
-				{(cover1PreviewCovers.length > 0 || cover2PreviewCovers.length > 0) && (
-					<div className="flex space-x-2 mt-4">
-						<button
-							onClick={handleDownloadCovers}
-							className="flex-1 px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-medium"
-						>
-							📥 下载封面
-							({(cover1PreviewCovers.length > 0 ? 1 : 0) + (cover2PreviewCovers.length > 0 ? 1 : 0)})
-						</button>
-						<button
-							onClick={() => {
-								setCover1PreviewCovers([]);
-								setCover2PreviewCovers([]);
-							}}
-							className="px-3 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-						>
-							清空全部
-						</button>
-					</div>
-				)}
 			</div>
 
 
