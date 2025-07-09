@@ -672,14 +672,10 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 
 			{/* 预览区域 */}
 			<div className="mb-6">
-				<label className="block text-sm font-medium text-gray-700 mb-3">
-					👀 封面预览
-				</label>
 				<div className="flex gap-4 items-end">
 					{/* 封面1预览 - 2.25:1 比例 */}
-					<div className="flex-1">
+					<div style={{ flex: '2.25' }}>
 						<div className="flex items-center justify-between mb-2">
-							<h4 className="text-sm font-medium text-gray-600">封面1 (2.25:1)</h4>
 							{cover1PreviewCovers.length > 0 && (
 								<button
 									onClick={() => setCover1PreviewCovers([])}
@@ -692,8 +688,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						{cover1PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
 								<div
-									className="border border-gray-300 rounded overflow-hidden"
-									style={{ width: '225px', height: '100px' }}
+									className="w-full border border-gray-300 rounded overflow-hidden"
+									style={{ aspectRatio: '2.25 / 1' }}
 								>
 									<img
 										src={cover1PreviewCovers[0].imageUrl}
@@ -737,8 +733,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 							</div>
 						) : (
 							<div
-								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center"
-								style={{ width: '225px', height: '100px' }}
+								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center w-full"
+								style={{ aspectRatio: '2.25 / 1' }}
 							>
 								<div>
 									<p className="text-sm">暂无封面1预览</p>
@@ -749,9 +745,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 					</div>
 
 					{/* 封面2预览 - 1:1 比例 */}
-					<div className="flex-1">
+					<div style={{ flex: '1' }}>
 						<div className="flex items-center justify-between mb-2">
-							<h4 className="text-sm font-medium text-gray-600">封面2 (1:1)</h4>
 							{cover2PreviewCovers.length > 0 && (
 								<button
 									onClick={() => setCover2PreviewCovers([])}
@@ -764,8 +759,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						{cover2PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
 								<div
-									className="border border-gray-300 rounded overflow-hidden"
-									style={{ width: '100px', height: '100px' }}
+									className="w-full border border-gray-300 rounded overflow-hidden"
+									style={{ aspectRatio: '1 / 1' }}
 								>
 									<img
 										src={cover2PreviewCovers[0].imageUrl}
@@ -809,8 +804,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 							</div>
 						) : (
 							<div
-								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center"
-								style={{ width: '100px', height: '100px' }}
+								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center w-full"
+								style={{ aspectRatio: '1 / 1' }}
 							>
 								<div>
 									<p className="text-sm">暂无封面2预览</p>
