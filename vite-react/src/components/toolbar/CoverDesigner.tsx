@@ -639,6 +639,37 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 				<p className="text-sm text-gray-600 mt-1">为您的文章制作专业的封面图片</p>
 			</div>
 
+
+			{/* 封面选择器 */}
+			<div className="mb-4">
+				<label className="block text-sm font-medium text-gray-700 mb-2">
+					⚙️ 封面设置
+				</label>
+				<div className="flex space-x-2">
+					<button
+						onClick={() => setSelectedCover(1)}
+						className={`px-4 py-2 text-sm rounded border ${
+							selectedCover === 1
+								? 'bg-blue-500 text-white border-blue-500'
+								: 'bg-white text-gray-700 border-gray-300'
+						}`}
+					>
+						设置封面1
+					</button>
+					<button
+						onClick={() => setSelectedCover(2)}
+						className={`px-4 py-2 text-sm rounded border ${
+							selectedCover === 2
+								? 'bg-blue-500 text-white border-blue-500'
+								: 'bg-white text-gray-700 border-gray-300'
+						}`}
+					>
+						设置封面2
+					</button>
+				</div>
+			</div>
+
+
 			{/* 预览区域 */}
 			<div className="mb-6">
 				<label className="block text-sm font-medium text-gray-700 mb-3">
@@ -660,7 +691,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						</div>
 						{cover1PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
-								<div 
+								<div
 									className="w-full border border-gray-300 rounded overflow-hidden"
 									style={{ aspectRatio: '2.25 / 1' }}
 								>
@@ -669,14 +700,14 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 										alt="封面1预览"
 										className="w-full h-full object-cover"
 										onLoad={(e) => {
-											logger.info('封面1图片加载成功', { 
+											logger.info('封面1图片加载成功', {
 												src: cover1PreviewCovers[0].imageUrl.substring(0, 100),
 												naturalWidth: e.currentTarget.naturalWidth,
 												naturalHeight: e.currentTarget.naturalHeight
 											});
 										}}
 										onError={(e) => {
-											logger.error('封面1图片加载失败', { 
+											logger.error('封面1图片加载失败', {
 												src: cover1PreviewCovers[0].imageUrl.substring(0, 100),
 												error: e
 											});
@@ -688,7 +719,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 											}
 										}}
 									/>
-									<div 
+									<div
 										className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm"
 										style={{ display: 'none' }}
 									>
@@ -705,7 +736,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 								</div>
 							</div>
 						) : (
-							<div 
+							<div
 								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center"
 								style={{ aspectRatio: '2.25 / 1' }}
 							>
@@ -732,7 +763,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						</div>
 						{cover2PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
-								<div 
+								<div
 									className="w-full border border-gray-300 rounded overflow-hidden"
 									style={{ aspectRatio: '1 / 1' }}
 								>
@@ -741,14 +772,14 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 										alt="封面2预览"
 										className="w-full h-full object-cover"
 										onLoad={(e) => {
-											logger.info('封面2图片加载成功', { 
+											logger.info('封面2图片加载成功', {
 												src: cover2PreviewCovers[0].imageUrl.substring(0, 100),
 												naturalWidth: e.currentTarget.naturalWidth,
 												naturalHeight: e.currentTarget.naturalHeight
 											});
 										}}
 										onError={(e) => {
-											logger.error('封面2图片加载失败', { 
+											logger.error('封面2图片加载失败', {
 												src: cover2PreviewCovers[0].imageUrl.substring(0, 100),
 												error: e
 											});
@@ -760,7 +791,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 											}
 										}}
 									/>
-									<div 
+									<div
 										className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm"
 										style={{ display: 'none' }}
 									>
@@ -777,7 +808,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 								</div>
 							</div>
 						) : (
-							<div 
+							<div
 								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center"
 								style={{ aspectRatio: '1 / 1' }}
 							>
@@ -812,80 +843,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 				)}
 			</div>
 
-			{/* 封面选择器 */}
-			<div className="mb-4">
-				<label className="block text-sm font-medium text-gray-700 mb-2">
-					⚙️ 封面设置
-				</label>
-				<div className="flex space-x-2">
-					<button
-						onClick={() => setSelectedCover(1)}
-						className={`px-4 py-2 text-sm rounded border ${
-							selectedCover === 1
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						设置封面1
-					</button>
-					<button
-						onClick={() => setSelectedCover(2)}
-						className={`px-4 py-2 text-sm rounded border ${
-							selectedCover === 2
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						设置封面2
-					</button>
-				</div>
-			</div>
 
-			{/* 比例显示 */}
-			<div className="mb-4">
-				<label className="block text-sm font-medium text-gray-700 mb-2">
-					📏 封面比例
-				</label>
-				<div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
-					{selectedCover === 1 ? (
-						<>
-							<span className="font-medium">封面1:</span> 2.25:1 (450x200px) - 横版封面
-						</>
-					) : (
-						<>
-							<span className="font-medium">封面2:</span> 1:1 (400x400px) - 方形封面
-						</>
-					)}
-				</div>
-			</div>
 
-			{/* 封面文本 */}
-			<div className="grid grid-cols-2 gap-3">
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-1">
-						📝 {selectedCover === 1 ? '封面1' : '封面2'}标题
-					</label>
-					<input
-						type="text"
-						value={currentState.title}
-						onChange={(e) => currentState.setTitle(e.target.value)}
-						placeholder="可选"
-						className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-					/>
-				</div>
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-1">
-						💬 {selectedCover === 1 ? '封面1' : '封面2'}描述
-					</label>
-					<input
-						type="text"
-						value={currentState.description}
-						onChange={(e) => currentState.setDescription(e.target.value)}
-						placeholder="可选"
-						className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-					/>
-				</div>
-			</div>
 
 			{/* 图片来源选择 */}
 			<div>
