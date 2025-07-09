@@ -52,12 +52,9 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	// 当前选中的封面 (1 或 2)
 	const [selectedCover, setSelectedCover] = useState<1 | 2>(1);
 	
-	// 封面1的状态
-	const [cover1] = useState({ id: 1, name: '封面1' });
+	// 封面1的状态 - 固定为2.25:1比例
+	const [cover1] = useState({ id: 1, name: '封面1', aspectRatio: '2.25:1' as CoverAspectRatio });
 	const [cover1ActiveTab, setCover1ActiveTab] = useState<CoverImageSource>('article');
-	const [cover1AspectRatio, setCover1AspectRatio] = useState<CoverAspectRatio>('2.25:1');
-	const [cover1CustomWidth, setCover1CustomWidth] = useState<number>(450);
-	const [cover1CustomHeight, setCover1CustomHeight] = useState<number>(200);
 	const [cover1UploadedImages, setCover1UploadedImages] = useState<File[]>([]);
 	const [cover1AiPrompt, setCover1AiPrompt] = useState<string>('');
 	const [cover1AiStyle, setCover1AiStyle] = useState<string>('realistic');
@@ -66,12 +63,9 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	const [cover1Description, setCover1Description] = useState<string>('');
 	const [cover1PreviewCovers, setCover1PreviewCovers] = useState<CoverData[]>([]);
 	
-	// 封面2的状态
-	const [cover2] = useState({ id: 2, name: '封面2' });
+	// 封面2的状态 - 固定为1:1比例
+	const [cover2] = useState({ id: 2, name: '封面2', aspectRatio: '1:1' as CoverAspectRatio });
 	const [cover2ActiveTab, setCover2ActiveTab] = useState<CoverImageSource>('article');
-	const [cover2AspectRatio, setCover2AspectRatio] = useState<CoverAspectRatio>('2.25:1');
-	const [cover2CustomWidth, setCover2CustomWidth] = useState<number>(450);
-	const [cover2CustomHeight, setCover2CustomHeight] = useState<number>(200);
 	const [cover2UploadedImages, setCover2UploadedImages] = useState<File[]>([]);
 	const [cover2AiPrompt, setCover2AiPrompt] = useState<string>('');
 	const [cover2AiStyle, setCover2AiStyle] = useState<string>('realistic');
@@ -100,21 +94,15 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		};
 	}, []);
 
-	const getDimensions = useCallback((ratio: CoverAspectRatio, coverNum: 1 | 2) => {
-		const customWidth = coverNum === 1 ? cover1CustomWidth : cover2CustomWidth;
-		const customHeight = coverNum === 1 ? cover1CustomHeight : cover2CustomHeight;
-		
-		switch (ratio) {
-			case '2.25:1':
-				return { width: 450, height: 200 };
-			case '1:1':
-				return { width: 400, height: 400 };
-			case 'custom':
-				return { width: customWidth, height: customHeight };
-			default:
-				return { width: 450, height: 200 };
+	const getDimensions = useCallback((coverNum: 1 | 2) => {
+		if (coverNum === 1) {
+			// 封面1固定为2.25:1比例
+			return { width: 450, height: 200, aspectRatio: '2.25:1' as CoverAspectRatio };
+		} else {
+			// 封面2固定为1:1比例
+			return { width: 400, height: 400, aspectRatio: '1:1' as CoverAspectRatio };
 		}
-	}, [cover1CustomWidth, cover1CustomHeight, cover2CustomWidth, cover2CustomHeight]);
+	}, []);
 
 	// Helper function to load image and get dimensions
 	const loadImageDimensions = useCallback((src: string): Promise<{src: string, width: number, height: number}> => {
@@ -312,7 +300,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 
-			const dimensions = getDimensions(params.aspectRatio, coverNum);
+			const dimensions = getDimensions(coverNum);
 			const result = await imageGenerationService.generateImage({
 				prompt: params.prompt,
 				style: params.style,
@@ -346,8 +334,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	const createCover = useCallback(async (imageUrl: string, source: CoverImageSource, coverNum: 1 | 2) => {
 		logger.info(`[CoverDesigner] 开始创建封面${coverNum}`, { imageUrl: imageUrl.substring(0, 100), source });
 		
-		const aspectRatio = coverNum === 1 ? cover1AspectRatio : cover2AspectRatio;
-		const dimensions = getDimensions(aspectRatio, coverNum);
+		const dimensions = getDimensions(coverNum);
 		const finalTitle = coverNum === 1 ? cover1Title : cover2Title;
 		const finalDescription = coverNum === 1 ? cover1Description : cover2Description;
 		
@@ -355,21 +342,25 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		const coverData: CoverData = {
 			id: `cover${coverNum}-${Date.now()}-${Math.random()}`,
 			imageUrl: imageUrl, // 直接使用原始图片URL
-			aspectRatio: aspectRatio,
+			aspectRatio: dimensions.aspectRatio,
 			width: dimensions.width,
 			height: dimensions.height,
 			title: finalTitle,
 			description: finalDescription
 		};
 		
-		logger.info(`[CoverDesigner] 封面${coverNum}创建成功（使用原始图片预览）`, { originalUrl: imageUrl.substring(0, 100) });
+		logger.info(`[CoverDesigner] 封面${coverNum}创建成功（使用原始图片预览）`, { 
+			originalUrl: imageUrl.substring(0, 100),
+			aspectRatio: dimensions.aspectRatio,
+			dimensions: `${dimensions.width}x${dimensions.height}`
+		});
 		
 		if (coverNum === 1) {
 			setCover1PreviewCovers([coverData]); // 只保留最新的一个封面
 		} else {
 			setCover2PreviewCovers([coverData]); // 只保留最新的一个封面
 		}
-	}, [cover1AspectRatio, cover2AspectRatio, getDimensions, cover1Title, cover1Description, cover2Title, cover2Description]);
+	}, [getDimensions, cover1Title, cover1Description, cover2Title, cover2Description]);
 
 	const createCombinedCover = useCallback((covers: CoverData[]) => {
 		if (covers.length < 2) return null;
@@ -601,12 +592,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 			return {
 				activeTab: cover1ActiveTab,
 				setActiveTab: setCover1ActiveTab,
-				aspectRatio: cover1AspectRatio,
-				setAspectRatio: setCover1AspectRatio,
-				customWidth: cover1CustomWidth,
-				setCustomWidth: setCover1CustomWidth,
-				customHeight: cover1CustomHeight,
-				setCustomHeight: setCover1CustomHeight,
+				aspectRatio: cover1.aspectRatio,
 				uploadedImages: cover1UploadedImages,
 				setUploadedImages: setCover1UploadedImages,
 				aiPrompt: cover1AiPrompt,
@@ -625,12 +611,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 			return {
 				activeTab: cover2ActiveTab,
 				setActiveTab: setCover2ActiveTab,
-				aspectRatio: cover2AspectRatio,
-				setAspectRatio: setCover2AspectRatio,
-				customWidth: cover2CustomWidth,
-				setCustomWidth: setCover2CustomWidth,
-				customHeight: cover2CustomHeight,
-				setCustomHeight: setCover2CustomHeight,
+				aspectRatio: cover2.aspectRatio,
 				uploadedImages: cover2UploadedImages,
 				setUploadedImages: setCover2UploadedImages,
 				aiPrompt: cover2AiPrompt,
@@ -664,10 +645,10 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 					👀 封面预览
 				</label>
 				<div className="grid grid-cols-2 gap-4">
-					{/* 封面1预览 */}
+					{/* 封面1预览 - 2.25:1 比例 */}
 					<div>
 						<div className="flex items-center justify-between mb-2">
-							<h4 className="text-sm font-medium text-gray-600">封面1</h4>
+							<h4 className="text-sm font-medium text-gray-600">封面1 (2.25:1)</h4>
 							{cover1PreviewCovers.length > 0 && (
 								<button
 									onClick={() => setCover1PreviewCovers([])}
@@ -679,35 +660,40 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						</div>
 						{cover1PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
-								<img
-									src={cover1PreviewCovers[0].imageUrl}
-									alt="封面1预览"
-									className="w-full h-32 object-cover border border-gray-300 rounded"
-									onLoad={(e) => {
-										logger.info('封面1图片加载成功', { 
-											src: cover1PreviewCovers[0].imageUrl.substring(0, 100),
-											naturalWidth: e.currentTarget.naturalWidth,
-											naturalHeight: e.currentTarget.naturalHeight
-										});
-									}}
-									onError={(e) => {
-										logger.error('封面1图片加载失败', { 
-											src: cover1PreviewCovers[0].imageUrl.substring(0, 100),
-											error: e
-										});
-										// 如果图片加载失败，显示一个占位符
-										e.currentTarget.style.display = 'none';
-										const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-										if (nextElement) {
-											nextElement.style.display = 'flex';
-										}
-									}}
-								/>
 								<div 
-									className="w-full h-32 bg-gray-100 border border-gray-300 rounded flex items-center justify-center text-gray-500 text-sm"
-									style={{ display: 'none' }}
+									className="w-full border border-gray-300 rounded overflow-hidden"
+									style={{ aspectRatio: '2.25 / 1' }}
 								>
-									图片加载失败
+									<img
+										src={cover1PreviewCovers[0].imageUrl}
+										alt="封面1预览"
+										className="w-full h-full object-cover"
+										onLoad={(e) => {
+											logger.info('封面1图片加载成功', { 
+												src: cover1PreviewCovers[0].imageUrl.substring(0, 100),
+												naturalWidth: e.currentTarget.naturalWidth,
+												naturalHeight: e.currentTarget.naturalHeight
+											});
+										}}
+										onError={(e) => {
+											logger.error('封面1图片加载失败', { 
+												src: cover1PreviewCovers[0].imageUrl.substring(0, 100),
+												error: e
+											});
+											// 如果图片加载失败，显示一个占位符
+											e.currentTarget.style.display = 'none';
+											const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+											if (nextElement) {
+												nextElement.style.display = 'flex';
+											}
+										}}
+									/>
+									<div 
+										className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm"
+										style={{ display: 'none' }}
+									>
+										图片加载失败
+									</div>
 								</div>
 								{cover1PreviewCovers[0].title && (
 									<div className="mt-2 text-sm font-medium text-gray-700">
@@ -715,24 +701,26 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 									</div>
 								)}
 								<div className="mt-1 text-xs text-gray-600">
-									{cover1PreviewCovers[0].aspectRatio === 'custom' && cover1PreviewCovers[0].width === 650 
-										? '3.25:1 合并封面' 
-										: `${cover1PreviewCovers[0].aspectRatio} (${cover1PreviewCovers[0].width}x${cover1PreviewCovers[0].height})`
-									}
+									{cover1PreviewCovers[0].aspectRatio} ({cover1PreviewCovers[0].width}x{cover1PreviewCovers[0].height})
 								</div>
 							</div>
 						) : (
-							<div className="text-center py-12 text-gray-400 border border-dashed border-gray-300 rounded">
-								<p className="text-sm">暂无封面1预览</p>
-								<p className="text-xs mt-1">请在下方设置中创建封面</p>
+							<div 
+								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center"
+								style={{ aspectRatio: '2.25 / 1' }}
+							>
+								<div>
+									<p className="text-sm">暂无封面1预览</p>
+									<p className="text-xs mt-1">请在下方设置中创建封面</p>
+								</div>
 							</div>
 						)}
 					</div>
 
-					{/* 封面2预览 */}
+					{/* 封面2预览 - 1:1 比例 */}
 					<div>
 						<div className="flex items-center justify-between mb-2">
-							<h4 className="text-sm font-medium text-gray-600">封面2</h4>
+							<h4 className="text-sm font-medium text-gray-600">封面2 (1:1)</h4>
 							{cover2PreviewCovers.length > 0 && (
 								<button
 									onClick={() => setCover2PreviewCovers([])}
@@ -744,35 +732,40 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						</div>
 						{cover2PreviewCovers.length > 0 ? (
 							<div className="border border-gray-200 rounded p-2">
-								<img
-									src={cover2PreviewCovers[0].imageUrl}
-									alt="封面2预览"
-									className="w-full h-32 object-cover border border-gray-300 rounded"
-									onLoad={(e) => {
-										logger.info('封面2图片加载成功', { 
-											src: cover2PreviewCovers[0].imageUrl.substring(0, 100),
-											naturalWidth: e.currentTarget.naturalWidth,
-											naturalHeight: e.currentTarget.naturalHeight
-										});
-									}}
-									onError={(e) => {
-										logger.error('封面2图片加载失败', { 
-											src: cover2PreviewCovers[0].imageUrl.substring(0, 100),
-											error: e
-										});
-										// 如果图片加载失败，显示一个占位符
-										e.currentTarget.style.display = 'none';
-										const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-										if (nextElement) {
-											nextElement.style.display = 'flex';
-										}
-									}}
-								/>
 								<div 
-									className="w-full h-32 bg-gray-100 border border-gray-300 rounded flex items-center justify-center text-gray-500 text-sm"
-									style={{ display: 'none' }}
+									className="w-full border border-gray-300 rounded overflow-hidden"
+									style={{ aspectRatio: '1 / 1' }}
 								>
-									图片加载失败
+									<img
+										src={cover2PreviewCovers[0].imageUrl}
+										alt="封面2预览"
+										className="w-full h-full object-cover"
+										onLoad={(e) => {
+											logger.info('封面2图片加载成功', { 
+												src: cover2PreviewCovers[0].imageUrl.substring(0, 100),
+												naturalWidth: e.currentTarget.naturalWidth,
+												naturalHeight: e.currentTarget.naturalHeight
+											});
+										}}
+										onError={(e) => {
+											logger.error('封面2图片加载失败', { 
+												src: cover2PreviewCovers[0].imageUrl.substring(0, 100),
+												error: e
+											});
+											// 如果图片加载失败，显示一个占位符
+											e.currentTarget.style.display = 'none';
+											const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+											if (nextElement) {
+												nextElement.style.display = 'flex';
+											}
+										}}
+									/>
+									<div 
+										className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm"
+										style={{ display: 'none' }}
+									>
+										图片加载失败
+									</div>
 								</div>
 								{cover2PreviewCovers[0].title && (
 									<div className="mt-2 text-sm font-medium text-gray-700">
@@ -780,16 +773,18 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 									</div>
 								)}
 								<div className="mt-1 text-xs text-gray-600">
-									{cover2PreviewCovers[0].aspectRatio === 'custom' && cover2PreviewCovers[0].width === 650 
-										? '3.25:1 合并封面' 
-										: `${cover2PreviewCovers[0].aspectRatio} (${cover2PreviewCovers[0].width}x${cover2PreviewCovers[0].height})`
-									}
+									{cover2PreviewCovers[0].aspectRatio} ({cover2PreviewCovers[0].width}x{cover2PreviewCovers[0].height})
 								</div>
 							</div>
 						) : (
-							<div className="text-center py-12 text-gray-400 border border-dashed border-gray-300 rounded">
-								<p className="text-sm">暂无封面2预览</p>
-								<p className="text-xs mt-1">请在下方设置中创建封面</p>
+							<div 
+								className="text-center text-gray-400 border border-dashed border-gray-300 rounded flex items-center justify-center"
+								style={{ aspectRatio: '1 / 1' }}
+							>
+								<div>
+									<p className="text-sm">暂无封面2预览</p>
+									<p className="text-xs mt-1">请在下方设置中创建封面</p>
+								</div>
 							</div>
 						)}
 					</div>
@@ -846,66 +841,22 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 				</div>
 			</div>
 
-			{/* 比例选择 */}
-			<div>
+			{/* 比例显示 */}
+			<div className="mb-4">
 				<label className="block text-sm font-medium text-gray-700 mb-2">
-					📏 {selectedCover === 1 ? '封面1' : '封面2'}比例
+					📏 封面比例
 				</label>
-				<div className="flex space-x-2">
-					<button
-						onClick={() => currentState.setAspectRatio('2.25:1')}
-						className={`px-3 py-1 text-sm rounded border ${
-							currentState.aspectRatio === '2.25:1'
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						2.25:1
-					</button>
-					<button
-						onClick={() => currentState.setAspectRatio('1:1')}
-						className={`px-3 py-1 text-sm rounded border ${
-							currentState.aspectRatio === '1:1'
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						1:1
-					</button>
-					<button
-						onClick={() => currentState.setAspectRatio('custom')}
-						className={`px-3 py-1 text-sm rounded border ${
-							currentState.aspectRatio === 'custom'
-								? 'bg-blue-500 text-white border-blue-500'
-								: 'bg-white text-gray-700 border-gray-300'
-						}`}
-					>
-						自定义
-					</button>
+				<div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
+					{selectedCover === 1 ? (
+						<>
+							<span className="font-medium">封面1:</span> 2.25:1 (450x200px) - 横版封面
+						</>
+					) : (
+						<>
+							<span className="font-medium">封面2:</span> 1:1 (400x400px) - 方形封面
+						</>
+					)}
 				</div>
-				
-				{currentState.aspectRatio === 'custom' && (
-					<div className="mt-2 flex space-x-2">
-						<div>
-							<label className="block text-xs text-gray-600">宽</label>
-							<input
-								type="number"
-								value={currentState.customWidth}
-								onChange={(e) => currentState.setCustomWidth(Number(e.target.value))}
-								className="w-16 px-2 py-1 text-sm border border-gray-300 rounded"
-							/>
-						</div>
-						<div>
-							<label className="block text-xs text-gray-600">高</label>
-							<input
-								type="number"
-								value={currentState.customHeight}
-								onChange={(e) => currentState.setCustomHeight(Number(e.target.value))}
-								className="w-16 px-2 py-1 text-sm border border-gray-300 rounded"
-							/>
-						</div>
-					</div>
-				)}
 			</div>
 
 			{/* 封面文本 */}
