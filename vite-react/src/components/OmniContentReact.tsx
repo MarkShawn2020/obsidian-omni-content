@@ -239,6 +239,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 						<Toolbar
 							settings={settings}
 							plugins={plugins}
+							articleHTML={articleHTML}
 							onRefresh={onRefresh}
 							onCopy={onCopy}
 							onDistribute={onDistribute}

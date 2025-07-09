@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {StyleSettings} from "./StyleSettings";
+import {CoverDesigner, type CoverData} from "./CoverDesigner";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "../ui/tabs";
 import {ConfigComponent} from "./PluginConfigComponent";
 import {UnifiedPluginData, ViteReactSettings} from "../../types";
@@ -9,6 +10,7 @@ import {logger} from "../../../../src/logger";
 interface ToolbarProps {
 	settings: ViteReactSettings;
 	plugins: UnifiedPluginData[];
+	articleHTML: string;
 	onRefresh: () => void;
 	onCopy: () => void;
 	onDistribute: () => void;
@@ -27,6 +29,7 @@ interface ToolbarProps {
 export const Toolbar: React.FC<ToolbarProps> = ({
 													settings,
 													plugins,
+													articleHTML,
 													onRefresh,
 													onCopy,
 													onDistribute,
@@ -69,6 +72,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	const [pluginExpandedSections, setPluginExpandedSections] = useState<string[]>(
 		settings.expandedAccordionSections || []
 	);
+
 
 	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
@@ -127,13 +131,31 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		onSaveSettings();
 	};
 
+	// 处理封面下载
+	const handleDownloadCovers = (covers: CoverData[]) => {
+		logger.info("[Toolbar] 下载封面", { count: covers.length });
+		
+		covers.forEach((cover, index) => {
+			// 创建下载链接
+			const link = document.createElement('a');
+			link.href = cover.imageUrl;
+			link.download = `cover-${index + 1}-${cover.aspectRatio}.png`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		});
+	};
+
 	try {
 		return (
 			<div className="h-full flex flex-col bg-white" style={{
 				border: '1px solid #ccc', // 保留调试边框但更subtle
 				minWidth: '320px'
 			}}>
-				<BrandSection onCopy={onCopy} onDistribute={onDistribute}/>
+				<BrandSection 
+					onCopy={onCopy} 
+					onDistribute={onDistribute}
+				/>
 
 				<div className="flex-1 overflow-y-auto">
 					<div className="p-4">
@@ -146,6 +168,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 								)}
 								<TabsTrigger value="plugins">
 									插件管理 ({plugins.length})
+								</TabsTrigger>
+								<TabsTrigger value="cover">
+									封面设计
 								</TabsTrigger>
 							</TabsList>
 							
@@ -297,6 +322,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											<p className="text-sm text-gray-500">未找到任何插件</p>
 										</div>
 									)}
+								</div>
+							</TabsContent>
+
+							<TabsContent value="cover">
+								<div className="mt-4">
+									<CoverDesigner
+										articleHTML={articleHTML}
+										onDownloadCovers={handleDownloadCovers}
+										onClose={() => {}}
+									/>
 								</div>
 							</TabsContent>
 						</Tabs>
