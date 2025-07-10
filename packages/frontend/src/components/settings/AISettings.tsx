@@ -17,18 +17,24 @@ export const AISettings: React.FC<AISettingsProps> = ({
 	onClose
 }) => {
 	const [claudeApiKey, setClaudeApiKey] = useState<string>(settings.authKey || '');
+	const [aiPromptTemplate, setAiPromptTemplate] = useState<string>(settings.aiPromptTemplate || '');
 	const [isTestingConnection, setIsTestingConnection] = useState(false);
 	const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
 	const [errorMessage, setErrorMessage] = useState<string>('');
 
 	useEffect(() => {
 		setClaudeApiKey(settings.authKey || '');
-	}, [settings.authKey]);
+		setAiPromptTemplate(settings.aiPromptTemplate || '');
+	}, [settings.authKey, settings.aiPromptTemplate]);
 
 	const handleApiKeyChange = (value: string) => {
 		setClaudeApiKey(value);
 		setConnectionStatus('idle');
 		setErrorMessage('');
+	};
+
+	const handlePromptTemplateChange = (value: string) => {
+		setAiPromptTemplate(value);
 	};
 
 	const testConnection = async () => {
@@ -82,18 +88,70 @@ export const AISettings: React.FC<AISettingsProps> = ({
 	};
 
 	const handleSave = () => {
-		onSettingsChange({ authKey: claudeApiKey.trim() });
+		onSettingsChange({ 
+			authKey: claudeApiKey.trim(),
+			aiPromptTemplate: aiPromptTemplate.trim()
+		});
 		onSaveSettings();
 		logger.info('AI设置已保存');
 		onClose();
 	};
 
 	const handleReset = () => {
-		if (confirm('确定要清空Claude API密钥吗？')) {
+		if (confirm('确定要清空所有AI设置吗？')) {
 			setClaudeApiKey('');
+			setAiPromptTemplate('');
 			setConnectionStatus('idle');
 			setErrorMessage('');
 		}
+	};
+
+	const getDefaultPromptTemplate = () => {
+		return `请分析以下文章内容，为其生成合适的元数据信息。请返回JSON格式的结果：
+
+文章内容：
+{{content}}
+
+{{#if filename}}
+文件名：{{filename}}
+{{/if}}
+
+{{#if personalInfo.name}}
+作者信息：{{personalInfo.name}}
+{{/if}}
+
+{{#if personalInfo.bio}}
+作者简介：{{personalInfo.bio}}
+{{/if}}
+
+可用的元信息变量（frontmatter中的字段）：
+{{#each frontmatter}}
+- {{@key}}: {{this}}
+{{/each}}
+
+请基于以上信息分析文章内容并生成：
+1. articleTitle: 基于内容的更好标题（如果原标题合适可保持）
+2. articleSubtitle: 合适的副标题或摘要
+3. episodeNum: 如果是系列文章，推测期数（格式：第 X 期）
+4. seriesName: 如果是系列文章，推测系列名称
+5. tags: 3-5个相关标签数组
+6. author: 基于内容推测的作者名（如果无法推测留空）
+7. publishDate: 建议的发布日期（YYYY-MM-DD格式，通常是今天）
+
+请确保返回格式为纯JSON，不要包含其他文字：
+{
+  "articleTitle": "...",
+  "articleSubtitle": "...",
+  "episodeNum": "...",
+  "seriesName": "...",
+  "tags": ["标签1", "标签2", "标签3"],
+  "author": "...",
+  "publishDate": "..."
+}`;
+	};
+
+	const handleUseDefaultTemplate = () => {
+		setAiPromptTemplate(getDefaultPromptTemplate());
 	};
 
 	return (
@@ -173,6 +231,47 @@ export const AISettings: React.FC<AISettingsProps> = ({
 				</div>
 			</div>
 
+			{/* AI提示词模板设置 */}
+			<div className="space-y-3">
+				<div className="flex items-center justify-between">
+					<label className="block text-sm font-medium text-gray-700">
+						AI提示词模板 (Handlebars格式)
+					</label>
+					<Button
+						onClick={handleUseDefaultTemplate}
+						size="sm"
+						variant="outline"
+						className="text-blue-600 border-blue-300 hover:bg-blue-50"
+					>
+						使用默认模板
+					</Button>
+				</div>
+				<textarea
+					value={aiPromptTemplate}
+					onChange={(e) => handlePromptTemplateChange(e.target.value)}
+					placeholder="输入自定义的AI提示词模板..."
+					className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-40 resize-y font-mono text-sm"
+				/>
+				<div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+					<h5 className="text-sm font-medium text-yellow-800 mb-2">📝 可用的模板变量</h5>
+					<div className="text-xs text-yellow-700 space-y-1">
+						<p><code>{'{{content}}'}</code> - 文章正文内容（已移除frontmatter）</p>
+						<p><code>{'{{filename}}'}</code> - 当前文件名（不含扩展名）</p>
+						<p><code>{'{{personalInfo.name}}'}</code> - 个人信息中的姓名</p>
+						<p><code>{'{{personalInfo.bio}}'}</code> - 个人信息中的简介</p>
+						<p><code>{'{{personalInfo.email}}'}</code> - 个人信息中的邮箱</p>
+						<p><code>{'{{personalInfo.website}}'}</code> - 个人信息中的网站</p>
+						<p><code>{'{{frontmatter}}'}</code> - 当前文档的frontmatter对象</p>
+						<p><code>{'{{#each frontmatter}}{{@key}}: {{this}}{{/each}}'}</code> - 遍历frontmatter字段</p>
+					</div>
+					<div className="mt-2 pt-2 border-t border-yellow-300">
+						<p className="text-xs text-yellow-600">
+							💡 使用Handlebars语法可以实现条件判断和循环，如 <code>{'{{#if variable}}'}</code> 和 <code>{'{{#each array}}'}</code>
+						</p>
+					</div>
+				</div>
+			</div>
+
 			{/* API密钥获取说明 */}
 			<div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
 				<h4 className="text-sm font-medium text-gray-900 mb-2">如何获取Claude API密钥？</h4>
@@ -220,7 +319,7 @@ export const AISettings: React.FC<AISettingsProps> = ({
 					variant="outline"
 					className="text-red-600 border-red-300 hover:bg-red-50"
 				>
-					清空密钥
+					清空设置
 				</Button>
 				<div className="flex space-x-3">
 					<Button

@@ -2,12 +2,16 @@ import React, {useEffect, useState} from 'react';
 import {Button} from '../ui/button';
 import {ViteReactSettings} from '../../types';
 import {logger} from '../../../../shared/src/logger';
+import Handlebars from 'handlebars';
+import { AIAnalysisDropdown, AIStyle } from '../ui/ai-analysis-dropdown';
+import { CustomPromptModal } from '../ui/custom-prompt-modal';
 
 interface ArticleInfoProps {
 	settings: ViteReactSettings;
 	onSaveSettings: () => void;
 	onInfoChange: (info: ArticleInfoData) => void;
 	onRenderArticle?: () => void;
+	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
 }
 
 export interface ArticleInfoData {
@@ -42,9 +46,11 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 															settings,
 															onSaveSettings,
 															onInfoChange,
-															onRenderArticle
+															onRenderArticle,
+															onSettingsChange
 														}) => {
 	const [isAIGenerating, setIsAIGenerating] = useState(false);
+	const [isCustomPromptModalOpen, setIsCustomPromptModalOpen] = useState(false);
 	const [articleInfo, setArticleInfo] = useState<ArticleInfoData>(() => {
 		// 从localStorage读取保存的文章信息
 		const saved = localStorage.getItem('omni-content-article-info');
@@ -124,7 +130,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 		}));
 	};
 
-	const handleAIGenerate = async () => {
+	const handleAIAnalyze = async (style: AIStyle) => {
 		// 检查是否配置了Claude API密钥
 		if (!settings.authKey || settings.authKey.trim() === '') {
 			alert('请先在设置页面配置Claude API密钥才能使用AI分析功能');
@@ -158,8 +164,8 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 				return;
 			}
 			
-			// 调用Claude AI分析
-			const aiSuggestion = await analyzeContentWithClaude(cleanContent, activeFile.basename);
+			// 调用Claude AI分析，使用指定的风格
+			const aiSuggestion = await analyzeContentWithClaude(cleanContent, activeFile.basename, style);
 			
 			// 合并现有信息和AI建议
 			const finalSuggestion = {
@@ -173,10 +179,10 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 			};
 
 			setArticleInfo(finalSuggestion);
-			logger.info('Claude AI生成文章信息完成:', finalSuggestion);
+			logger.info(`使用 ${style.name} 生成文章信息完成:`, finalSuggestion);
 
 		} catch (error) {
-			logger.error('Claude AI生成文章信息失败:', error);
+			logger.error(`使用 ${style.name} 生成文章信息失败:`, error);
 			alert(`AI分析失败: ${error.message}`);
 		} finally {
 			setIsAIGenerating(false);
@@ -184,33 +190,34 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 	};
 
 	// Claude AI分析函数
-	const analyzeContentWithClaude = async (content: string, filename: string) => {
-		const prompt = `请分析以下文章内容，为其生成合适的元数据信息。请返回JSON格式的结果，包含以下字段：
+	const analyzeContentWithClaude = async (content: string, filename: string, style: AIStyle) => {
+		// 获取当前文档的frontmatter
+		const app = (window as any).app;
+		const activeFile = app.workspace.getActiveFile();
+		let frontmatter = {};
+		
+		if (activeFile) {
+			const metadata = app.metadataCache.getFileCache(activeFile);
+			frontmatter = metadata?.frontmatter || {};
+		}
 
-文章内容：
-${content}
+		// 使用指定风格的模板
+		let promptTemplate = style.prompt;
 
-文件名：${filename}
+		// 准备模板数据
+		const templateData = {
+			content: content,
+			filename: filename,
+			personalInfo: settings.personalInfo || {},
+			frontmatter: frontmatter,
+			today: new Date().toISOString().split('T')[0]
+		};
 
-请分析文章内容并生成：
-1. articleTitle: 基于内容的更好标题（如果原标题合适可保持）
-2. articleSubtitle: 合适的副标题或摘要
-3. episodeNum: 如果是系列文章，推测期数（格式：第 X 期）
-4. seriesName: 如果是系列文章，推测系列名称
-5. tags: 3-5个相关标签数组
-6. author: 基于内容推测的作者名（如果无法推测留空）
-7. publishDate: 建议的发布日期（YYYY-MM-DD格式，通常是今天）
-
-请确保返回格式为纯JSON，不要包含其他文字：
-{
-  "articleTitle": "...",
-  "articleSubtitle": "...",
-  "episodeNum": "...",
-  "seriesName": "...",
-  "tags": ["标签1", "标签2", "标签3"],
-  "author": "...",
-  "publishDate": "..."
-}`;
+		// 使用Handlebars渲染模板
+		const template = Handlebars.compile(promptTemplate);
+		const prompt = template(templateData);
+		
+		logger.info(`Generated AI prompt for ${style.name}:`, prompt);
 
 		try {
 			// 使用Obsidian的requestUrl API来避免CORS问题
@@ -275,6 +282,7 @@ ${content}
 		}
 	};
 
+
 	const handleClearAll = () => {
 		// 完全清空，所有字段都变成空值，显示为placeholder
 		setArticleInfo({
@@ -293,37 +301,12 @@ ${content}
 			<div className="flex justify-between items-center">
 				<h3 className="text-lg font-semibold">文章基本信息</h3>
 				<div className="flex space-x-2">
-					<Button
-						onClick={handleAIGenerate}
-						disabled={isAIGenerating || !settings.authKey || settings.authKey.trim() === ''}
-						size="sm"
-						className={`text-white ${
-							isAIGenerating
-								? 'bg-blue-400 cursor-not-allowed'
-								: settings.authKey && settings.authKey.trim() !== ''
-								? 'bg-blue-500 hover:bg-blue-600'
-								: 'bg-gray-400 hover:bg-gray-500'
-						}`}
-						title={
-							isAIGenerating
-								? 'AI正在分析中...'
-								: settings.authKey && settings.authKey.trim() !== ''
-								? 'AI分析文章内容'
-								: '请先在设置页面配置Claude API密钥'
-						}
-					>
-						{isAIGenerating ? (
-							<>
-								<svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
-									<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-									<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-								</svg>
-								分析中...
-							</>
-						) : (
-							<>🤖 AI 分析</>
-						)}
-					</Button>
+					<AIAnalysisDropdown
+						isGenerating={isAIGenerating}
+						isDisabled={!settings.authKey || settings.authKey.trim() === ''}
+						onAnalyze={handleAIAnalyze}
+						onCustomize={() => setIsCustomPromptModalOpen(true)}
+					/>
 					<Button
 						onClick={handleClearAll}
 						size="sm"
@@ -442,6 +425,16 @@ ${content}
 					</div>
 				</div>
 			</div>
+
+			{/* 自定义Prompt模态框 */}
+			<CustomPromptModal
+				isOpen={isCustomPromptModalOpen}
+				onClose={() => setIsCustomPromptModalOpen(false)}
+				settings={settings}
+				onSettingsChange={onSettingsChange || (() => {})}
+				onSaveSettings={onSaveSettings}
+				onAnalyze={handleAIAnalyze}
+			/>
 
 		</div>
 	);

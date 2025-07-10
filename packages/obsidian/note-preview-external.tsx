@@ -597,6 +597,7 @@ ${customCSS}`;
 					email: '',
 					website: ''
 				},
+				aiPromptTemplate: this.settings.aiPromptTemplate || '',
 			};
 
 			// 获取统一插件数据

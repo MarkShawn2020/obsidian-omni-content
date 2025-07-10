@@ -25,6 +25,7 @@ export interface ViteReactSettings {
 	expandedAccordionSections: string[];
 	showStyleUI: boolean;
 	personalInfo: PersonalInfo;
+	aiPromptTemplate?: string;
 }
 
 // Configuration option types

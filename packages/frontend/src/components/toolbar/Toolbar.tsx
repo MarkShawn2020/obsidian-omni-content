@@ -348,6 +348,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 										onSaveSettings={onSaveSettings}
 										onInfoChange={onArticleInfoChange || (() => {})}
 										onRenderArticle={onRenderArticle}
+										onSettingsChange={onSettingsChange}
 									/>
 								</div>
 							</TabsContent>
