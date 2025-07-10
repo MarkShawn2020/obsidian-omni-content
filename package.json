@@ -4,7 +4,9 @@
 	"description": "This is a plugin for Obsidian (https://obsidian.md)",
 	"main": "dist/main.js",
 	"scripts": {
-		"dev": "node esbuild.config.mjs",
+		"dev": "concurrently \"cd vite-react && pnpm dev\" \"node esbuild.config.mjs\" \"pnpm sync:watch\"",
+		"dev:watch": "node esbuild.config.mjs",
+		"sync:watch": "fswatch -o dist/ | xargs -I {} rsync -a dist/ \"$TARGET_PATH\"",
 		"build": "cd vite-react && pnpm build && cd .. && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"build:only": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"download": "node tools/download-highlights.mjs",
@@ -19,6 +21,7 @@
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
+		"concurrently": "^9.1.0",
 		"esbuild": "0.17.3",
 		"esbuild-plugin-copy": "^2.1.1",
 		"obsidian": "^1.8.7",
