@@ -33,6 +33,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	externalReactLib: ExternalReactLib | null = null;
 	reactContainer: HTMLElement | null = null;
 	toolbarArticleInfo: any = null; // 存储工具栏的基本信息
+	isUpdatingFromToolbar: boolean = false; // 标志位，避免无限循环
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -183,6 +184,20 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		await this.updateExternalReactComponent();
 	}
 
+	async updateArticleContentOnly() {
+		try {
+			// 只更新文章内容，不重新初始化React组件
+			const newArticleHTML = await this.getArticleContent();
+			this.articleHTML = newArticleHTML;
+			
+			// 更新React组件的props但不重新触发onArticleInfoChange
+			await this.updateExternalReactComponent();
+			logger.info('[updateArticleContentOnly] 更新了文章内容');
+		} catch (error) {
+			logger.error('[updateArticleContentOnly] 更新文章内容失败:', error);
+		}
+	}
+
 	async copyArticle() {
 		let content = await this.getArticleContent();
 
@@ -329,12 +344,78 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 					Object.assign(meta, metadata?.frontmatter);
 				}
 				
-				// 然后用工具栏的基本信息覆盖frontmatter（如果有的话）
+				// 设置文章标题的优先级：基本信息 > frontmatter > 文件名
+				let finalTitle = '';
+				if (this.toolbarArticleInfo?.articleTitle && this.toolbarArticleInfo.articleTitle.trim() !== '') {
+					// 优先级1: 基本信息中的标题
+					finalTitle = this.toolbarArticleInfo.articleTitle.trim();
+					logger.info('[wrapArticleContent] 使用基本信息中的标题:', finalTitle);
+				} else if (meta.articleTitle && String(meta.articleTitle).trim() !== '') {
+					// 优先级2: frontmatter中的标题
+					finalTitle = String(meta.articleTitle).trim();
+					logger.info('[wrapArticleContent] 使用frontmatter中的标题:', finalTitle);
+				} else if (file?.basename) {
+					// 优先级3: 文件名
+					finalTitle = file.basename;
+					logger.info('[wrapArticleContent] 使用文件名作为标题:', finalTitle);
+				}
+				
+				// 设置最终的标题
+				if (finalTitle) {
+					meta.articleTitle = finalTitle;
+				}
+				
+				// 设置作者的优先级：基本信息 > frontmatter > 个人信息设置
+				let finalAuthor = '';
+				if (this.toolbarArticleInfo?.author && this.toolbarArticleInfo.author.trim() !== '') {
+					// 优先级1: 基本信息中的作者
+					finalAuthor = this.toolbarArticleInfo.author.trim();
+					logger.info('[wrapArticleContent] 使用基本信息中的作者:', finalAuthor);
+				} else if (meta.author && String(meta.author).trim() !== '') {
+					// 优先级2: frontmatter中的作者
+					finalAuthor = String(meta.author).trim();
+					logger.info('[wrapArticleContent] 使用frontmatter中的作者:', finalAuthor);
+				} else if (this.settings.personalInfo?.name && this.settings.personalInfo.name.trim() !== '') {
+					// 优先级3: 个人信息设置中的姓名
+					finalAuthor = this.settings.personalInfo.name.trim();
+					logger.info('[wrapArticleContent] 使用个人信息设置中的作者:', finalAuthor);
+				}
+				
+				// 设置最终的作者
+				if (finalAuthor) {
+					meta.author = finalAuthor;
+				}
+				
+				// 设置发布日期的优先级：基本信息 > frontmatter > 当前日期
+				let finalPublishDate = '';
+				if (this.toolbarArticleInfo?.publishDate && this.toolbarArticleInfo.publishDate.trim() !== '') {
+					// 优先级1: 基本信息中的发布日期
+					finalPublishDate = this.toolbarArticleInfo.publishDate.trim();
+					logger.info('[wrapArticleContent] 使用基本信息中的发布日期:', finalPublishDate);
+				} else if (meta.publishDate && String(meta.publishDate).trim() !== '') {
+					// 优先级2: frontmatter中的发布日期
+					finalPublishDate = String(meta.publishDate).trim();
+					logger.info('[wrapArticleContent] 使用frontmatter中的发布日期:', finalPublishDate);
+				} else {
+					// 优先级3: 当前日期
+					finalPublishDate = new Date().toISOString().split('T')[0];
+					logger.info('[wrapArticleContent] 使用当前日期作为发布日期:', finalPublishDate);
+				}
+				
+				// 设置最终的发布日期
+				if (finalPublishDate) {
+					meta.publishDate = finalPublishDate;
+				}
+
+				// 然后用工具栏的基本信息覆盖frontmatter（除了articleTitle、author、publishDate已经特殊处理）
 				logger.info('[wrapArticleContent] 检查toolbarArticleInfo:', this.toolbarArticleInfo);
 				if (this.toolbarArticleInfo) {
 					logger.info("[wrapArticleContent] 使用工具栏基本信息覆盖frontmatter:", this.toolbarArticleInfo);
 					// 只覆盖有值的字段
 					Object.keys(this.toolbarArticleInfo).forEach(key => {
+						// articleTitle、author、publishDate已经在上面特殊处理了，跳过
+						if (key === 'articleTitle' || key === 'author' || key === 'publishDate') return;
+						
 						const value = this.toolbarArticleInfo[key];
 						if (value !== undefined && value !== null && value !== '') {
 							// 对于数组类型的tags，需要特殊处理
@@ -507,6 +588,13 @@ ${customCSS}`;
 				wxInfo: this.settings.wxInfo,
 				expandedAccordionSections: this.settings.expandedAccordionSections || [],
 				showStyleUI: this.settings.showStyleUI !== false, // 默认显示
+				personalInfo: this.settings.personalInfo || {
+					name: '',
+					avatar: '',
+					bio: '',
+					email: '',
+					website: ''
+				},
 			};
 
 			// 获取统一插件数据
@@ -587,12 +675,26 @@ ${customCSS}`;
 					this.saveSettingsToPlugin();
 				},
 				onArticleInfoChange: (info: any) => {
+					// 避免无限循环
+					if (this.isUpdatingFromToolbar) {
+						return;
+					}
+					
 					// 将文章信息保存到toolbarArticleInfo中，用于渲染时合并
 					logger.info('[onArticleInfoChange] 文章信息已更新:', info);
 					this.toolbarArticleInfo = info;
 					logger.info('[onArticleInfoChange] toolbarArticleInfo已设置:', this.toolbarArticleInfo);
-					// 当工具栏信息更新时，重新渲染文章
-					this.renderMarkdown();
+					
+					// 设置标志位并异步更新
+					this.isUpdatingFromToolbar = true;
+					this.updateArticleContentOnly().then(() => {
+						this.isUpdatingFromToolbar = false;
+					});
+				},
+				onPersonalInfoChange: (info: any) => {
+					logger.info('[onPersonalInfoChange] 个人信息已更新:', info);
+					this.settings.personalInfo = info;
+					this.saveSettingsToPlugin();
 				}
 			};
 

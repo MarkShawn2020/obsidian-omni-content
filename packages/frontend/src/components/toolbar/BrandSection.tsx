@@ -4,9 +4,10 @@ import packageJson from "../../../package.json";
 interface BrandSectionProps {
 	onCopy: () => void;
 	onDistribute: () => void;
+	onSettings?: () => void;
 }
 
-export const BrandSection: React.FC<BrandSectionProps> = ({onCopy, onDistribute}) => {
+export const BrandSection: React.FC<BrandSectionProps> = ({onCopy, onDistribute, onSettings}) => {
 	return (
 		<div
 			className="brand-section"
@@ -218,6 +219,55 @@ export const BrandSection: React.FC<BrandSectionProps> = ({onCopy, onDistribute}
 						</svg>
 						<span>分发</span>
 					</button>
+					{onSettings && (
+						<button
+							onClick={onSettings}
+							className="action-button settings-button"
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "4px",
+								padding: "6px 10px",
+								fontSize: "12px",
+								fontWeight: "500",
+								color: "#6b7280",
+								background: "rgba(255, 255, 255, 0.8)",
+								border: "1px solid rgba(156, 163, 175, 0.3)",
+								borderRadius: "8px",
+								cursor: "pointer",
+								boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+								transition: "all 0.2s ease",
+								backdropFilter: "blur(10px)",
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = "translateY(-1px)";
+								e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+								e.currentTarget.style.background = "rgba(255, 255, 255, 0.95)";
+								e.currentTarget.style.color = "#4b5563";
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = "translateY(0)";
+								e.currentTarget.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.05)";
+								e.currentTarget.style.background = "rgba(255, 255, 255, 0.8)";
+								e.currentTarget.style.color = "#6b7280";
+							}}
+						>
+							<svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<circle cx="12" cy="12" r="3"/>
+								<path d="m12 1 1.66 3 3.72.42.43 3.71 3 1.66L19.15 12l1.66 1.66-3 1.66-.43 3.71-3.72.42L12 23l-1.66-1.66-3.72-.42-.43-3.71-3-1.66L4.85 12 3.19 10.34l3-1.66.43-3.71 3.72-.42L12 1z"/>
+							</svg>
+							<span>设置</span>
+						</button>
+					)}
 				</div>
 			</div>
 		</div>

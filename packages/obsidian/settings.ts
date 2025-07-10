@@ -71,6 +71,16 @@ interface SettingsData {
 	// ===== 插件配置 =====
 	/** 插件配置存储 */
 	pluginsConfig?: Record<string, Record<string, any>>;
+
+	// ===== 个人信息设置 =====
+	/** 个人信息 */
+	personalInfo?: {
+		name: string;
+		avatar: string;
+		bio: string;
+		email?: string;
+		website?: string;
+	};
 }
 
 // 定义分发服务配置类型
@@ -108,6 +118,13 @@ export class NMPSettings implements SettingsData {
 	lastSelectedTemplate: string = "";
 	expireat: Date | null = null;
 	pluginsConfig: Record<string, Record<string, any>> = {};
+	personalInfo = {
+		name: '',
+		avatar: '',
+		bio: '',
+		email: '',
+		website: ''
+	};
 
 	// 私有构造函数 - 所有默认值已通过属性初始化
 	private constructor() {

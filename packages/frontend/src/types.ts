@@ -1,3 +1,12 @@
+// Personal info interface
+export interface PersonalInfo {
+	name: string;
+	avatar: string;
+	bio: string;
+	email?: string;
+	website?: string;
+}
+
 // Settings interface for the Vite React components
 export interface ViteReactSettings {
 	defaultStyle: string;
@@ -15,6 +24,7 @@ export interface ViteReactSettings {
 	}>;
 	expandedAccordionSections: string[];
 	showStyleUI: boolean;
+	personalInfo: PersonalInfo;
 }
 
 // Configuration option types
@@ -93,6 +103,7 @@ export interface OmniContentReactProps {
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 	onExpandedSectionsChange?: (sections: string[]) => void;
 	onArticleInfoChange?: (info: ArticleInfoData) => void;
+	onPersonalInfoChange?: (info: PersonalInfo) => void;
 }
 
 // Global interface for the exported library

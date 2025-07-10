@@ -5,7 +5,8 @@ import {CoverDesigner} from "./CoverDesigner";
 import {ArticleInfo, ArticleInfoData} from "./ArticleInfo";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "../ui/tabs";
 import {ConfigComponent} from "./PluginConfigComponent";
-import {UnifiedPluginData, ViteReactSettings} from "../../types";
+import {SettingsModal} from "../settings/SettingsModal";
+import {UnifiedPluginData, ViteReactSettings, PersonalInfo} from "../../types";
 import {CoverData} from "@/components/toolbar/CoverData";
 import {logger} from "../../../../shared/src/logger";
 
@@ -27,6 +28,7 @@ interface ToolbarProps {
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 	onExpandedSectionsChange?: (sections: string[]) => void;
 	onArticleInfoChange?: (info: ArticleInfoData) => void;
+	onPersonalInfoChange?: (info: PersonalInfo) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -47,6 +49,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onPluginConfigChange,
 													onExpandedSectionsChange,
 													onArticleInfoChange,
+													onPersonalInfoChange,
 												}) => {
 	logger.info("[Toolbar] 完整工具栏开始渲染", {
 		pluginsCount: plugins?.length || 0,
@@ -76,6 +79,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 	const [pluginExpandedSections, setPluginExpandedSections] = useState<string[]>(
 		settings.expandedAccordionSections || []
 	);
+
+	// 设置模态框状态
+	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
 
 	// 当外部settings发生变化时，同步更新本地状态
@@ -305,6 +311,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 				<BrandSection 
 					onCopy={onCopy} 
 					onDistribute={onDistribute}
+					onSettings={() => setIsSettingsModalOpen(true)}
 				/>
 
 				<div className="flex-1 overflow-y-auto overflow-x-hidden">
@@ -338,6 +345,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 										settings={settings}
 										onSaveSettings={onSaveSettings}
 										onInfoChange={onArticleInfoChange || (() => {})}
+										onRenderArticle={onRenderArticle}
 									/>
 								</div>
 							</TabsContent>
@@ -505,6 +513,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 						</Tabs>
 					</div>
 				</div>
+				
+				{/* 设置模态框 */}
+				<SettingsModal
+					isOpen={isSettingsModalOpen}
+					onClose={() => setIsSettingsModalOpen(false)}
+					personalInfo={settings.personalInfo}
+					onPersonalInfoChange={onPersonalInfoChange || (() => {})}
+					onSaveSettings={onSaveSettings}
+				/>
 			</div>
 		);
 	} catch (error) {

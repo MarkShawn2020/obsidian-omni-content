@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { ViteReactSettings } from '../../types';
-import { logger } from '../../../../shared/src/logger';
+import React, {useEffect, useState} from 'react';
+import {Button} from '../ui/button';
+import {ViteReactSettings} from '../../types';
+import {logger} from '../../../../shared/src/logger';
 
 interface ArticleInfoProps {
 	settings: ViteReactSettings;
 	onSaveSettings: () => void;
 	onInfoChange: (info: ArticleInfoData) => void;
+	onRenderArticle?: () => void;
 }
 
 export interface ArticleInfoData {
@@ -19,34 +20,82 @@ export interface ArticleInfoData {
 	tags: string[];
 }
 
-const defaultArticleInfo: ArticleInfoData = {
-	author: '',
+// 获取默认作者：个人信息设置 -> 默认值
+const getDefaultAuthor = (settings: ViteReactSettings): string => {
+	if (settings.personalInfo?.name && settings.personalInfo.name.trim() !== '') {
+		return settings.personalInfo.name.trim();
+	}
+	return '南川同学'; // 最终默认值
+};
+
+const getDefaultArticleInfo = (settings: ViteReactSettings): ArticleInfoData => ({
+	author: getDefaultAuthor(settings), // 使用新的作者逻辑
 	publishDate: new Date().toISOString().split('T')[0], // 默认今天
-	articleTitle: '',
+	articleTitle: '', // 将由文件名填充
 	articleSubtitle: '',
 	episodeNum: '',
 	seriesName: '',
 	tags: []
-};
+});
 
 export const ArticleInfo: React.FC<ArticleInfoProps> = ({
-	settings,
-	onSaveSettings,
-	onInfoChange
-}) => {
+															settings,
+															onSaveSettings,
+															onInfoChange,
+															onRenderArticle
+														}) => {
 	const [articleInfo, setArticleInfo] = useState<ArticleInfoData>(() => {
 		// 从localStorage读取保存的文章信息
 		const saved = localStorage.getItem('omni-content-article-info');
+		const defaultInfo = getDefaultArticleInfo(settings);
+
 		if (saved) {
 			try {
-				return { ...defaultArticleInfo, ...JSON.parse(saved) };
+				const savedInfo = JSON.parse(saved);
+				// 合并保存的信息和默认信息，但要更新作者字段以使用最新的个人信息设置
+				return {
+					...defaultInfo,
+					...savedInfo,
+					// 如果保存的作者为空或为旧的默认值，则使用新的默认作者
+					author: savedInfo.author && savedInfo.author.trim() !== '' && savedInfo.author !== '南川同学'
+						? savedInfo.author
+						: defaultInfo.author
+				};
 			} catch (error) {
 				logger.warn('解析保存的文章信息失败:', error);
-				return defaultArticleInfo;
+				return defaultInfo;
 			}
 		}
-		return defaultArticleInfo;
+		return defaultInfo;
 	});
+
+	// 初始化时设置文章标题为文件名（如果标题为空），确保作者不为空
+	useEffect(() => {
+		let needsUpdate = false;
+		const updates: Partial<ArticleInfoData> = {};
+
+		// 设置默认文章标题为文件名
+		if (!articleInfo.articleTitle) {
+			const currentFileName = getCurrentFileName();
+			if (currentFileName) {
+				updates.articleTitle = currentFileName;
+				needsUpdate = true;
+			}
+		}
+
+		// 确保作者不为空
+		if (!articleInfo.author) {
+			updates.author = getDefaultAuthor(settings);
+			needsUpdate = true;
+		}
+
+		if (needsUpdate) {
+			setArticleInfo(prev => ({
+				...prev,
+				...updates
+			}));
+		}
+	}, []); // 只在组件挂载时执行一次
 
 	// 当文章信息变化时，保存到localStorage并通知父组件
 	useEffect(() => {
@@ -67,7 +116,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 			.split(/[,\n;]+/)
 			.map(tag => tag.trim())
 			.filter(tag => tag.length > 0);
-		
+
 		setArticleInfo(prev => ({
 			...prev,
 			tags
@@ -91,7 +140,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 		try {
 			// 读取文档内容
 			const content = await app.vault.read(activeFile);
-			
+
 			// 提取现有的frontmatter
 			const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 			let existingFrontmatter = {};
@@ -117,7 +166,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 
 			// 生成AI建议的内容
 			const aiSuggestion = {
-				author: existingFrontmatter['author'] || articleInfo.author || '南川同学',
+				author: existingFrontmatter['author'] || articleInfo.author || getDefaultAuthor(settings),
 				publishDate: existingFrontmatter['publishDate'] || new Date().toISOString().split('T')[0],
 				articleTitle: existingFrontmatter['articleTitle'] || activeFile.basename || '',
 				articleSubtitle: existingFrontmatter['articleSubtitle'] || articleInfo.articleSubtitle || '记录与分享',
@@ -128,16 +177,37 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 
 			setArticleInfo(aiSuggestion);
 			logger.info('AI生成文章信息完成:', aiSuggestion);
-			
+
 		} catch (error) {
 			logger.error('AI生成文章信息失败:', error);
 			alert('生成失败，请查看控制台了解详情');
 		}
 	};
 
+	const getCurrentFileName = () => {
+		try {
+			// 从window对象获取当前活动文件名
+			const app = (window as any).app;
+			const activeFile = app?.workspace?.getActiveFile?.();
+			return activeFile?.basename || '';
+		} catch (error) {
+			logger.warn('获取当前文件名失败:', error);
+			return '';
+		}
+	};
+
 	const handleClearAll = () => {
 		if (confirm('确定要清空所有文章信息吗？')) {
-			setArticleInfo(defaultArticleInfo);
+			// 完全清空，所有字段都变成空值，显示为placeholder
+			setArticleInfo({
+				author: '',
+				publishDate: new Date().toISOString().split('T')[0], // 日期保持当前日期
+				articleTitle: '',
+				articleSubtitle: '',
+				episodeNum: '',
+				seriesName: '',
+				tags: []
+			});
 		}
 	};
 
@@ -277,7 +347,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 				<h4 className="text-sm font-medium text-gray-700 mb-2">Frontmatter预览</h4>
 				<pre className="text-xs text-gray-600 bg-white p-3 rounded border overflow-x-auto">
 {`---
-author: ${articleInfo.author || '南川同学'}
+author: ${articleInfo.author || getDefaultAuthor(settings)}
 publishDate: ${articleInfo.publishDate}
 articleTitle: ${articleInfo.articleTitle || '文章标题'}
 articleSubtitle: ${articleInfo.articleSubtitle || '副标题'}
