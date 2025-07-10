@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"inlineSourceMap": true,
+		"inlineSources": true,
+		"module": "ESNext",
+		"target": "ES6",
+		"allowJs": true,
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"isolatedModules": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true,
+		"jsx": "react-jsx",
+		"lib": [
+			"DOM", "DOM.Iterable", "ES5", "ES6", "ES7"
+		],
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"paths": {
+			"@/*": ["./vite-react/src/*"]
+		}
+	},
+	"include": [
+		"**/*", "**/*"
+	]
+}

@@ -1,0 +1,11 @@
+{
+	"name": "obsidian",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"build": "node esbuild.config.mjs",
+		"dev": "pnpm build",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	}
+}
