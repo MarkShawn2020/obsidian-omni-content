@@ -3,7 +3,7 @@ import {Button} from '../ui/button';
 import {ViteReactSettings} from '../../types';
 import {logger} from '../../../../shared/src/logger';
 import Handlebars from 'handlebars';
-import { AIAnalysisDropdown, AIStyle } from '../ui/ai-analysis-dropdown';
+import { AIAnalysisSplitButton, AIStyle } from '../ui/ai-analysis-split-button';
 import { CustomPromptModal } from '../ui/custom-prompt-modal';
 
 interface ArticleInfoProps {
@@ -301,7 +301,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 			<div className="flex justify-between items-center">
 				<h3 className="text-lg font-semibold">文章基本信息</h3>
 				<div className="flex space-x-2">
-					<AIAnalysisDropdown
+					<AIAnalysisSplitButton
 						isGenerating={isAIGenerating}
 						isDisabled={!settings.authKey || settings.authKey.trim() === ''}
 						onAnalyze={handleAIAnalyze}

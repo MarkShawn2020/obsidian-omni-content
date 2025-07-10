@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './button';
 import { ViteReactSettings } from '../../types';
-import { AIStyle, AI_STYLES } from './ai-analysis-dropdown';
+import { AIStyle, AI_STYLES } from './ai-analysis-split-button';
 
 interface CustomPromptModalProps {
 	isOpen: boolean;
