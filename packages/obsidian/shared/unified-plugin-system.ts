@@ -379,7 +379,7 @@ export class UnifiedPluginManager extends BasePluginManager<IUnifiedPlugin> {
 	 * 处理HTML内容 - 应用所有启用的HTML插件
 	 */
 	public processContent(html: string, settings: NMPSettings): string {
-		logger.info("[processContent]", settings)
+		logger.debug("[processContent]", settings)
 
 		const htmlPlugins = this.getHtmlPlugins();
 		logger.debug(`开始处理内容，共有 ${htmlPlugins.length} 个HTML插件`);
