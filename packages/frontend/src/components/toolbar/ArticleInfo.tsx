@@ -306,7 +306,7 @@ ${content}
 								: '请先在设置页面配置Claude API密钥'
 						}
 					>
-						🤖 Claude分析
+						🤖 AI生成
 					</Button>
 					<Button
 						onClick={handleClearAll}
