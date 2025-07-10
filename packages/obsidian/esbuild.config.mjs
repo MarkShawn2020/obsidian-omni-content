@@ -2,6 +2,8 @@ import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
 import { copy } from "esbuild-plugin-copy";
+import { watch } from "fs";
+import path from "path";
 
 const banner =
 `/*
@@ -60,4 +62,36 @@ if (prod) {
 	process.exit(0);
 } else {
 	await context.watch();
+	
+	// 监听frontend dist目录的变化，触发重新构建
+	const frontendDistPath = path.resolve('../frontend/dist');
+	console.log(`🔍 Watching frontend dist: ${frontendDistPath}`);
+	
+	let rebuildTimeout;
+	const debounceRebuild = () => {
+		clearTimeout(rebuildTimeout);
+		rebuildTimeout = setTimeout(async () => {
+			try {
+				console.log('🔄 Frontend assets changed, rebuilding...');
+				await context.rebuild();
+				console.log('✅ Rebuild completed');
+			} catch (error) {
+				console.error('❌ Rebuild failed:', error);
+			}
+		}, 100); // 100ms防抖
+	};
+	
+	try {
+		watch(frontendDistPath, { recursive: true }, (eventType, filename) => {
+			if (filename) {
+				console.log(`📁 Frontend file changed: ${filename} (${eventType})`);
+				debounceRebuild();
+			}
+		});
+		
+		console.log('👀 Watching for changes...');
+	} catch (error) {
+		console.warn('⚠️ Could not watch frontend dist directory:', error.message);
+		console.log('💡 Make sure to run "pnpm dev" in the frontend package first');
+	}
 }

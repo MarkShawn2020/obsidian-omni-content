@@ -298,17 +298,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 		return (
 			<div className="h-full flex flex-col bg-white" style={{
 				border: '1px solid #ccc', // 保留调试边框但更subtle
-				minWidth: '320px'
+				minWidth: '320px',
+				width: '100%', // 确保占满容器
+				overflow: 'hidden' // 防止内容溢出
 			}}>
 				<BrandSection 
 					onCopy={onCopy} 
 					onDistribute={onDistribute}
 				/>
 
-				<div className="flex-1 overflow-y-auto">
-					<div className="p-4">
+				<div className="flex-1 overflow-y-auto overflow-x-hidden">
+					<div className="p-4" style={{ minWidth: '320px' }}>
 						<Tabs value={activeTab} onValueChange={handleTabChange}>
-							<TabsList>
+							<TabsList style={{ 
+								width: '100%',
+								maxWidth: '100%',
+								overflow: 'hidden',
+								flexWrap: 'nowrap'
+							}}>
 								<TabsTrigger value="info">
 									基本信息
 								</TabsTrigger>

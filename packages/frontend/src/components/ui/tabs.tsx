@@ -36,9 +36,12 @@ export const Tabs: React.FC<TabsProps> = ({ value, onValueChange, children }) =>
   );
 };
 
-export const TabsList: React.FC<TabsListProps> = ({ children }) => {
+export const TabsList: React.FC<TabsListProps & { style?: React.CSSProperties }> = ({ children, style }) => {
   return (
-    <div className="inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500 w-full">
+    <div 
+      className="inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500 w-full"
+      style={style}
+    >
       {children}
     </div>
   );
@@ -58,11 +61,16 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, disab
       type="button"
       disabled={disabled}
       onClick={() => onValueChange(value)}
-      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 ${
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-2 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 min-w-0 flex-shrink ${
         isSelected
           ? 'bg-white text-gray-950 shadow-sm'
           : 'text-gray-600 hover:bg-gray-200'
       }`}
+      style={{ 
+        flex: '1 1 0',
+        minWidth: '60px',
+        maxWidth: '120px'
+      }}
     >
       {children}
     </button>
