@@ -76,7 +76,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			const pluginDir = (this.app as any).plugins.plugins["omni-content"].manifest.dir;
 			const scriptPath = `${pluginDir}/frontend/omni-content-react.iife.js`;
 
-			logger.info("加载React应用:", scriptPath);
+			logger.debug("加载React应用:", scriptPath);
 			const scriptContent = await adapter.read(scriptPath);
 
 			// 创建script标签并执行
@@ -94,7 +94,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				(window as any).omniContentReact;
 
 			if (this.externalReactLib) {
-				logger.info("外部React应用加载成功", {
+				logger.debug("外部React应用加载成功", {
 					availableMethods: Object.keys(this.externalReactLib),
 					hasMount: typeof this.externalReactLib.mount === 'function',
 					hasUpdate: typeof this.externalReactLib.update === 'function',
@@ -136,7 +136,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			style.textContent = cssContent;
 			document.head.appendChild(style);
 
-			logger.info("成功加载外部CSS:", cssPath);
+			logger.debug("成功加载外部CSS:", cssPath);
 
 		} catch (error) {
 			logger.warn("加载外部CSS失败:", error.message);
@@ -144,7 +144,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	}
 
 	private loadFallbackComponent() {
-		logger.info("使用回退方案：原始React组件");
+		logger.debug("使用回退方案：原始React组件");
 		// 这里可以导入原始的React组件作为备用
 		// 暂时不实现，仅记录日志
 	}
@@ -194,7 +194,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			
 			// 更新React组件的props但不重新触发onArticleInfoChange
 			await this.updateExternalReactComponent();
-			logger.info('[updateArticleContentOnly] 更新了文章内容');
+			logger.debug('[updateArticleContentOnly] 更新了文章内容');
 		} catch (error) {
 			logger.error('[updateArticleContentOnly] 更新文章内容失败:', error);
 		}
@@ -308,14 +308,14 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			return;
 		}
 
-		logger.info(`[updateCSSVariables] 当前主题: ${this.settings.defaultStyle}`);
+		logger.debug(`[updateCSSVariables] 当前主题: ${this.settings.defaultStyle}`);
 
 		if (this.settings.enableThemeColor) {
 			noteContainer.style.setProperty("--primary-color", this.settings.themeColor || "#7852ee");
-			logger.info(`应用自定义主题色：${this.settings.themeColor}`);
+			logger.debug(`应用自定义主题色：${this.settings.themeColor}`);
 		} else {
 			noteContainer.style.removeProperty("--primary-color");
-			logger.info("恢复使用主题文件中的颜色");
+			logger.debug("恢复使用主题文件中的颜色");
 		}
 
 		const listItems = noteContainer.querySelectorAll("li");
@@ -334,7 +334,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		let html = `<section class="${className}" id="article-section">${article}</section>`;
 
 		if (this.settings.useTemplate) {
-			logger.info("应用模板：", this.settings.defaultTemplate);
+			logger.debug("应用模板：", this.settings.defaultTemplate);
 			try {
 				const templateManager = TemplateManager.getInstance();
 				const file = this.app.workspace.getActiveFile();
@@ -351,15 +351,15 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				if (this.toolbarArticleInfo?.articleTitle && this.toolbarArticleInfo.articleTitle.trim() !== '') {
 					// 优先级1: 基本信息中的标题
 					finalTitle = this.toolbarArticleInfo.articleTitle.trim();
-					logger.info('[wrapArticleContent] 使用基本信息中的标题:', finalTitle);
+					logger.debug('[wrapArticleContent] 使用基本信息中的标题:', finalTitle);
 				} else if (meta.articleTitle && String(meta.articleTitle).trim() !== '') {
 					// 优先级2: frontmatter中的标题
 					finalTitle = String(meta.articleTitle).trim();
-					logger.info('[wrapArticleContent] 使用frontmatter中的标题:', finalTitle);
+					logger.debug('[wrapArticleContent] 使用frontmatter中的标题:', finalTitle);
 				} else if (file?.basename) {
 					// 优先级3: 文件名
 					finalTitle = file.basename;
-					logger.info('[wrapArticleContent] 使用文件名作为标题:', finalTitle);
+					logger.debug('[wrapArticleContent] 使用文件名作为标题:', finalTitle);
 				}
 				
 				// 设置最终的标题
@@ -372,15 +372,15 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				if (this.toolbarArticleInfo?.author && this.toolbarArticleInfo.author.trim() !== '') {
 					// 优先级1: 基本信息中的作者
 					finalAuthor = this.toolbarArticleInfo.author.trim();
-					logger.info('[wrapArticleContent] 使用基本信息中的作者:', finalAuthor);
+					logger.debug('[wrapArticleContent] 使用基本信息中的作者:', finalAuthor);
 				} else if (meta.author && String(meta.author).trim() !== '') {
 					// 优先级2: frontmatter中的作者
 					finalAuthor = String(meta.author).trim();
-					logger.info('[wrapArticleContent] 使用frontmatter中的作者:', finalAuthor);
+					logger.debug('[wrapArticleContent] 使用frontmatter中的作者:', finalAuthor);
 				} else if (this.settings.personalInfo?.name && this.settings.personalInfo.name.trim() !== '') {
 					// 优先级3: 个人信息设置中的姓名
 					finalAuthor = this.settings.personalInfo.name.trim();
-					logger.info('[wrapArticleContent] 使用个人信息设置中的作者:', finalAuthor);
+					logger.debug('[wrapArticleContent] 使用个人信息设置中的作者:', finalAuthor);
 				}
 				
 				// 设置最终的作者
@@ -393,15 +393,15 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				if (this.toolbarArticleInfo?.publishDate && this.toolbarArticleInfo.publishDate.trim() !== '') {
 					// 优先级1: 基本信息中的发布日期
 					finalPublishDate = this.toolbarArticleInfo.publishDate.trim();
-					logger.info('[wrapArticleContent] 使用基本信息中的发布日期:', finalPublishDate);
+					logger.debug('[wrapArticleContent] 使用基本信息中的发布日期:', finalPublishDate);
 				} else if (meta.publishDate && String(meta.publishDate).trim() !== '') {
 					// 优先级2: frontmatter中的发布日期
 					finalPublishDate = String(meta.publishDate).trim();
-					logger.info('[wrapArticleContent] 使用frontmatter中的发布日期:', finalPublishDate);
+					logger.debug('[wrapArticleContent] 使用frontmatter中的发布日期:', finalPublishDate);
 				} else {
 					// 优先级3: 当前日期
 					finalPublishDate = new Date().toISOString().split('T')[0];
-					logger.info('[wrapArticleContent] 使用当前日期作为发布日期:', finalPublishDate);
+					logger.debug('[wrapArticleContent] 使用当前日期作为发布日期:', finalPublishDate);
 				}
 				
 				// 设置最终的发布日期
@@ -410,9 +410,9 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				}
 
 				// 然后用工具栏的基本信息覆盖frontmatter（除了articleTitle、author、publishDate已经特殊处理）
-				logger.info('[wrapArticleContent] 检查toolbarArticleInfo:', this.toolbarArticleInfo);
+				logger.debug('[wrapArticleContent] 检查toolbarArticleInfo:', this.toolbarArticleInfo);
 				if (this.toolbarArticleInfo) {
-					logger.info("[wrapArticleContent] 使用工具栏基本信息覆盖frontmatter:", this.toolbarArticleInfo);
+					logger.debug("[wrapArticleContent] 使用工具栏基本信息覆盖frontmatter:", this.toolbarArticleInfo);
 					// 只覆盖有值的字段
 					Object.keys(this.toolbarArticleInfo).forEach(key => {
 						// articleTitle、author、publishDate已经在上面特殊处理了，跳过
@@ -470,14 +470,14 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	}
 
 	getCSS() {
-		logger.info(`[getCSS] 当前主题: ${this.currentTheme}, 设置中的主题: ${this.settings.defaultStyle}`);
+		logger.debug(`[getCSS] 当前主题: ${this.currentTheme}, 设置中的主题: ${this.settings.defaultStyle}`);
 		
 		const theme = this.assetsManager.getTheme(this.currentTheme);
 		const highlight = this.assetsManager.getHighlight(this.currentHighlight);
 		const customCSS = this.settings.useCustomCss ? this.assetsManager.customCSS : "";
 
-		logger.info(`[getCSS] 主题对象:`, theme ? `${theme.name}` : 'undefined');
-		logger.info(`[getCSS] 主题CSS长度:`, theme?.css?.length || 0);
+		logger.debug(`[getCSS] 主题对象:`, theme ? `${theme.name}` : 'undefined');
+		logger.debug(`[getCSS] 主题CSS长度:`, theme?.css?.length || 0);
 
 		let themeColorCSS = "";
 
@@ -503,7 +503,7 @@ ${themeCss}
 
 ${customCSS}`;
 
-		logger.info(`[getCSS] 最终CSS长度:`, finalCSS.length);
+		logger.debug(`[getCSS] 最终CSS长度:`, finalCSS.length);
 		return finalCSS;
 	}
 
@@ -535,7 +535,7 @@ ${customCSS}`;
 		this.reactContainer.id = 'omni-content-react-container';
 		this.container.appendChild(this.reactContainer);
 
-		logger.info("UI构建完成", {
+		logger.debug("UI构建完成", {
 			containerExists: !!this.container,
 			reactContainerExists: !!this.reactContainer,
 			reactContainerInDOM: document.contains(this.reactContainer),
@@ -567,7 +567,7 @@ ${customCSS}`;
 		}
 
 		try {
-			logger.info("更新外部React组件", {
+			logger.debug("更新外部React组件", {
 				articleHTMLLength: this.articleHTML?.length || 0,
 				hasCSS: !!this.getCSS(),
 				availableMethods: this.externalReactLib ? Object.keys(this.externalReactLib) : [],
@@ -632,12 +632,12 @@ ${customCSS}`;
 					await this.renderMarkdown();
 				},
 				onThemeChange: async (theme: string) => {
-					logger.info(`[onThemeChange] 切换主题: ${theme}`);
+					logger.debug(`[onThemeChange] 切换主题: ${theme}`);
 					this.settings.defaultStyle = theme;
 					this.saveSettingsToPlugin();
-					logger.info(`[onThemeChange] 设置已更新，开始渲染`);
+					logger.debug(`[onThemeChange] 设置已更新，开始渲染`);
 					await this.renderMarkdown();
-					logger.info(`[onThemeChange] 渲染完成`);
+					logger.debug(`[onThemeChange] 渲染完成`);
 					
 					// 直接异步调用update
 					await this.update();
@@ -683,9 +683,9 @@ ${customCSS}`;
 					}
 					
 					// 将文章信息保存到toolbarArticleInfo中，用于渲染时合并
-					logger.info('[onArticleInfoChange] 文章信息已更新:', info);
+					logger.debug('[onArticleInfoChange] 文章信息已更新:', info);
 					this.toolbarArticleInfo = info;
-					logger.info('[onArticleInfoChange] toolbarArticleInfo已设置:', this.toolbarArticleInfo);
+					logger.debug('[onArticleInfoChange] toolbarArticleInfo已设置:', this.toolbarArticleInfo);
 					
 					// 设置标志位并异步更新
 					this.isUpdatingFromToolbar = true;
@@ -694,30 +694,30 @@ ${customCSS}`;
 					});
 				},
 				onPersonalInfoChange: (info: any) => {
-					logger.info('[onPersonalInfoChange] 个人信息已更新:', info);
+					logger.debug('[onPersonalInfoChange] 个人信息已更新:', info);
 					this.settings.personalInfo = info;
 					this.saveSettingsToPlugin();
 				},
 				onSettingsChange: (settingsUpdate: any) => {
-					logger.info('[onSettingsChange] 设置已更新:', settingsUpdate);
-					logger.info('[onSettingsChange] 更新前的authKey:', this.settings.authKey);
+					logger.debug('[onSettingsChange] 设置已更新:', settingsUpdate);
+					logger.debug('[onSettingsChange] 更新前的authKey:', this.settings.authKey);
 					
 					// 合并设置更新
 					Object.keys(settingsUpdate).forEach(key => {
 						if (settingsUpdate[key] !== undefined) {
 							(this.settings as any)[key] = settingsUpdate[key];
-							logger.info(`[onSettingsChange] 已更新 ${key}:`, settingsUpdate[key]);
+							logger.debug(`[onSettingsChange] 已更新 ${key}:`, settingsUpdate[key]);
 						}
 					});
 					
-					logger.info('[onSettingsChange] 更新后的authKey:', this.settings.authKey);
+					logger.debug('[onSettingsChange] 更新后的authKey:', this.settings.authKey);
 					this.saveSettingsToPlugin();
 				}
 			};
 
 			// 使用外部React应用进行渲染，等待渲染完成
 			await this.externalReactLib.update(this.reactContainer, props);
-			logger.info("外部React组件更新成功", {
+			logger.debug("外部React组件更新成功", {
 				containerChildrenAfterUpdate: this.reactContainer.children.length,
 				containerInnerHTML: this.reactContainer.innerHTML.substring(0, 200) + "..."
 			});
@@ -787,7 +787,7 @@ ${customCSS}`;
 					plugin.setEnabled(enabled);
 					this.saveSettingsToPlugin();
 					this.renderMarkdown();
-					logger.info(`已${enabled ? '启用' : '禁用'}插件: ${pluginName}`);
+					logger.debug(`已${enabled ? '启用' : '禁用'}插件: ${pluginName}`);
 				}
 			}
 		} catch (error) {
@@ -806,7 +806,7 @@ ${customCSS}`;
 					plugin.updateConfig({[key]: value});
 					this.saveSettingsToPlugin();
 					this.renderMarkdown();
-					logger.info(`已更新插件 ${pluginName} 的配置: ${key} = ${value}`);
+					logger.debug(`已更新插件 ${pluginName} 的配置: ${key} = ${value}`);
 				}
 			}
 		} catch (error) {

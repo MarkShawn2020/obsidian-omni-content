@@ -44,6 +44,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 															onInfoChange,
 															onRenderArticle
 														}) => {
+	const [isAIGenerating, setIsAIGenerating] = useState(false);
 	const [articleInfo, setArticleInfo] = useState<ArticleInfoData>(() => {
 		// 从localStorage读取保存的文章信息
 		const saved = localStorage.getItem('omni-content-article-info');
@@ -143,10 +144,9 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 			return;
 		}
 
+		setIsAIGenerating(true);
+
 		try {
-			// 显示加载状态
-			alert('正在使用Claude AI分析文章内容，请稍候...');
-			
 			// 读取文档内容
 			const content = await app.vault.read(activeFile);
 			
@@ -174,11 +174,12 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 
 			setArticleInfo(finalSuggestion);
 			logger.info('Claude AI生成文章信息完成:', finalSuggestion);
-			alert('AI分析完成！已根据文章内容生成相关信息。');
 
 		} catch (error) {
 			logger.error('Claude AI生成文章信息失败:', error);
 			alert(`AI分析失败: ${error.message}`);
+		} finally {
+			setIsAIGenerating(false);
 		}
 	};
 
