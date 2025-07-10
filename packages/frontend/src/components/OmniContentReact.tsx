@@ -40,8 +40,8 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 	const styleElRef = useRef<HTMLStyleElement>(null);
 	const articleDivRef = useRef<HTMLDivElement>(null);
 
-	// 拖拽调整大小的状态
-	const [renderWidth, setRenderWidth] = useState<string>("flex: 1");
+	// 工具栏宽度状态 - 默认自适应内容
+	const [toolbarWidth, setToolbarWidth] = useState<string>("auto");
 
 	// 强制触发标记，确保 useEffect 能被调用
 	const [cssUpdateTrigger, setCssUpdateTrigger] = useState(0);
@@ -50,6 +50,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 	// 组件挂载检查
 	useEffect(() => {
 		logger.info("[mount-useEffect] Component mounted");
+		
 		return () => {
 			logger.info("[mount-useEffect] Component will unmount");
 		};
@@ -129,25 +130,23 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 		setIsMessageVisible(false);
 	}, []);
 
-	// 拖拽调整大小的处理
+	// 拖拽调整工具栏宽度的处理
 	const handleMouseDown = useCallback((e: React.MouseEvent) => {
-		if (!renderDivRef.current) return;
+		const toolbarContainer = document.querySelector('.toolbar-container') as HTMLElement;
+		if (!toolbarContainer) return;
 
 		const startX = e.clientX;
-		const startWidth = renderDivRef.current.getBoundingClientRect().width;
+		const startWidth = toolbarContainer.getBoundingClientRect().width;
 
 		const handleMouseMove = (e: MouseEvent) => {
-			if (!renderDivRef.current) return;
+			// 在row-reverse布局中，向右拖拽增加工具栏宽度，向左拖拽减少工具栏宽度
+			// 这样拖拽方向就和视觉上的预期一致了
+			const newWidth = startWidth + (e.clientX - startX);
+			const minWidth = 320; // 工具栏最小宽度
+			const maxWidth = 800; // 工具栏最大宽度
 
-			const newWidth = startWidth + e.clientX - startX;
-			const containerWidth = renderDivRef.current.parentElement?.getBoundingClientRect().width || 0;
-			const minWidth = 320;
-			// 为toolbar预留足够的空间，考虑到toolbar的minWidth是320px，加上分隔条5px和一些余量
-			const toolbarMinWidth = 320 + 5 + 20; // toolbar最小宽度 + 分隔条 + 余量
-			const maxWidth = containerWidth - toolbarMinWidth;
-
-			if (newWidth > minWidth && newWidth < maxWidth) {
-				setRenderWidth(`0 0 ${newWidth}px`);
+			if (newWidth >= minWidth && newWidth <= maxWidth) {
+				setToolbarWidth(`${newWidth}px`);
 			}
 		};
 
@@ -165,26 +164,26 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 			className="note-preview"
 			style={{
 				display: "flex",
-				flexDirection: "row",
+				flexDirection: "row-reverse", // 反向布局，工具栏在右边
 				height: "100%",
 				width: "100%",
 				overflow: "hidden",
 				position: "relative",
 			}}
 		>
-			{/* 左侧渲染区域 */}
+			{/* 左侧渲染区域 - 占用剩余空间 */}
 			<div
 				ref={renderDivRef}
 				className="render-div"
 				id="render-div"
 				style={{
-					order: 0,
 					WebkitUserSelect: "text",
 					userSelect: "text",
 					padding: "10px",
-					flex: renderWidth,
+					flex: "1", // 占用剩余空间
 					overflow: "auto",
 					borderRight: "1px solid var(--background-modifier-border)",
+					minWidth: "300px" // 最小宽度保护
 				}}
 			>
 				<style ref={styleElRef} title="omni-content-style">
@@ -197,13 +196,13 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 			<div
 				className="column-resizer"
 				style={{
-					order: 1,
 					width: "5px",
 					backgroundColor: "var(--background-modifier-border)",
 					cursor: "col-resize",
 					opacity: 0.7,
 					transition: "opacity 0.2s",
 					zIndex: 10,
+					flexShrink: 0 // 防止被压缩
 				}}
 				onMouseDown={handleMouseDown}
 				onMouseEnter={(e) => {
@@ -214,19 +213,18 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 				}}
 			/>
 
-			{/* 右侧工具栏容器 */}
+			{/* 右侧工具栏容器 - 自适应内容宽度 */}
 			<div
 				className="toolbar-container"
 				style={{
-					order: 2,
-					flex: 1,
-					width: "100%",
+					width: toolbarWidth,
 					height: "100%",
 					overflowY: "auto",
 					overflowX: "hidden",
 					backgroundColor: "var(--background-secondary-alt)",
 					borderLeft: "1px solid var(--background-modifier-border)",
-					minWidth: "320px"
+					minWidth: "320px", // 最小宽度保护
+					flexShrink: 0 // 防止被压缩
 				}}
 			>
 				{(() => {

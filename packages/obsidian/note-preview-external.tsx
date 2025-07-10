@@ -417,10 +417,16 @@ ${customCSS}`;
 		this.container = this.containerEl.children[1];
 		this.container.empty();
 
+		// 设置容器最小宽度，确保有足够空间显示工具栏
+		if (this.containerEl) {
+			this.containerEl.style.minWidth = '800px';
+		}
+
 		// 创建React容器
 		this.reactContainer = document.createElement('div');
 		this.reactContainer.style.width = '100%';
 		this.reactContainer.style.height = '100%';
+		this.reactContainer.style.minWidth = '800px'; // 确保React容器也有最小宽度
 		this.reactContainer.id = 'omni-content-react-container';
 		this.container.appendChild(this.reactContainer);
 
@@ -557,6 +563,12 @@ ${customCSS}`;
 				onExpandedSectionsChange: (sections: string[]) => {
 					this.settings.expandedAccordionSections = sections;
 					this.saveSettingsToPlugin();
+				},
+				onArticleInfoChange: (info: any) => {
+					// 将文章信息保存到插件设置中
+					logger.info('文章信息已更新:', info);
+					// 这里可以选择是否将信息保存到插件设置中
+					// 或者只保存在localStorage中（由ArticleInfo组件管理）
 				}
 			};
 

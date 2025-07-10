@@ -61,6 +61,17 @@ export interface RemarkPluginData {
 	metaConfig: ConfigMetaCollection;
 }
 
+// Article info interface
+export interface ArticleInfoData {
+	author: string;
+	publishDate: string;
+	articleTitle: string;
+	articleSubtitle: string;
+	episodeNum: string;
+	seriesName: string;
+	tags: string[];
+}
+
 // Props interface for the main component
 export interface OmniContentReactProps {
 	settings: ViteReactSettings;
@@ -81,6 +92,7 @@ export interface OmniContentReactProps {
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 	onExpandedSectionsChange?: (sections: string[]) => void;
+	onArticleInfoChange?: (info: ArticleInfoData) => void;
 }
 
 // Global interface for the exported library

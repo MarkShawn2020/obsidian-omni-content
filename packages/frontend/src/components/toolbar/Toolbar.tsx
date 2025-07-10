@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {StyleSettings} from "./StyleSettings";
 import {CoverDesigner} from "./CoverDesigner";
+import {ArticleInfo, ArticleInfoData} from "./ArticleInfo";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "../ui/tabs";
 import {ConfigComponent} from "./PluginConfigComponent";
 import {UnifiedPluginData, ViteReactSettings} from "../../types";
@@ -25,6 +26,7 @@ interface ToolbarProps {
 	onPluginToggle?: (pluginName: string, enabled: boolean) => void;
 	onPluginConfigChange?: (pluginName: string, key: string, value: string | boolean) => void;
 	onExpandedSectionsChange?: (sections: string[]) => void;
+	onArticleInfoChange?: (info: ArticleInfoData) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -44,6 +46,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onPluginToggle,
 													onPluginConfigChange,
 													onExpandedSectionsChange,
+													onArticleInfoChange,
 												}) => {
 	logger.info("[Toolbar] 完整工具栏开始渲染", {
 		pluginsCount: plugins?.length || 0,
@@ -54,8 +57,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
 	// 使用本地状态管理当前选中的tab
 	const [activeTab, setActiveTab] = useState<string>(() => {
-		// 如果显示样式设置，默认选择样式设置，否则选择插件管理
-		return settings.showStyleUI ? 'style' : 'plugins';
+		// 默认选择基本信息tab
+		return 'info';
 	});
 
 	// 插件管理中的子tab状态
@@ -77,9 +80,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
 	// 当外部settings发生变化时，同步更新本地状态
 	useEffect(() => {
-		// 如果当前tab是样式设置但样式设置被关闭了，切换到插件管理
+		// 如果当前tab是样式设置但样式设置被关闭了，切换到基本信息
 		if (activeTab === 'style' && !settings.showStyleUI) {
-			setActiveTab('plugins');
+			setActiveTab('info');
 		}
 		// 同步插件展开状态
 		setPluginExpandedSections(settings.expandedAccordionSections || []);
@@ -306,6 +309,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 					<div className="p-4">
 						<Tabs value={activeTab} onValueChange={handleTabChange}>
 							<TabsList>
+								<TabsTrigger value="info">
+									基本信息
+								</TabsTrigger>
 								{settings.showStyleUI && (
 									<TabsTrigger value="style">
 										样式设置
@@ -318,6 +324,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 									封面设计
 								</TabsTrigger>
 							</TabsList>
+							
+							<TabsContent value="info">
+								<div className="mt-4">
+									<ArticleInfo
+										settings={settings}
+										onSaveSettings={onSaveSettings}
+										onInfoChange={onArticleInfoChange || (() => {})}
+									/>
+								</div>
+							</TabsContent>
 							
 							{settings.showStyleUI && (
 								<TabsContent value="style">
