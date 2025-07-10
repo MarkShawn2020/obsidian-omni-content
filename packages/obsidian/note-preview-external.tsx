@@ -32,6 +32,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	listeners: EventRef[];
 	externalReactLib: ExternalReactLib | null = null;
 	reactContainer: HTMLElement | null = null;
+	toolbarArticleInfo: any = null; // 存储工具栏的基本信息
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -321,10 +322,31 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 				const templateManager = TemplateManager.getInstance();
 				const file = this.app.workspace.getActiveFile();
 				const meta: Record<string, string | string[] | number | boolean | object | undefined> = {};
+				
+				// 首先获取frontmatter
 				if (file) {
 					const metadata = this.app.metadataCache.getFileCache(file);
 					Object.assign(meta, metadata?.frontmatter);
 				}
+				
+				// 然后用工具栏的基本信息覆盖frontmatter（如果有的话）
+				logger.info('[wrapArticleContent] 检查toolbarArticleInfo:', this.toolbarArticleInfo);
+				if (this.toolbarArticleInfo) {
+					logger.info("[wrapArticleContent] 使用工具栏基本信息覆盖frontmatter:", this.toolbarArticleInfo);
+					// 只覆盖有值的字段
+					Object.keys(this.toolbarArticleInfo).forEach(key => {
+						const value = this.toolbarArticleInfo[key];
+						if (value !== undefined && value !== null && value !== '') {
+							// 对于数组类型的tags，需要特殊处理
+							if (key === 'tags' && Array.isArray(value) && value.length > 0) {
+								meta[key] = value;
+							} else if (key !== 'tags' && value !== '') {
+								meta[key] = value;
+							}
+						}
+					});
+				}
+				
 				logger.debug("传递至模板的元数据:", meta);
 
 				html = templateManager.applyTemplate(html, this.settings.defaultTemplate, meta);
@@ -565,10 +587,12 @@ ${customCSS}`;
 					this.saveSettingsToPlugin();
 				},
 				onArticleInfoChange: (info: any) => {
-					// 将文章信息保存到插件设置中
-					logger.info('文章信息已更新:', info);
-					// 这里可以选择是否将信息保存到插件设置中
-					// 或者只保存在localStorage中（由ArticleInfo组件管理）
+					// 将文章信息保存到toolbarArticleInfo中，用于渲染时合并
+					logger.info('[onArticleInfoChange] 文章信息已更新:', info);
+					this.toolbarArticleInfo = info;
+					logger.info('[onArticleInfoChange] toolbarArticleInfo已设置:', this.toolbarArticleInfo);
+					// 当工具栏信息更新时，重新渲染文章
+					this.renderMarkdown();
 				}
 			};
 

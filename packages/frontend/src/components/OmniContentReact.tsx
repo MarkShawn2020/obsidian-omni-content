@@ -25,6 +25,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onPluginToggle,
 																	  onPluginConfigChange,
 																	  onExpandedSectionsChange,
+																	  onArticleInfoChange
 																  }) => {
 	logger.info("[OmniContentReact] Component render started", {
 		articleHTMLLength: articleHTML?.length || 0,
@@ -252,6 +253,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 							onPluginToggle={onPluginToggle}
 							onPluginConfigChange={onPluginConfigChange}
 							onExpandedSectionsChange={onExpandedSectionsChange}
+							onArticleInfoChange={onArticleInfoChange}
 						/>
 					);
 				})()}
