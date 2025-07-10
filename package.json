@@ -8,8 +8,7 @@
 		"build": "pnpm -r build",
 		"download-highlights": "node scripts/download-highlights.mjs",
 		"preversion": "pnpm build",
-		"version": "node scripts/sync-version.mjs && git add -A",
-		"postversion": "git push && git push --tags"
+		"version": "node scripts/sync-version.mjs"
 	},
 	"keywords": [],
 	"author": "",
