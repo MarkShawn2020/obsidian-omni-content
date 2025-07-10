@@ -10,6 +10,7 @@ import {
 	GenerationStatus
 } from "@/components/toolbar/cover/types";
 import {logger} from "../../../../shared/src/logger";
+import { Image, Download, RotateCcw, Settings, Layers } from "lucide-react";
 
 interface CoverDesignerProps {
 	articleHTML: string;
@@ -240,55 +241,92 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 
 
 	return (
-		<div className="w-full">
-			<div className="mb-4">
-				<h3 className="text-lg font-semibold text-gray-800">🎨 封面设计</h3>
-				<p className="text-sm text-gray-600 mt-1">为您的文章制作专业的封面图片</p>
+		<div className="space-y-6">
+			{/* 头部说明 */}
+			<div className="text-center">
+				<h3 className="text-lg font-semibold text-gray-900 mb-2">封面设计工作室</h3>
+				<p className="text-gray-600">为您的文章制作专业的多尺寸封面图片</p>
 			</div>
 
+			{/* 封面配置卡片 */}
+			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+				<div className="flex items-center gap-3 mb-4">
+					<div className="p-2 bg-orange-100 rounded-lg">
+						<Settings className="h-5 w-5 text-orange-600" />
+					</div>
+					<div>
+						<h4 className="font-semibold text-gray-900">封面配置</h4>
+						<p className="text-sm text-gray-600">选择要编辑的封面和管理输出</p>
+					</div>
+				</div>
+				
+				<div className="flex items-center gap-3">
+					<div className="flex-1">
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							当前编辑封面
+						</label>
+						<Select value={selectedCover.toString()}
+								onValueChange={(value) => setSelectedCover(parseInt(value) as 1 | 2)}>
+							<SelectTrigger className="w-full">
+								<SelectValue placeholder="选择要设置的封面"/>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="1">
+									<div className="flex items-center gap-2">
+										<Layers className="h-4 w-4 text-blue-600" />
+										<span>封面1 (2.25:1 横版)</span>
+									</div>
+								</SelectItem>
+								<SelectItem value="2">
+									<div className="flex items-center gap-2">
+										<Image className="h-4 w-4 text-purple-600" />
+										<span>封面2 (1:1 方形)</span>
+									</div>
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 
-			{/* 封面选择器 */}
-			<div className="mb-4">
-				<label className="block text-sm font-medium text-gray-700 mb-2">
-					⚙️ 封面设置
-				</label>
-				<div className="flex space-x-2">
-					<Select value={selectedCover.toString()}
-							onValueChange={(value) => setSelectedCover(parseInt(value) as 1 | 2)}>
-						<SelectTrigger className="w-48">
-							<SelectValue placeholder="选择要设置的封面"/>
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="1">封面1 (2.25:1)</SelectItem>
-							<SelectItem value="2">封面2 (1:1)</SelectItem>
-						</SelectContent>
-					</Select>
-
-					<button
-						onClick={handleDownloadCovers}
-						className="flex-1 px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-medium"
-						disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
-					>
-						📥 下载封面
-						({(cover1PreviewCovers.length > 0 ? 1 : 0) + (cover2PreviewCovers.length > 0 ? 1 : 0)})
-					</button>
-					<button
-						disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
-						onClick={() => {
-							setCover1PreviewCovers([]);
-							setCover2PreviewCovers([]);
-						}}
-						className="px-3 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-					>
-						清空全部
-					</button>
+					<div className="flex gap-2">
+						<button
+							onClick={handleDownloadCovers}
+							className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
+						>
+							<Download className="h-4 w-4" />
+							<span className="text-sm font-medium">
+								下载封面 ({(cover1PreviewCovers.length > 0 ? 1 : 0) + (cover2PreviewCovers.length > 0 ? 1 : 0)})
+							</span>
+						</button>
+						<button
+							disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
+							onClick={() => {
+								setCover1PreviewCovers([]);
+								setCover2PreviewCovers([]);
+							}}
+							className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							<RotateCcw className="h-4 w-4" />
+							<span className="text-sm font-medium">清空全部</span>
+						</button>
+					</div>
 				</div>
 			</div>
 
 
 			{/* 预览区域 */}
-			<div className="mb-6">
-				<div className="grid grid-cols-[2.25fr_1fr] gap-4 w-full">
+			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+				<div className="flex items-center gap-3 mb-4">
+					<div className="p-2 bg-blue-100 rounded-lg">
+						<Image className="h-5 w-5 text-blue-600" />
+					</div>
+					<div>
+						<h4 className="font-semibold text-gray-900">封面预览</h4>
+						<p className="text-sm text-gray-600">查看生成的封面效果</p>
+					</div>
+				</div>
+				
+				<div className="grid grid-cols-[2.25fr_1fr] gap-6 w-full">
 					<CoverPreview
 						coverData={cover1PreviewCovers[0]}
 						aspectRatio={2.25}
@@ -304,23 +342,22 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						placeholder="暂无封面2预览"
 					/>
 				</div>
-
 			</div>
 
-
 			{/* 图片来源选择 */}
-			<CoverEditor
-				coverNumber={selectedCover}
-				aspectRatio={selectedCover === 1 ? '2.25:1' : '1:1'}
-				selectedImages={selectedImages}
-				onCreateCover={async (imageUrl, source) => await createCover(imageUrl, source, selectedCover)}
-				getDimensions={() => getDimensions(selectedCover)}
-				generationStatus={generationStatus}
-				setGenerationStatus={setGenerationStatus}
-				generationError={generationError}
-				setGenerationError={setGenerationError}
-			/>
-
+			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+				<CoverEditor
+					coverNumber={selectedCover}
+					aspectRatio={selectedCover === 1 ? '2.25:1' : '1:1'}
+					selectedImages={selectedImages}
+					onCreateCover={async (imageUrl, source) => await createCover(imageUrl, source, selectedCover)}
+					getDimensions={() => getDimensions(selectedCover)}
+					generationStatus={generationStatus}
+					setGenerationStatus={setGenerationStatus}
+					generationError={generationError}
+					setGenerationError={setGenerationError}
+				/>
+			</div>
 
 			{/* 隐藏的 canvas 元素 */}
 			<canvas ref={canvasRef} style={{display: 'none'}}/>

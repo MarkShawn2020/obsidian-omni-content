@@ -9,6 +9,16 @@ import {SettingsModal} from "../settings/SettingsModal";
 import {UnifiedPluginData, ViteReactSettings, PersonalInfo} from "../../types";
 import {CoverData} from "@/components/toolbar/CoverData";
 import {logger} from "../../../../shared/src/logger";
+import { 
+	FileText, 
+	Palette, 
+	Plug, 
+	Image, 
+	CheckCircle2, 
+	XCircle, 
+	Zap, 
+	Download 
+} from "lucide-react";
 
 interface ToolbarProps {
 	settings: ViteReactSettings;
@@ -304,11 +314,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
 	try {
 		return (
-			<div className="h-full flex flex-col bg-white" style={{
-				border: '1px solid #ccc', // 保留调试边框但更subtle
+			<div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-blue-50" style={{
 				minWidth: '320px',
-				width: '100%', // 确保占满容器
-				overflow: 'hidden' // 防止内容溢出
+				width: '100%',
+				overflow: 'hidden'
 			}}>
 				<BrandSection 
 					onCopy={onCopy} 
@@ -317,32 +326,52 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 				/>
 
 				<div className="flex-1 overflow-y-auto overflow-x-hidden">
-					<div className="p-4" style={{ minWidth: '320px' }}>
+					<div className="p-6" style={{ minWidth: '320px' }}>
+						{/* 工具栏标题 */}
+						<div className="mb-6">
+							<h2 className="text-xl font-bold text-gray-900 mb-2">内容工具栏</h2>
+							<p className="text-sm text-gray-600">管理文章信息、样式和插件配置</p>
+						</div>
+						
 						<Tabs value={activeTab} onValueChange={handleTabChange}>
-							<TabsList style={{ 
-								width: '100%',
-								maxWidth: '100%',
-								overflow: 'hidden',
-								flexWrap: 'nowrap'
-							}}>
-								<TabsTrigger value="info">
-									基本信息
+							<TabsList className="grid w-full grid-cols-4 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-1">
+								<TabsTrigger 
+									value="info"
+									className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
+								>
+									<FileText className="h-4 w-4" />
+									<span className="hidden sm:inline">基本信息</span>
 								</TabsTrigger>
 								{settings.showStyleUI && (
-									<TabsTrigger value="style">
-										样式设置
+									<TabsTrigger 
+										value="style"
+										className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm"
+									>
+										<Palette className="h-4 w-4" />
+										<span className="hidden sm:inline">样式</span>
 									</TabsTrigger>
 								)}
-								<TabsTrigger value="plugins">
-									插件管理 ({plugins.length})
+								<TabsTrigger 
+									value="plugins"
+									className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm"
+								>
+									<Plug className="h-4 w-4" />
+									<span className="hidden sm:inline">插件</span>
+									<span className="bg-gray-200 text-gray-700 text-xs px-1.5 py-0.5 rounded-full ml-1">
+										{plugins.length}
+									</span>
 								</TabsTrigger>
-								<TabsTrigger value="cover">
-									封面设计
+								<TabsTrigger 
+									value="cover"
+									className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm"
+								>
+									<Image className="h-4 w-4" />
+									<span className="hidden sm:inline">封面</span>
 								</TabsTrigger>
 							</TabsList>
 							
-							<TabsContent value="info">
-								<div className="mt-4">
+							<TabsContent value="info" className="mt-6">
+								<div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-sm">
 									<ArticleInfo
 										settings={settings}
 										onSaveSettings={onSaveSettings}
@@ -354,8 +383,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 							</TabsContent>
 							
 							{settings.showStyleUI && (
-								<TabsContent value="style">
-									<div className="mt-4">
+								<TabsContent value="style" className="mt-6">
+									<div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-sm">
 										<StyleSettings
 											settings={settings}
 											onTemplateChange={onTemplateChange}
@@ -368,41 +397,63 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 								</TabsContent>
 							)}
 
-							<TabsContent value="plugins">
-								<div className="mt-4">
+							<TabsContent value="plugins" className="mt-6">
+								<div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-sm">
 									{plugins.length > 0 ? (
 										<Tabs value={pluginTab} onValueChange={setPluginTab}>
-											<TabsList>
+											<div className="mb-4">
+												<h3 className="text-lg font-semibold text-gray-900 mb-2">插件管理</h3>
+												<p className="text-sm text-gray-600">配置和管理Markdown处理插件</p>
+											</div>
+											
+											<TabsList className="bg-gray-100 rounded-lg p-1">
 												{remarkPlugins.length > 0 && (
-													<TabsTrigger value="remark">
-														Remark ({remarkPlugins.length})
+													<TabsTrigger 
+														value="remark"
+														className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+													>
+														<Plug className="h-4 w-4" />
+														Remark 
+														<span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+															{remarkPlugins.length}
+														</span>
 													</TabsTrigger>
 												)}
 												{rehypePlugins.length > 0 && (
-													<TabsTrigger value="rehype">
-														Rehype ({rehypePlugins.length})
+													<TabsTrigger 
+														value="rehype"
+														className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+													>
+														<Zap className="h-4 w-4" />
+														Rehype 
+														<span className="bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded-full">
+															{rehypePlugins.length}
+														</span>
 													</TabsTrigger>
 												)}
 											</TabsList>
 											
 											{remarkPlugins.length > 0 && (
-												<TabsContent value="remark">
-													<div className="mt-4">
-														<div className="flex justify-between items-center mb-4">
-															<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider">
-																Remark 插件 ({remarkPlugins.length})
-															</h4>
+												<TabsContent value="remark" className="mt-6">
+													<div className="space-y-4">
+														<div className="flex justify-between items-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+															<div>
+																<h4 className="font-semibold text-blue-900">Remark 插件</h4>
+																<p className="text-sm text-blue-700">Markdown语法解析插件 ({remarkPlugins.length}个)</p>
+															</div>
 															<div className="flex space-x-2">
 																<button
 																	onClick={() => handleBatchToggle('remark', true)}
-																	className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+																	className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
 																>
+																	<CheckCircle2 className="h-4 w-4" />
 																	全部启用
 																</button>
 																<button
 																	onClick={() => handleBatchToggle('remark', false)}
-																	className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+																	className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
 																>
+																	<XCircle className="h-4 w-4" />
 																	全部关闭
 																</button>
 															</div>
@@ -442,23 +493,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											)}
 
 											{rehypePlugins.length > 0 && (
-												<TabsContent value="rehype">
-													<div className="mt-4">
-														<div className="flex justify-between items-center mb-4">
-															<h4 className="text-xs font-medium text-gray-600 uppercase tracking-wider">
-																Rehype 插件 ({rehypePlugins.length})
-															</h4>
+												<TabsContent value="rehype" className="mt-6">
+													<div className="space-y-4">
+														<div className="flex justify-between items-center p-4 bg-purple-50 border border-purple-200 rounded-lg">
+															<div>
+																<h4 className="font-semibold text-purple-900">Rehype 插件</h4>
+																<p className="text-sm text-purple-700">HTML处理和转换插件 ({rehypePlugins.length}个)</p>
+															</div>
 															<div className="flex space-x-2">
 																<button
 																	onClick={() => handleBatchToggle('rehype', true)}
-																	className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+																	className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
 																>
+																	<CheckCircle2 className="h-4 w-4" />
 																	全部启用
 																</button>
 																<button
 																	onClick={() => handleBatchToggle('rehype', false)}
-																	className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+																	className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
 																>
+																	<XCircle className="h-4 w-4" />
 																	全部关闭
 																</button>
 															</div>
@@ -497,15 +551,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 											)}
 										</Tabs>
 									) : (
-										<div className="text-center py-8">
-											<p className="text-sm text-gray-500">未找到任何插件</p>
+										<div className="text-center py-12">
+											<div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+												<Plug className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+												<h3 className="text-lg font-medium text-gray-900 mb-2">暂无插件</h3>
+												<p className="text-sm text-gray-500">当前没有可用的Markdown处理插件</p>
+											</div>
 										</div>
 									)}
 								</div>
 							</TabsContent>
 
-							<TabsContent value="cover">
-								<div className="mt-4">
+							<TabsContent value="cover" className="mt-6">
+								<div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-sm">
 									<CoverDesigner
 										articleHTML={articleHTML}
 										onDownloadCovers={handleDownloadCovers}

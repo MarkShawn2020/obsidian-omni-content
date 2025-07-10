@@ -3,6 +3,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {ViteReactSettings} from "../../types";
 import {useResources} from "../../hooks/useResources";
+import { Layout, Palette, Code, Eye, Loader } from "lucide-react";
 
 interface StyleSettingsProps {
 	settings: ViteReactSettings;
@@ -43,17 +44,26 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 	// 加载状态或错误处理
 	if (loading) {
 		return (
-			<div className="w-full p-4 text-center text-gray-500">
-				<div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-				加载资源中...
+			<div className="w-full p-8 text-center">
+				<div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+					<Loader className="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" />
+					<h3 className="text-lg font-medium text-gray-900 mb-2">加载样式资源</h3>
+					<p className="text-sm text-gray-600">正在加载模板、主题和高亮样式...</p>
+				</div>
 			</div>
 		);
 	}
 
 	if (error) {
 		return (
-			<div className="w-full p-4 text-center text-red-500">
-				资源加载失败: {error}
+			<div className="w-full p-8 text-center">
+				<div className="bg-red-50 border border-red-200 rounded-xl p-6">
+					<div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+						<span className="text-red-600 text-lg">⚠️</span>
+					</div>
+					<h3 className="text-lg font-medium text-gray-900 mb-2">加载失败</h3>
+					<p className="text-sm text-red-600">资源加载失败: {error}</p>
+				</div>
 			</div>
 		);
 	}
@@ -74,90 +84,79 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 	};
 
 	return (
-		<div className="w-full space-y-3">
-			{/* 模板选择器 */}
-			<div className="flex items-center gap-3">
-				<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
-					<svg
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-						<polyline points="16 6 12 2 8 6"/>
-					</svg>
-					<span>模板</span>
-				</div>
-				<Select value={settings.useTemplate ? settings.defaultTemplate : "none"} onValueChange={handleTemplateChange}>
-					<SelectTrigger className="flex-1 h-8 text-sm">
-						<SelectValue placeholder="选择模板" />
-					</SelectTrigger>
-					<SelectContent>
-						{templateOptions.map((option) => (
-							<SelectItem key={option.value} value={option.value}>
-								{option.text}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+		<div className="space-y-6">
+			{/* 头部说明 */}
+			<div className="text-center">
+				<h3 className="text-lg font-semibold text-gray-900 mb-2">样式配置</h3>
+				<p className="text-gray-600">自定义您的内容展示样式和主题</p>
 			</div>
 
-			{/* 主题选择器 */}
-			<div className="flex items-center gap-3">
-				<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
-					<svg
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<path d="M4 2v20l16-10z"/>
-					</svg>
-					<span>主题</span>
+			{/* 样式选择卡片 */}
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{/* 模板选择器 */}
+				<div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+					<div className="flex items-center gap-3 mb-3">
+						<div className="p-2 bg-blue-100 rounded-lg">
+							<Layout className="h-5 w-5 text-blue-600" />
+						</div>
+						<div>
+							<h4 className="font-semibold text-gray-900">页面模板</h4>
+							<p className="text-sm text-gray-600">选择内容布局模板</p>
+						</div>
+					</div>
+					<Select value={settings.useTemplate ? settings.defaultTemplate : "none"} onValueChange={handleTemplateChange}>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="选择模板" />
+						</SelectTrigger>
+						<SelectContent>
+							{templateOptions.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.text}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
-				<Select value={settings.defaultStyle} onValueChange={onThemeChange}>
-					<SelectTrigger className="flex-1 h-8 text-sm">
-						<SelectValue placeholder="选择主题" />
-					</SelectTrigger>
-					<SelectContent>
-						{themeOptions.map((option) => (
-							<SelectItem key={option.value} value={option.value}>
-								{option.text}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+
+				{/* 主题选择器 */}
+				<div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+					<div className="flex items-center gap-3 mb-3">
+						<div className="p-2 bg-purple-100 rounded-lg">
+							<Palette className="h-5 w-5 text-purple-600" />
+						</div>
+						<div>
+							<h4 className="font-semibold text-gray-900">视觉主题</h4>
+							<p className="text-sm text-gray-600">选择界面风格主题</p>
+						</div>
+					</div>
+					<Select value={settings.defaultStyle} onValueChange={onThemeChange}>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="选择主题" />
+						</SelectTrigger>
+						<SelectContent>
+							{themeOptions.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.text}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
 			</div>
 
 			{/* 代码高亮选择器 */}
-			<div className="flex items-center gap-3">
-				<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
-					<svg
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<polyline points="16 18 22 12 16 6"/>
-						<polyline points="8 6 2 12 8 18"/>
-					</svg>
-					<span>高亮</span>
+			<div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+				<div className="flex items-center gap-3 mb-3">
+					<div className="p-2 bg-green-100 rounded-lg">
+						<Code className="h-5 w-5 text-green-600" />
+					</div>
+					<div>
+						<h4 className="font-semibold text-gray-900">代码高亮</h4>
+						<p className="text-sm text-gray-600">选择代码语法高亮样式</p>
+					</div>
 				</div>
 				<Select value={settings.defaultHighlight} onValueChange={onHighlightChange}>
-					<SelectTrigger className="flex-1 h-8 text-sm">
+					<SelectTrigger className="w-full">
 						<SelectValue placeholder="选择高亮主题" />
 					</SelectTrigger>
 					<SelectContent>
@@ -171,55 +170,60 @@ export const StyleSettings: React.FC<StyleSettingsProps> = ({
 			</div>
 
 			{/* 主题色选择器 */}
-			<div className="space-y-2">
-				<div className="flex items-center gap-3">
-					<div className="flex items-center gap-2 text-xs font-medium text-gray-600 min-w-16">
-						<svg
-							width="14"
-							height="14"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<path d="M4 2v20l16-10z"/>
-						</svg>
-						<span>主题色</span>
+			<div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+				<div className="flex items-center gap-3 mb-4">
+					<div className="p-2 bg-orange-100 rounded-lg">
+						<Eye className="h-5 w-5 text-orange-600" />
 					</div>
-					<div className="flex items-center gap-2">
-						<ToggleSwitch
-							size={'small'}
-							checked={settings.enableThemeColor}
-							onChange={onThemeColorToggle}
-						/>
-						<span className="text-xs text-gray-500">
-							{settings.enableThemeColor ? "启用" : "禁用"}
-						</span>
+					<div>
+						<h4 className="font-semibold text-gray-900">自定义主题色</h4>
+						<p className="text-sm text-gray-600">启用个性化颜色配置</p>
 					</div>
 				</div>
-
-				{settings.enableThemeColor && (
-					<div className="flex items-center gap-3 pl-20">
-						<input
-							className="w-8 h-6 rounded border border-gray-300 cursor-pointer"
-							type="color"
-							value={settings.themeColor || "#7852ee"}
-							onInput={handleColorInput}
-							onChange={handleColorChange}
-						/>
-						<div
-							className="w-4 h-4 rounded border border-gray-300"
-							style={{
-								backgroundColor: settings.themeColor || "#7852ee",
-							}}
-						/>
-						<span className="text-xs text-gray-500 font-mono">
-							{settings.themeColor || "#7852ee"}
-						</span>
+				
+				<div className="space-y-4">
+					<div className="flex items-center justify-between">
+						<span className="text-sm font-medium text-gray-700">启用主题色</span>
+						<div className="flex items-center gap-2">
+							<ToggleSwitch
+								size={'small'}
+								checked={settings.enableThemeColor}
+								onChange={onThemeColorToggle}
+							/>
+							<span className="text-sm text-gray-500">
+								{settings.enableThemeColor ? "已启用" : "已禁用"}
+							</span>
+						</div>
 					</div>
-				)}
+
+					{settings.enableThemeColor && (
+						<div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+							<div className="flex items-center gap-4">
+								<div className="flex items-center gap-3">
+									<input
+										className="w-12 h-12 rounded-lg border-2 border-white shadow-md cursor-pointer"
+										type="color"
+										value={settings.themeColor || "#7852ee"}
+										onInput={handleColorInput}
+										onChange={handleColorChange}
+									/>
+									<div
+										className="w-12 h-12 rounded-lg border-2 border-white shadow-md"
+										style={{
+											backgroundColor: settings.themeColor || "#7852ee",
+										}}
+									/>
+								</div>
+								<div className="flex-1">
+									<div className="text-sm font-medium text-gray-700 mb-1">当前主题色</div>
+									<div className="text-xs font-mono text-gray-500 bg-white px-2 py-1 rounded border">
+										{settings.themeColor || "#7852ee"}
+									</div>
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);

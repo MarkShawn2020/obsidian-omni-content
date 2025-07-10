@@ -4,6 +4,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../
 import {PluginData} from "../../types";
 
 import {logger} from "../../../../shared/src/logger";
+import { ChevronDown, Settings, Info, Plug } from "lucide-react";
 
 const STORAGE_KEY_PREFIX = 'omni-content-config';
 
@@ -112,114 +113,67 @@ export const ConfigComponent = <T extends PluginData>({
 	return (
 		<div
 			id={itemId}
-			className="accordion-section"
-			style={{
-				marginBottom: "8px",
-				border: "1px solid var(--background-modifier-border)",
-				borderRadius: "4px",
-			}}
+			className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-3 transition-all duration-200 hover:shadow-md"
 		>
 			<div
-				className="accordion-header"
-				style={{
-					padding: "10px",
-					cursor: hasConfigOptions ? "pointer" : "default",
-					backgroundColor: "var(--background-secondary)",
-					display: "flex",
-					justifyContent: "space-between",
-					alignItems: "center",
-				}}
+				className={`p-4 cursor-pointer transition-colors ${hasConfigOptions ? 'hover:bg-gray-50' : ''}`}
 				onClick={handleToggle}
 			>
-				<div
-					className="accordion-header-left"
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "10px",
-					}}
-				>
-					<div onClick={(e) => e.stopPropagation()}>
-						<ToggleSwitch
-							checked={item.enabled}
-							onChange={handleEnabledChange}
-							size="small"
-						/>
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<div onClick={(e) => e.stopPropagation()}>
+							<ToggleSwitch
+								checked={item.enabled}
+								onChange={handleEnabledChange}
+								size="small"
+							/>
+						</div>
+						
+						<div className="flex items-center gap-2">
+							<div className={`p-1.5 rounded-lg ${item.enabled ? 'bg-green-100' : 'bg-gray-100'}`}>
+								<Plug className={`h-4 w-4 ${item.enabled ? 'text-green-600' : 'text-gray-400'}`} />
+							</div>
+							<div>
+								<div className="font-medium text-gray-900">{item.name}</div>
+								{item.description && (
+									<div className="text-xs text-gray-500 mt-0.5 max-w-[300px] truncate" title={item.description}>
+										{item.description}
+									</div>
+								)}
+							</div>
+						</div>
 					</div>
-					<div className="accordion-title">
-						<div className="plugin-title">{item.name}</div>
-						{item.description && (
-							<div
-								className="plugin-description"
-								style={{
-									fontSize: "11px",
-									color: "var(--text-muted)",
-									marginTop: "2px",
-									lineHeight: "1.3",
-									overflow: "hidden",
-									textOverflow: "ellipsis",
-									whiteSpace: "nowrap",
-									maxWidth: "200px"
-								}}
-								title={item.description}
-							>
-								{item.description}
+
+					<div className="flex items-center gap-2">
+						{item.enabled && (
+							<div className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+								已启用
+							</div>
+						)}
+						{hasConfigOptions && (
+							<div className={`p-1 rounded-lg transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+								<ChevronDown className="h-4 w-4 text-gray-400" />
 							</div>
 						)}
 					</div>
 				</div>
-
-				{hasConfigOptions && (
-					<div
-						className="accordion-icon"
-						style={{
-							transition: "transform 0.3s",
-							transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-						}}
-					>
-						<svg
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-						>
-							<path d="M6 9l6 6 6-6"/>
-						</svg>
-					</div>
-				)}
 			</div>
 
 			{hasConfigOptions && isExpanded && (
-				<div
-					className="accordion-content"
-					style={{
-						padding: "16px",
-						transition: "0.3s ease-out",
-						display: "block",
-					}}
-				>
-					<div
-						className={`${type}-config-container`}
-						style={{
-							display: "flex",
-							flexDirection: "column",
-							gap: "10px",
-						}}
-					>
+				<div className="border-t border-gray-100 bg-gray-50/50 p-4">
+					<div className="flex items-center gap-2 mb-4">
+						<Settings className="h-4 w-4 text-blue-600" />
+						<span className="text-sm font-medium text-gray-900">插件配置</span>
+					</div>
+					
+					<div className="space-y-4">
 						{configEntries.map(([key, meta]) => (
-							<div
-								key={key}
-								className={`${type}-config-item`}
-								style={{
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-								}}
-							>
-								<div className={`${type}-config-title`}>{meta.title}</div>
-								<div className={`${type}-config-control`} onClick={(e) => e.stopPropagation()}>
+							<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+								<div className="flex items-center gap-2">
+									<Info className="h-4 w-4 text-gray-400" />
+									<span className="text-sm font-medium text-gray-700">{meta.title}</span>
+								</div>
+								<div onClick={(e) => e.stopPropagation()}>
 									{meta.type === "switch" ? (
 										<ToggleSwitch
 											checked={!!localConfig[key]}
@@ -231,7 +185,7 @@ export const ConfigComponent = <T extends PluginData>({
 											value={String(localConfig[key] || "")}
 											onValueChange={(value) => handleConfigChange(key, value)}
 										>
-											<SelectTrigger className={`${type}-config-select w-32`}>
+											<SelectTrigger className="w-40">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
@@ -247,13 +201,8 @@ export const ConfigComponent = <T extends PluginData>({
 											type="text"
 											value={String(localConfig[key] || "")}
 											onChange={(e) => handleConfigChange(key, e.target.value)}
-											style={{
-												padding: "4px 8px",
-												border: "1px solid var(--background-modifier-border)",
-												borderRadius: "4px",
-												backgroundColor: "var(--background-primary)",
-												color: "var(--text-normal)",
-											}}
+											className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-40"
+											placeholder="输入值..."
 										/>
 									) : null}
 								</div>
