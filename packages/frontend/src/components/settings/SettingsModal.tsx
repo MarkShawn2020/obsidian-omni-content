@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PersonalInfoSettings } from './PersonalInfoSettings';
 import { AISettings } from './AISettings';
 import { PersonalInfo, ViteReactSettings } from '../../types';
+import { Settings, User, Bot, Globe, X } from 'lucide-react';
 
 interface SettingsModalProps {
 	isOpen: boolean;
@@ -30,51 +31,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 		<div className="fixed inset-0 z-50 flex items-center justify-center">
 			{/* 背景遮罩 */}
 			<div 
-				className="absolute inset-0 bg-black bg-opacity-50"
+				className="absolute inset-0 bg-black/60 backdrop-blur-sm"
 				onClick={onClose}
 			/>
 			
 			{/* 模态框内容 */}
-			<div className="relative z-10 w-full max-w-4xl mx-4">
-				<div className="bg-white rounded-lg shadow-xl overflow-hidden">
-					{/* 标签页标题 */}
-					<div className="border-b border-gray-200">
-						<div className="flex">
+			<div className="relative z-10 w-full max-w-5xl mx-4 max-h-[95vh] overflow-hidden">
+				<div className="bg-white rounded-2xl shadow-2xl">
+					{/* 头部 */}
+					<div className="relative bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6 text-white">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<div className="p-2 bg-white/20 rounded-lg">
+									<Settings className="h-6 w-6" />
+								</div>
+								<div>
+									<h2 className="text-2xl font-bold">应用设置</h2>
+									<p className="text-blue-100 mt-1">配置您的个人信息和应用偏好</p>
+								</div>
+							</div>
 							<button
-								onClick={() => setActiveTab('personal')}
-								className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-									activeTab === 'personal'
-										? 'border-blue-500 text-blue-600 bg-blue-50'
-										: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-								}`}
+								onClick={onClose}
+								className="p-2 hover:bg-white/20 rounded-lg transition-colors"
 							>
-								个人信息
+								<X className="h-6 w-6" />
 							</button>
-							<button
-								onClick={() => setActiveTab('ai')}
-								className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-									activeTab === 'ai'
-										? 'border-blue-500 text-blue-600 bg-blue-50'
-										: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-								}`}
-							>
-								AI设置
-							</button>
-							<button
-								onClick={() => setActiveTab('general')}
-								className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-									activeTab === 'general'
-										? 'border-blue-500 text-blue-600 bg-blue-50'
-										: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-								}`}
-							>
-								通用设置
-							</button>
+						</div>
+						
+						{/* 标签页导航 */}
+						<div className="flex gap-1 mt-6">
+							{[
+								{ key: 'personal', label: '个人信息', icon: User },
+								{ key: 'ai', label: 'AI设置', icon: Bot },
+								{ key: 'general', label: '通用设置', icon: Globe }
+							].map(({ key, label, icon: Icon }) => (
+								<button
+									key={key}
+									onClick={() => setActiveTab(key as any)}
+									className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+										activeTab === key 
+											? 'bg-white text-blue-600 shadow-lg' 
+											: 'text-blue-100 hover:bg-white/20'
+									}`}
+								>
+									<Icon className="h-4 w-4" />
+									{label}
+								</button>
+							))}
 						</div>
 					</div>
 
-					{/* 标签页内容 */}
-					<div className="max-h-[80vh] overflow-y-auto">
+					{/* 内容区域 */}
+					<div className="p-6 max-h-[60vh] overflow-y-auto">
 						{activeTab === 'personal' && (
 							<PersonalInfoSettings
 								personalInfo={personalInfo}
@@ -94,27 +102,63 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 						)}
 						
 						{activeTab === 'general' && (
-							<div className="p-6 space-y-4">
-								<h3 className="text-lg font-medium text-gray-900">通用设置</h3>
-								<div className="text-gray-600">
-									<p>通用设置功能即将推出...</p>
-									<ul className="mt-2 space-y-1 text-sm">
-										<li>• 应用主题设置</li>
-										<li>• 语言偏好</li>
-										<li>• 快捷键配置</li>
-										<li>• 数据导入/导出</li>
-									</ul>
+							<div className="space-y-6">
+								<div className="text-center">
+									<h3 className="text-lg font-semibold text-gray-900 mb-2">通用设置</h3>
+									<p className="text-gray-600">应用的基础配置和偏好设置</p>
 								</div>
-								<div className="pt-4 border-t">
-									<button
-										onClick={onClose}
-										className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-									>
-										关闭
-									</button>
+								
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									{[
+										{ title: '应用主题设置', desc: '选择明亮或暗色主题', icon: '🎨', status: '即将推出' },
+										{ title: '语言偏好', desc: '设置界面显示语言', icon: '🌍', status: '即将推出' },
+										{ title: '快捷键配置', desc: '自定义键盘快捷键', icon: '⌨️', status: '即将推出' },
+										{ title: '数据导入/导出', desc: '备份和恢复设置数据', icon: '📁', status: '即将推出' }
+									].map((feature, index) => (
+										<div key={index} className="group border-2 border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-lg transition-all">
+											<div className="flex items-center gap-3 mb-3">
+												<div className="p-2 bg-gray-100 group-hover:bg-blue-100 rounded-lg transition-colors">
+													<span className="text-xl">{feature.icon}</span>
+												</div>
+												<div>
+													<h4 className="font-semibold text-gray-900">{feature.title}</h4>
+													<p className="text-sm text-gray-500">{feature.desc}</p>
+												</div>
+											</div>
+											<div className="flex items-center justify-between">
+												<span className="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-full">
+													{feature.status}
+												</span>
+											</div>
+										</div>
+									))}
+								</div>
+								
+								<div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+									<h4 className="font-medium text-blue-900 mb-2">🚀 功能路线图</h4>
+									<p className="text-sm text-blue-800">
+										我们正在持续完善应用功能，更多实用设置选项将在后续版本中推出。
+										如果您有特定需求或建议，欢迎反馈！
+									</p>
 								</div>
 							</div>
 						)}
+					</div>
+					
+					{/* 底部操作栏 */}
+					<div className="border-t bg-gray-50 px-6 py-4">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2 text-sm text-gray-500">
+								<span className="w-2 h-2 bg-green-500 rounded-full"></span>
+								设置已同步保存
+							</div>
+							<button
+								onClick={onClose}
+								className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all shadow-lg"
+							>
+								完成设置
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>

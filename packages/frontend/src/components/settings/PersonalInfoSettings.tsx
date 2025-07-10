@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { PersonalInfo } from '../../types';
 import { logger } from '../../../../shared/src/logger';
+import { User, Mail, Globe, Camera, Eye, RotateCcw, Save } from 'lucide-react';
 
 interface PersonalInfoSettingsProps {
 	personalInfo: PersonalInfo;
@@ -100,28 +101,28 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 	};
 
 	return (
-		<div className="personal-info-settings space-y-6 p-6 bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-			{/* 标题栏 */}
-			<div className="flex items-center justify-between border-b pb-4">
-				<h2 className="text-xl font-semibold text-gray-800">个人信息设置</h2>
-				<button
-					onClick={onClose}
-					className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-				>
-					×
-				</button>
+		<div className="space-y-6">
+			{/* 头部说明 */}
+			<div className="text-center">
+				<h3 className="text-lg font-semibold text-gray-900 mb-2">个人信息设置</h3>
+				<p className="text-gray-600">配置您的个人资料，这些信息将用于AI生成的内容中</p>
 			</div>
 
-			{/* 头像设置 */}
-			<div className="space-y-3">
-				<label className="block text-sm font-medium text-gray-700">
-					头像
-				</label>
-				<div className="flex items-center space-x-4">
-					<div className="relative">
-						<div 
-							className="w-16 h-16 rounded-full border-2 border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden"
-						>
+			{/* 头像设置卡片 */}
+			<div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6">
+				<div className="flex items-center gap-3 mb-4">
+					<div className="p-2 bg-blue-100 rounded-lg">
+						<Camera className="h-5 w-5 text-blue-600" />
+					</div>
+					<div>
+						<h4 className="font-semibold text-gray-900">头像设置</h4>
+						<p className="text-sm text-gray-600">上传您的个人头像照片</p>
+					</div>
+				</div>
+				
+				<div className="flex items-center space-x-6">
+					<div className="relative group">
+						<div className="w-20 h-20 rounded-full border-3 border-white shadow-lg flex items-center justify-center bg-gray-50 overflow-hidden">
 							{(localInfo.avatar || previewUrl) ? (
 								<img 
 									src={previewUrl || localInfo.avatar} 
@@ -129,92 +130,120 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 									className="w-full h-full object-cover"
 								/>
 							) : (
-								<svg 
-									className="w-8 h-8 text-gray-400" 
-									fill="currentColor" 
-									viewBox="0 0 20 20"
-								>
-									<path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-								</svg>
+								<User className="w-8 h-8 text-gray-400" />
 							)}
 						</div>
+						<div className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+							<Camera className="w-6 h-6 text-white" />
+						</div>
 					</div>
-					<div className="flex-1">
+					<div className="flex-1 space-y-3">
 						<input
 							type="file"
 							accept="image/*"
 							onChange={handleAvatarChange}
-							className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+							className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-white file:text-blue-600 file:shadow-sm hover:file:bg-blue-50 file:cursor-pointer cursor-pointer"
 						/>
-						<p className="text-xs text-gray-500 mt-1">
-							支持 JPG、PNG、GIF 格式，大小不超过 2MB
+						<p className="text-xs text-blue-700 bg-blue-100 px-3 py-1 rounded-full inline-block">
+							💡 支持 JPG、PNG、GIF 格式，大小不超过 2MB
 						</p>
 					</div>
 				</div>
 			</div>
 
-			{/* 姓名 */}
-			<div className="space-y-2">
-				<label className="block text-sm font-medium text-gray-700">
-					姓名 <span className="text-red-500">*</span>
-				</label>
-				<input
-					type="text"
-					value={localInfo.name}
-					onChange={(e) => handleInputChange('name', e.target.value)}
-					placeholder="请输入您的姓名"
-					className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-				/>
+			{/* 基本信息表单 */}
+			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+				<h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+					<User className="h-5 w-5 text-blue-600" />
+					基本信息
+				</h4>
+				
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					{/* 姓名 */}
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700">
+							姓名 <span className="text-red-500">*</span>
+						</label>
+						<div className="relative">
+							<input
+								type="text"
+								value={localInfo.name}
+								onChange={(e) => handleInputChange('name', e.target.value)}
+								placeholder="请输入您的姓名"
+								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors"
+							/>
+							<User className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+						</div>
+					</div>
+
+					{/* 邮箱 */}
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700">
+							邮箱地址
+						</label>
+						<div className="relative">
+							<input
+								type="email"
+								value={localInfo.email || ''}
+								onChange={(e) => handleInputChange('email', e.target.value)}
+								placeholder="your@email.com"
+								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors"
+							/>
+							<Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+						</div>
+					</div>
+
+					{/* 个人网站 */}
+					<div className="space-y-2 md:col-span-2">
+						<label className="block text-sm font-medium text-gray-700">
+							个人网站
+						</label>
+						<div className="relative">
+							<input
+								type="url"
+								value={localInfo.website || ''}
+								onChange={(e) => handleInputChange('website', e.target.value)}
+								placeholder="https://your-website.com"
+								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors"
+							/>
+							<Globe className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+						</div>
+					</div>
+
+					{/* 个人简介 */}
+					<div className="space-y-2 md:col-span-2">
+						<label className="block text-sm font-medium text-gray-700">
+							个人简介
+						</label>
+						<textarea
+							value={localInfo.bio}
+							onChange={(e) => handleInputChange('bio', e.target.value)}
+							placeholder="介绍一下您自己..."
+							rows={4}
+							className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 resize-none transition-colors"
+						/>
+						<p className="text-xs text-gray-500 mt-1">
+							💡 简介信息将会在AI生成的内容中作为作者介绍使用
+						</p>
+					</div>
+				</div>
 			</div>
 
-			{/* 简介 */}
-			<div className="space-y-2">
-				<label className="block text-sm font-medium text-gray-700">
-					个人简介
-				</label>
-				<textarea
-					value={localInfo.bio}
-					onChange={(e) => handleInputChange('bio', e.target.value)}
-					placeholder="介绍一下您自己..."
-					rows={3}
-					className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-				/>
-			</div>
-
-			{/* 邮箱 */}
-			<div className="space-y-2">
-				<label className="block text-sm font-medium text-gray-700">
-					邮箱
-				</label>
-				<input
-					type="email"
-					value={localInfo.email || ''}
-					onChange={(e) => handleInputChange('email', e.target.value)}
-					placeholder="your@email.com"
-					className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-				/>
-			</div>
-
-			{/* 个人网站 */}
-			<div className="space-y-2">
-				<label className="block text-sm font-medium text-gray-700">
-					个人网站
-				</label>
-				<input
-					type="url"
-					value={localInfo.website || ''}
-					onChange={(e) => handleInputChange('website', e.target.value)}
-					placeholder="https://your-website.com"
-					className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-				/>
-			</div>
-
-			{/* 预览区域 */}
-			<div className="border-t pt-4">
-				<h3 className="text-sm font-medium text-gray-700 mb-3">预览</h3>
-				<div className="bg-gray-50 p-4 rounded-lg">
-					<div className="flex items-center space-x-3">
-						<div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+			{/* 预览卡片 */}
+			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+				<div className="flex items-center gap-3 mb-4">
+					<div className="p-2 bg-green-100 rounded-lg">
+						<Eye className="h-5 w-5 text-green-600" />
+					</div>
+					<div>
+						<h4 className="font-semibold text-gray-900">信息预览</h4>
+						<p className="text-sm text-gray-600">查看您的个人信息显示效果</p>
+					</div>
+				</div>
+				
+				<div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-6">
+					<div className="flex items-start space-x-4">
+						<div className="w-16 h-16 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center overflow-hidden shadow-sm">
 							{(localInfo.avatar || previewUrl) ? (
 								<img 
 									src={previewUrl || localInfo.avatar} 
@@ -222,30 +251,30 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 									className="w-full h-full object-cover"
 								/>
 							) : (
-								<svg 
-									className="w-6 h-6 text-gray-400" 
-									fill="currentColor" 
-									viewBox="0 0 20 20"
-								>
-									<path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-								</svg>
+								<User className="w-8 h-8 text-gray-400" />
 							)}
 						</div>
 						<div className="flex-1">
-							<div className="font-medium text-gray-900">
+							<div className="font-bold text-gray-900 text-lg">
 								{localInfo.name || '您的姓名'}
 							</div>
 							{localInfo.bio && (
-								<div className="text-sm text-gray-600 mt-1">
+								<div className="text-gray-600 mt-2 leading-relaxed">
 									{localInfo.bio}
 								</div>
 							)}
-							<div className="flex space-x-4 mt-1">
+							<div className="flex flex-wrap gap-3 mt-3">
 								{localInfo.email && (
-									<span className="text-xs text-blue-600">{localInfo.email}</span>
+									<div className="flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+										<Mail className="w-3 h-3" />
+										{localInfo.email}
+									</div>
 								)}
 								{localInfo.website && (
-									<span className="text-xs text-blue-600">{localInfo.website}</span>
+									<div className="flex items-center gap-1 text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+										<Globe className="w-3 h-3" />
+										{localInfo.website.replace(/^https?:\/\//, '')}
+									</div>
 								)}
 							</div>
 						</div>
@@ -254,28 +283,22 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 			</div>
 
 			{/* 操作按钮 */}
-			<div className="flex justify-between border-t pt-4">
+			<div className="flex justify-between items-center pt-2">
 				<Button
 					onClick={handleReset}
 					variant="outline"
 					className="text-red-600 border-red-300 hover:bg-red-50"
 				>
-					重置
+					<RotateCcw className="w-4 h-4 mr-2" />
+					重置信息
 				</Button>
-				<div className="flex space-x-3">
-					<Button
-						onClick={onClose}
-						variant="outline"
-					>
-						取消
-					</Button>
-					<Button
-						onClick={handleSave}
-						className="bg-blue-600 hover:bg-blue-700 text-white"
-					>
-						保存
-					</Button>
-				</div>
+				<Button
+					onClick={handleSave}
+					className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+				>
+					<Save className="w-4 h-4 mr-2" />
+					保存设置
+				</Button>
 			</div>
 		</div>
 	);
