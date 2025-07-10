@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-omni-content",
-	"version": "0.9.3",
+	"version": "0.9.4",
 	"description": "This is a plugin for Obsidian (https://obsidian.md)",
 	"main": "dist/main.js",
 	"scripts": {
