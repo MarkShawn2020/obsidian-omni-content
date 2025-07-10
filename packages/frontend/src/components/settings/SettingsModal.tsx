@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PersonalInfoSettings } from './PersonalInfoSettings';
-import { PersonalInfo } from '../../types';
+import { AISettings } from './AISettings';
+import { PersonalInfo, ViteReactSettings } from '../../types';
 
 interface SettingsModalProps {
 	isOpen: boolean;
@@ -8,6 +9,8 @@ interface SettingsModalProps {
 	personalInfo: PersonalInfo;
 	onPersonalInfoChange: (info: PersonalInfo) => void;
 	onSaveSettings: () => void;
+	settings: ViteReactSettings;
+	onSettingsChange: (settings: Partial<ViteReactSettings>) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -15,9 +18,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 	onClose,
 	personalInfo,
 	onPersonalInfoChange,
-	onSaveSettings
+	onSaveSettings,
+	settings,
+	onSettingsChange
 }) => {
-	const [activeTab, setActiveTab] = useState<'personal' | 'general'>('personal');
+	const [activeTab, setActiveTab] = useState<'personal' | 'ai' | 'general'>('personal');
 
 	if (!isOpen) return null;
 
@@ -46,6 +51,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 								个人信息
 							</button>
 							<button
+								onClick={() => setActiveTab('ai')}
+								className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+									activeTab === 'ai'
+										? 'border-blue-500 text-blue-600 bg-blue-50'
+										: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+								}`}
+							>
+								AI设置
+							</button>
+							<button
 								onClick={() => setActiveTab('general')}
 								className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
 									activeTab === 'general'
@@ -64,6 +79,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 							<PersonalInfoSettings
 								personalInfo={personalInfo}
 								onPersonalInfoChange={onPersonalInfoChange}
+								onSaveSettings={onSaveSettings}
+								onClose={onClose}
+							/>
+						)}
+						
+						{activeTab === 'ai' && (
+							<AISettings
+								settings={settings}
+								onSettingsChange={onSettingsChange}
 								onSaveSettings={onSaveSettings}
 								onClose={onClose}
 							/>

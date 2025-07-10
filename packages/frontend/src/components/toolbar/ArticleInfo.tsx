@@ -124,6 +124,12 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 	};
 
 	const handleAIGenerate = async () => {
+		// 检查是否配置了Claude API密钥
+		if (!settings.authKey || settings.authKey.trim() === '') {
+			alert('请先在设置页面配置Claude API密钥才能使用AI分析功能');
+			return;
+		}
+
 		// 获取当前活跃的文档
 		const app = (window as any).app;
 		if (!app) {
@@ -138,49 +144,121 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 		}
 
 		try {
+			// 显示加载状态
+			alert('正在使用Claude AI分析文章内容，请稍候...');
+			
 			// 读取文档内容
 			const content = await app.vault.read(activeFile);
-
-			// 提取现有的frontmatter
-			const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-			let existingFrontmatter = {};
-			if (frontmatterMatch) {
-				try {
-					// 简单解析YAML frontmatter
-					const yamlContent = frontmatterMatch[1];
-					const lines = yamlContent.split('\n');
-					for (const line of lines) {
-						const colonIndex = line.indexOf(':');
-						if (colonIndex > 0) {
-							const key = line.substring(0, colonIndex).trim();
-							const value = line.substring(colonIndex + 1).trim();
-							if (key && value) {
-								existingFrontmatter[key] = value;
-							}
-						}
-					}
-				} catch (error) {
-					logger.warn('解析现有frontmatter失败:', error);
-				}
+			
+			// 移除frontmatter，只分析正文内容
+			const cleanContent = content.replace(/^---\n[\s\S]*?\n---\n?/, '');
+			
+			if (cleanContent.trim().length < 50) {
+				alert('文章内容太短，无法进行有效分析');
+				return;
 			}
-
-			// 生成AI建议的内容
-			const aiSuggestion = {
-				author: existingFrontmatter['author'] || articleInfo.author || getDefaultAuthor(settings),
-				publishDate: existingFrontmatter['publishDate'] || new Date().toISOString().split('T')[0],
-				articleTitle: existingFrontmatter['articleTitle'] || activeFile.basename || '',
-				articleSubtitle: existingFrontmatter['articleSubtitle'] || articleInfo.articleSubtitle || '记录与分享',
-				episodeNum: existingFrontmatter['episodeNum'] || articleInfo.episodeNum || '第 1 期',
-				seriesName: existingFrontmatter['seriesName'] || articleInfo.seriesName || '技术分享',
-				tags: existingFrontmatter['tags'] || articleInfo.tags.length > 0 ? articleInfo.tags : ['技术', '分享']
+			
+			// 调用Claude AI分析
+			const aiSuggestion = await analyzeContentWithClaude(cleanContent, activeFile.basename);
+			
+			// 合并现有信息和AI建议
+			const finalSuggestion = {
+				author: aiSuggestion.author || articleInfo.author || getDefaultAuthor(settings),
+				publishDate: aiSuggestion.publishDate || new Date().toISOString().split('T')[0],
+				articleTitle: aiSuggestion.articleTitle || activeFile.basename,
+				articleSubtitle: aiSuggestion.articleSubtitle || '',
+				episodeNum: aiSuggestion.episodeNum || '',
+				seriesName: aiSuggestion.seriesName || '',
+				tags: aiSuggestion.tags || []
 			};
 
-			setArticleInfo(aiSuggestion);
-			logger.info('AI生成文章信息完成:', aiSuggestion);
+			setArticleInfo(finalSuggestion);
+			logger.info('Claude AI生成文章信息完成:', finalSuggestion);
+			alert('AI分析完成！已根据文章内容生成相关信息。');
 
 		} catch (error) {
-			logger.error('AI生成文章信息失败:', error);
-			alert('生成失败，请查看控制台了解详情');
+			logger.error('Claude AI生成文章信息失败:', error);
+			alert(`AI分析失败: ${error.message}`);
+		}
+	};
+
+	// Claude AI分析函数
+	const analyzeContentWithClaude = async (content: string, filename: string) => {
+		const prompt = `请分析以下文章内容，为其生成合适的元数据信息。请返回JSON格式的结果，包含以下字段：
+
+文章内容：
+${content}
+
+文件名：${filename}
+
+请分析文章内容并生成：
+1. articleTitle: 基于内容的更好标题（如果原标题合适可保持）
+2. articleSubtitle: 合适的副标题或摘要
+3. episodeNum: 如果是系列文章，推测期数（格式：第 X 期）
+4. seriesName: 如果是系列文章，推测系列名称
+5. tags: 3-5个相关标签数组
+6. author: 基于内容推测的作者名（如果无法推测留空）
+7. publishDate: 建议的发布日期（YYYY-MM-DD格式，通常是今天）
+
+请确保返回格式为纯JSON，不要包含其他文字：
+{
+  "articleTitle": "...",
+  "articleSubtitle": "...",
+  "episodeNum": "...",
+  "seriesName": "...",
+  "tags": ["标签1", "标签2", "标签3"],
+  "author": "...",
+  "publishDate": "..."
+}`;
+
+		try {
+			// 使用Obsidian的requestUrl API来避免CORS问题
+			const { requestUrl } = require('obsidian');
+			
+			const response = await requestUrl({
+				url: 'https://api.anthropic.com/v1/messages',
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-api-key': settings.authKey || '', // 使用现有的authKey
+					'anthropic-version': '2023-06-01'
+				},
+				body: JSON.stringify({
+					model: 'claude-3-sonnet-20240229',
+					max_tokens: 1000,
+					messages: [
+						{
+							role: 'user',
+							content: prompt
+						}
+					]
+				})
+			});
+
+			if (response.status !== 200) {
+				throw new Error(`Claude API调用失败: ${response.status}`);
+			}
+
+			const result = response.json;
+			const aiResponse = result.content[0].text;
+			
+			// 解析JSON响应
+			try {
+				const parsedResult = JSON.parse(aiResponse);
+				return parsedResult;
+			} catch (parseError) {
+				logger.warn('解析Claude响应失败，尝试提取JSON:', aiResponse);
+				// 尝试从响应中提取JSON
+				const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+				if (jsonMatch) {
+					return JSON.parse(jsonMatch[0]);
+				}
+				throw new Error('无法解析Claude的响应格式');
+			}
+
+		} catch (error) {
+			logger.error('Claude API调用失败:', error);
+			throw error;
 		}
 	};
 
@@ -197,18 +275,16 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 	};
 
 	const handleClearAll = () => {
-		if (confirm('确定要清空所有文章信息吗？')) {
-			// 完全清空，所有字段都变成空值，显示为placeholder
-			setArticleInfo({
-				author: '',
-				publishDate: new Date().toISOString().split('T')[0], // 日期保持当前日期
-				articleTitle: '',
-				articleSubtitle: '',
-				episodeNum: '',
-				seriesName: '',
-				tags: []
-			});
-		}
+		// 完全清空，所有字段都变成空值，显示为placeholder
+		setArticleInfo({
+			author: '',
+			publishDate: new Date().toISOString().split('T')[0], // 日期保持当前日期
+			articleTitle: '',
+			articleSubtitle: '',
+			episodeNum: '',
+			seriesName: '',
+			tags: []
+		});
 	};
 
 	return (
@@ -219,9 +295,18 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 					<Button
 						onClick={handleAIGenerate}
 						size="sm"
-						className="bg-blue-500 hover:bg-blue-600 text-white"
+						className={`text-white ${
+							settings.authKey && settings.authKey.trim() !== ''
+								? 'bg-blue-500 hover:bg-blue-600'
+								: 'bg-gray-400 hover:bg-gray-500'
+						}`}
+						title={
+							settings.authKey && settings.authKey.trim() !== ''
+								? 'AI分析文章内容'
+								: '请先在设置页面配置Claude API密钥'
+						}
 					>
-						🤖 AI生成
+						🤖 Claude分析
 					</Button>
 					<Button
 						onClick={handleClearAll}
@@ -342,21 +427,6 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 				</div>
 			</div>
 
-			{/* 预览区域 */}
-			<div className="mt-6 p-4 bg-gray-50 rounded-lg">
-				<h4 className="text-sm font-medium text-gray-700 mb-2">Frontmatter预览</h4>
-				<pre className="text-xs text-gray-600 bg-white p-3 rounded border overflow-x-auto">
-{`---
-author: ${articleInfo.author || getDefaultAuthor(settings)}
-publishDate: ${articleInfo.publishDate}
-articleTitle: ${articleInfo.articleTitle || '文章标题'}
-articleSubtitle: ${articleInfo.articleSubtitle || '副标题'}
-episodeNum: ${articleInfo.episodeNum || '第 1 期'}
-seriesName: ${articleInfo.seriesName || '系列名称'}
-tags:${articleInfo.tags.length > 0 ? articleInfo.tags.map(tag => `\n  - ${tag}`).join('') : '\n  - 标签1\n  - 标签2'}
----`}
-				</pre>
-			</div>
 		</div>
 	);
 };

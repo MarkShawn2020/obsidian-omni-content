@@ -68,10 +68,10 @@ export default class OmniContentPlugin extends Plugin {
 			console.warn("Settings was undefined in saveSettings, initialized it");
 		}
 
-		// 保存所有设置
+		// 保存所有设置 - 使用实例方法而不是静态方法
 		try {
-			await this.saveData(NMPSettings.allSettings());
-			console.info("Settings saved successfully");
+			await this.saveData(this.settings.getAllSettings());
+			console.info("Settings saved successfully", this.settings.getAllSettings());
 		} catch (error) {
 			console.error("Error while saving settings:", error);
 		}

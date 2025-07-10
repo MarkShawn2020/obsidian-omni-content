@@ -104,6 +104,7 @@ export interface OmniContentReactProps {
 	onExpandedSectionsChange?: (sections: string[]) => void;
 	onArticleInfoChange?: (info: ArticleInfoData) => void;
 	onPersonalInfoChange?: (info: PersonalInfo) => void;
+	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
 }
 
 // Global interface for the exported library

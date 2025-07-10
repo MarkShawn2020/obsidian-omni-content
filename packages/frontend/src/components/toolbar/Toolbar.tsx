@@ -29,6 +29,7 @@ interface ToolbarProps {
 	onExpandedSectionsChange?: (sections: string[]) => void;
 	onArticleInfoChange?: (info: ArticleInfoData) => void;
 	onPersonalInfoChange?: (info: PersonalInfo) => void;
+	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -50,6 +51,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onExpandedSectionsChange,
 													onArticleInfoChange,
 													onPersonalInfoChange,
+													onSettingsChange,
 												}) => {
 	logger.info("[Toolbar] 完整工具栏开始渲染", {
 		pluginsCount: plugins?.length || 0,
@@ -521,6 +523,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 					personalInfo={settings.personalInfo}
 					onPersonalInfoChange={onPersonalInfoChange || (() => {})}
 					onSaveSettings={onSaveSettings}
+					settings={settings}
+					onSettingsChange={onSettingsChange || (() => {})}
 				/>
 			</div>
 		);

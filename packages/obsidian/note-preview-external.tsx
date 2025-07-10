@@ -37,7 +37,9 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
-		this.settings = NMPSettings.getInstance();
+		// 获取主插件的设置实例，而不是单例
+		const plugin = (this.app as any).plugins.plugins["omni-content"];
+		this.settings = plugin ? plugin.settings : NMPSettings.getInstance();
 		this.assetsManager = AssetsManager.getInstance();
 		this.markedParser = new MarkedParser(this.app, this);
 
@@ -695,6 +697,21 @@ ${customCSS}`;
 					logger.info('[onPersonalInfoChange] 个人信息已更新:', info);
 					this.settings.personalInfo = info;
 					this.saveSettingsToPlugin();
+				},
+				onSettingsChange: (settingsUpdate: any) => {
+					logger.info('[onSettingsChange] 设置已更新:', settingsUpdate);
+					logger.info('[onSettingsChange] 更新前的authKey:', this.settings.authKey);
+					
+					// 合并设置更新
+					Object.keys(settingsUpdate).forEach(key => {
+						if (settingsUpdate[key] !== undefined) {
+							(this.settings as any)[key] = settingsUpdate[key];
+							logger.info(`[onSettingsChange] 已更新 ${key}:`, settingsUpdate[key]);
+						}
+					});
+					
+					logger.info('[onSettingsChange] 更新后的authKey:', this.settings.authKey);
+					this.saveSettingsToPlugin();
 				}
 			};
 
@@ -801,7 +818,9 @@ ${customCSS}`;
 		uevent("save-settings");
 		const plugin = (this.app as any).plugins.plugins["omni-content"];
 		if (plugin) {
-			logger.debug("正在保存设置到持久化存储");
+			// 确保主插件使用的是当前的设置实例
+			plugin.settings = this.settings;
+			logger.debug("正在保存设置到持久化存储", this.settings.getAllSettings());
 			plugin.saveSettings();
 		}
 	}
