@@ -7,7 +7,6 @@
 		"dev": "pnpm -r dev",
 		"build": "pnpm -r build",
 		"download-highlights": "node scripts/download-highlights.mjs",
-		"preversion": "pnpm build",
 		"version": "node scripts/sync-version.mjs"
 	},
 	"keywords": [],
