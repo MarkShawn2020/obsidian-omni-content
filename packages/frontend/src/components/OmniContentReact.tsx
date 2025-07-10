@@ -29,7 +29,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onPersonalInfoChange,
 																	  onSettingsChange
 																  }) => {
-	logger.info("[OmniContentReact] Component render started", {
+	logger.debug("[OmniContentReact] Component render started", {
 		articleHTMLLength: articleHTML?.length || 0,
 		cssContentLength: cssContent?.length || 0,
 		cssContentHash: cssContent ? cssContent.substring(0, 50) + "..." : "",
@@ -52,16 +52,16 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 
 	// 组件挂载检查
 	useEffect(() => {
-		logger.info("[mount-useEffect] Component mounted");
+		logger.debug("[mount-useEffect] Component mounted");
 		
 		return () => {
-			logger.info("[mount-useEffect] Component will unmount");
+			logger.debug("[mount-useEffect] Component will unmount");
 		};
 	}, []);
 
 	// 检测 CSS 内容变化并触发更新
 	useEffect(() => {
-		logger.info("[css-detect] CSS content changed, triggering update", {
+		logger.debug("[css-detect] CSS content changed, triggering update", {
 			cssContentLength: cssContent?.length || 0
 		});
 		setCssUpdateTrigger(prev => prev + 1);
@@ -69,7 +69,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 
 	// 更新CSS样式
 	useEffect(() => {
-		logger.info("[css-useEffect] CSS update triggered", {
+		logger.debug("[css-useEffect] CSS update triggered", {
 			cssContentLength: cssContent?.length || 0,
 			hasStyleRef: !!styleElRef.current,
 			trigger: cssUpdateTrigger
@@ -81,7 +81,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 
 	// 检测文章内容变化并触发更新
 	useEffect(() => {
-		logger.info("[article-detect] Article HTML changed, triggering update", {
+		logger.debug("[article-detect] Article HTML changed, triggering update", {
 			articleHTMLLength: articleHTML?.length || 0
 		});
 		setArticleUpdateTrigger(prev => prev + 1);
@@ -89,7 +89,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 
 	// 更新文章内容
 	useEffect(() => {
-		logger.info("[article-useEffect] Article update triggered", {
+		logger.debug("[article-useEffect] Article update triggered", {
 			articleHTMLLength: articleHTML?.length || 0,
 			hasArticleRef: !!articleDivRef.current,
 			trigger: articleUpdateTrigger
@@ -231,7 +231,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 				}}
 			>
 				{(() => {
-					logger.info("[OmniContentReact] 渲染工具栏", {
+					logger.debug("[OmniContentReact] 渲染工具栏", {
 						pluginsCount: plugins?.length || 0,
 						settingsKeys: Object.keys(settings || {}),
 						hasOnCopy: !!onCopy,
