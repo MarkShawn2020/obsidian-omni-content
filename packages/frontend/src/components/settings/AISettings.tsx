@@ -16,7 +16,8 @@ import {
 	ExternalLink,
 	Sparkles,
 	FileText,
-	Tag
+	Tag,
+	User
 } from 'lucide-react';
 
 interface AISettingsProps {
