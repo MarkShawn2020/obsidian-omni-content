@@ -13,7 +13,7 @@ export default defineConfig({
 	},
 
 	build: {
-		outDir: '../dist/frontend',
+		outDir: './dist',
 		emptyOutDir: true,
 		lib: {
 			entry: 'src/main.tsx',
@@ -22,15 +22,9 @@ export default defineConfig({
 			formats: ['iife']
 		},
 		rollupOptions: {
-			external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
 			output: {
 				inlineDynamicImports: true,
-				globals: {
-					'react': 'React',
-					'react-dom': 'ReactDOM',
-					'react-dom/client': 'ReactDOM',
-					'react/jsx-runtime': 'React'
-				}
+				exports: "named",
 			}
 		},
 		minify: false,

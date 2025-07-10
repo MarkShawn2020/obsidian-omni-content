@@ -53,10 +53,9 @@ const OmniContentReactLib: OmniContentReactLib = {
 
 // Export for UMD build
 if (typeof window !== 'undefined') {
-	(window as any).OmniContentReact = OmniContentReactLib;
+	(window as any).OmniContentReactLib = OmniContentReactLib;
 }
 
 // Export for ES modules
-export default OmniContentReactLib;
-export {OmniContentReact};
+export {OmniContentReactLib as default, OmniContentReact};
 export type {OmniContentReactProps, OmniContentReactLib};

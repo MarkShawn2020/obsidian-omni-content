@@ -68,9 +68,6 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 
 	private async loadExternalReactApp() {
 		try {
-			// 首先加载React依赖
-			await this.loadReactDependencies();
-			
 			const adapter = this.app.vault.adapter;
 			const pluginDir = (this.app as any).plugins.plugins["omni-content"].manifest.dir;
 			const scriptPath = `${pluginDir}/frontend/omni-content-react.iife.js`;
@@ -87,8 +84,9 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			await this.loadExternalCSS(pluginDir);
 
 			// 获取全局对象
-			this.externalReactLib = (window as any).OmniContentReact ||
-				(window as any).OmniContentReactLib ||
+			this.externalReactLib = (window as any).OmniContentReactLib ||
+				(window as any).OmniContentReact ||
+				(window as any).OmniContentReact?.default ||
 				(window as any).omniContentReact;
 
 			if (this.externalReactLib) {
@@ -96,7 +94,10 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 					availableMethods: Object.keys(this.externalReactLib),
 					hasMount: typeof this.externalReactLib.mount === 'function',
 					hasUpdate: typeof this.externalReactLib.update === 'function',
-					hasUnmount: typeof this.externalReactLib.unmount === 'function'
+					hasUnmount: typeof this.externalReactLib.unmount === 'function',
+					actualObject: this.externalReactLib,
+					windowOmniContentReact: (window as any).OmniContentReact,
+					windowOmniContentReactDefault: (window as any).OmniContentReact?.default,
 				});
 			} else {
 				logger.error("找不到外部React应用的全局对象", {
@@ -112,35 +113,6 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 		}
 	}
 
-	private async loadReactDependencies() {
-		// 检查React是否已加载
-		if ((window as any).React && (window as any).ReactDOM) {
-			logger.info("React依赖已存在，跳过加载");
-			return;
-		}
-
-		try {
-			// 加载React
-			await this.loadScript("https://unpkg.com/react@19/umd/react.production.min.js");
-			// 加载ReactDOM
-			await this.loadScript("https://unpkg.com/react-dom@19/umd/react-dom.production.min.js");
-			
-			logger.info("React依赖加载成功");
-		} catch (error) {
-			logger.error("加载React依赖失败:", error);
-			throw error;
-		}
-	}
-
-	private loadScript(src: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			const script = document.createElement('script');
-			script.src = src;
-			script.onload = () => resolve();
-			script.onerror = (error) => reject(error);
-			document.head.appendChild(script);
-		});
-	}
 
 	private async loadExternalCSS(pluginDir: string) {
 		try {

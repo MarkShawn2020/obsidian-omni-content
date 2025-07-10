@@ -16,7 +16,7 @@ const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["main"],
+	entryPoints: ["main.ts"],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -33,7 +33,6 @@ const context = await esbuild.context({
 		"@lezer/highlight",
 		"@lezer/lr",
 		...builtins],
-	jsx: "automatic",
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
@@ -47,6 +46,7 @@ const context = await esbuild.context({
 				// 复制插件所需的其他文件到 dist 目录
 				{ from: ['./manifest.json'], to: ['./manifest.json'], outDir: './dist' },
 				{ from: ['../assets/**/*'], to: ['./assets/'], outDir: './dist' },
+				{ from: ['../frontend/dist/**/*'], to: ['./frontend/'], outDir: './dist' },
 			],
 			verbose: false, // 输出复制操作的日志
 		}),

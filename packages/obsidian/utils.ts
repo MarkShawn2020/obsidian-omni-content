@@ -1,5 +1,4 @@
 import {Platform, requestUrl} from "obsidian";
-import * as postcss from "./postcss/postcss";
 
 import {logger} from "../shared/src/logger";
 
@@ -93,35 +92,25 @@ export async function CSSProcess(content: HTMLElement) {
 }
 
 export function parseCSS(css: string) {
-	return postcss.parse(css);
+	// 简化版本，返回原始 CSS 字符串
+	// 如果需要更复杂的 CSS 解析，可以考虑添加 postcss 依赖
+	return css;
 }
 
-export function ruleToStyle(rule: postcss.Rule) {
-	let style = "";
-	rule.walkDecls((decl) => {
-		style += decl.prop + ":" + decl.value + ";";
-	});
-
-	return style;
+export function ruleToStyle(rule: any) {
+	// 简化版本，直接返回字符串
+	return rule?.toString() || "";
 }
 
-function applyStyle(root: HTMLElement, cssRoot: postcss.Root) {
-	cssRoot.walkRules((rule) => {
-		if (root.matches(rule.selector)) {
-			rule.walkDecls((decl) => {
-				root.style.setProperty(decl.prop, decl.value);
-			});
-		}
-	});
-
-	if (root.tagName === "svg") {
-		return;
-	}
-
-	let element = root.firstElementChild;
-	while (element) {
-		applyStyle(element as HTMLElement, cssRoot);
-		element = element.nextElementSibling;
+function applyStyle(root: HTMLElement, css: string) {
+	// 简化版本，直接使用 style 标签应用样式
+	const styleEl = document.createElement("style");
+	styleEl.textContent = css;
+	
+	// 将样式应用到文档头部
+	if (!document.head.querySelector(`style[data-utils-css]`)) {
+		styleEl.setAttribute('data-utils-css', 'true');
+		document.head.appendChild(styleEl);
 	}
 }
 
@@ -204,29 +193,23 @@ export function applyCSS(root: HTMLElement, css: string) {
  */
 function extractCSSVariables(css: string): string {
 	try {
-		const cssRoot = postcss.parse(css);
+		// 使用正则表达式提取 CSS 变量
 		let cssVars = "";
-
-		cssRoot.nodes.forEach((node) => {
-			// 提取:root规则
-			if (node.type === "rule" && node.selector === ":root") {
-				cssVars += node.toString() + "\n";
-			}
-			// 提取@media规则
-			else if (node.type === "atrule" && node.name === "media") {
-				// 检查@media规则内是否有:root选择器
-				const hasRootSelector =
-					node.nodes &&
-					node.nodes.some(
-						(child) =>
-							child.type === "rule" && child.selector === ":root"
-					);
-				if (hasRootSelector) {
-					cssVars += node.toString() + "\n";
-				}
-			}
-		});
-
+		
+		// 提取 :root 规则
+		const rootRuleRegex = /:root\s*\{[^}]+\}/g;
+		const rootMatches = css.match(rootRuleRegex);
+		if (rootMatches) {
+			cssVars += rootMatches.join("\n") + "\n";
+		}
+		
+		// 提取包含 :root 的 @media 规则
+		const mediaRuleRegex = /@media[^{]+\{[^{}]*:root\s*\{[^}]+\}[^}]*\}/g;
+		const mediaMatches = css.match(mediaRuleRegex);
+		if (mediaMatches) {
+			cssVars += mediaMatches.join("\n") + "\n";
+		}
+		
 		return cssVars;
 	} catch (e) {
 		logger.error("提取CSS变量失败:", e);
