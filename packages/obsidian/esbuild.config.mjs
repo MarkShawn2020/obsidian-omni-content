@@ -4,6 +4,7 @@ import builtins from "builtin-modules";
 import { copy } from "esbuild-plugin-copy";
 import { watch } from "fs";
 import path from "path";
+import { execSync } from "child_process";
 
 const banner =
 `/*
@@ -13,6 +14,22 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = process.env.NODE_ENV === "production";
+const obsidianPluginPath = process.env.OBSIDIAN_PLUGIN_PATH;
+
+// 自动同步到 Obsidian 插件目录的函数
+const syncToObsidian = () => {
+	if (obsidianPluginPath) {
+		try {
+			execSync(`rsync -a packages/obsidian/dist/ "${obsidianPluginPath}"`, { 
+				stdio: 'inherit',
+				cwd: path.resolve('../..')
+			});
+			console.log(`🔄 Synced to Obsidian plugin directory: ${obsidianPluginPath}`);
+		} catch (error) {
+			console.error('❌ Failed to sync to Obsidian:', error.message);
+		}
+	}
+};
 
 const context = await esbuild.context({
 	banner: {
@@ -59,6 +76,7 @@ const context = await esbuild.context({
 
 if (prod) {
 	await context.rebuild();
+	syncToObsidian();
 	process.exit(0);
 } else {
 	await context.watch();
@@ -75,6 +93,7 @@ if (prod) {
 				console.log('🔄 Frontend assets changed, rebuilding...');
 				await context.rebuild();
 				console.log('✅ Rebuild completed');
+				syncToObsidian();
 			} catch (error) {
 				console.error('❌ Rebuild failed:', error);
 			}
