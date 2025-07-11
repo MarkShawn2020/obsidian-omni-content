@@ -106,11 +106,33 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 		}
 	};
 
-	const handleKitSelect = (kitId: string) => {
+	const handleKitSelect = async (kitId: string) => {
 		setSelectedKitId(kitId);
 		const kit = kits.find(k => k.basicInfo.id === kitId);
 		if (kit) {
 			setPreviewKit(kit);
+			
+			// 立即预览套装效果
+			try {
+				const templateName = kit.templateConfig.templateFileName.replace('.html', '');
+				const newSettings: Partial<ViteReactSettings> = {
+					defaultStyle: kit.styleConfig.theme,
+					defaultHighlight: kit.styleConfig.codeHighlight,
+					useTemplate: kit.templateConfig.useTemplate,
+					defaultTemplate: templateName,
+					enableThemeColor: kit.styleConfig.enableCustomThemeColor,
+					themeColor: kit.styleConfig.customThemeColor || ''
+				};
+
+				// 立即应用设置预览，不保存到配置
+				if (onSettingsChange) {
+					onSettingsChange(newSettings);
+				}
+				
+				logger.info('[TemplateKitSelector] Applied kit preview:', kit.basicInfo.name);
+			} catch (error) {
+				logger.error('[TemplateKitSelector] Error applying kit preview:', error);
+			}
 		}
 	};
 
@@ -124,31 +146,15 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 				throw new Error('Selected kit not found');
 			}
 
-			logger.info('[TemplateKitSelector] Applying kit:', kit.basicInfo.name);
+			logger.info('[TemplateKitSelector] Permanently applying kit:', kit.basicInfo.name);
 
-			// 应用套装设置
-			const templateName = kit.templateConfig.templateFileName.replace('.html', '');
-			const newSettings: Partial<ViteReactSettings> = {
-				defaultStyle: kit.styleConfig.theme,
-				defaultHighlight: kit.styleConfig.codeHighlight,
-				useTemplate: kit.templateConfig.useTemplate,
-				defaultTemplate: templateName,
-				enableThemeColor: kit.styleConfig.enableCustomThemeColor,
-				themeColor: kit.styleConfig.customThemeColor || ''
-			};
-
-			// 通知父组件应用设置
-			if (onSettingsChange) {
-				onSettingsChange(newSettings);
-			}
-
-			// 调用套装应用回调
-			if (onKitApply) {
-				onKitApply(selectedKitId);
+			// 调用后端套装应用逻辑（复制模板文件、保存配置等）
+			if (window.lovpenReactAPI && window.lovpenReactAPI.onKitApply) {
+				await window.lovpenReactAPI.onKitApply(selectedKitId);
 			}
 
 			// 显示成功消息
-			logger.info('[TemplateKitSelector] Kit applied successfully:', kit.basicInfo.name);
+			logger.info('[TemplateKitSelector] Kit applied and saved successfully:', kit.basicInfo.name);
 		} catch (error) {
 			logger.error('[TemplateKitSelector] Error applying kit:', error);
 			setError((error as Error).message || 'Failed to apply template kit');
@@ -268,12 +274,12 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 						{applying ? (
 							<>
 								<Loader className="animate-spin w-4 h-4 mr-2" />
-								应用中...
+								保存中...
 							</>
 						) : (
 							<>
 								<Check className="w-4 h-4 mr-2" />
-								应用套装
+								保存套装
 							</>
 						)}
 					</Button>
