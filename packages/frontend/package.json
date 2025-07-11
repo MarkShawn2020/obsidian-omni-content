@@ -6,7 +6,8 @@
 		"dev": "vite build --watch",
 		"dev:serve": "vite",
 		"build": "tsc && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@radix-ui/react-accordion": "^1.2.11",

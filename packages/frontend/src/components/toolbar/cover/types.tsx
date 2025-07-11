@@ -1,5 +1,5 @@
 export type CoverAspectRatio = '2.25:1' | '1:1' | 'custom';
-export type CoverImageSource = 'article' | 'upload' | 'ai';
+export type CoverImageSource = 'article' | 'upload' | 'library' | 'covers' | 'ai';
 
 export interface ExtractedImage {
 	src: string;

@@ -3,12 +3,14 @@ import {AspectRatio} from "@/components/ui/aspect-ratio";
 import {XIcon} from "@/components/ui/XIcon";
 import {CoverData} from "@/components/toolbar/CoverData";
 import {logger} from "../../../../shared/src/logger";
+import { Save } from "lucide-react";
 
 interface CoverPreviewProps {
 	coverData?: CoverData;
 	aspectRatio: number;
 	label: string;
 	onClear: () => void;
+	onSave?: () => void;
 	placeholder?: string;
 }
 
@@ -17,6 +19,7 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
 															  aspectRatio,
 															  label,
 															  onClear,
+															  onSave,
 															  placeholder = "暂无预览"
 														  }) => {
 	return (
@@ -53,14 +56,26 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
 						>
 							图片加载失败
 						</div>
-						<button
-							onClick={onClear}
-							className="absolute top-2 right-2 bg-black bg-opacity-60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-opacity-80"
-							style={{width: '24px', height: '24px', borderRadius: '50%', padding: 0, border: 'none'}}
-							title={`清空${label}`}
-						>
-							<XIcon/>
-						</button>
+						<div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+							{onSave && (
+								<button
+									onClick={onSave}
+									className="bg-green-600 bg-opacity-80 text-white flex items-center justify-center hover:bg-opacity-100 transition-all"
+									style={{width: '24px', height: '24px', borderRadius: '50%', padding: 0, border: 'none'}}
+									title={`保存${label}到封面库`}
+								>
+									<Save className="h-3 w-3"/>
+								</button>
+							)}
+							<button
+								onClick={onClear}
+								className="bg-black bg-opacity-60 text-white flex items-center justify-center hover:bg-opacity-80 transition-all"
+								style={{width: '24px', height: '24px', borderRadius: '50%', padding: 0, border: 'none'}}
+								title={`清空${label}`}
+							>
+								<XIcon/>
+							</button>
+						</div>
 					</div>
 					{coverData.title && (
 						<div className="mt-2 text-sm font-medium text-gray-700">

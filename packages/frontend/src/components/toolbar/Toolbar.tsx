@@ -264,8 +264,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 			canvas.height = height;
 			
 			// 加载图片
-			const img1 = new Image();
-			const img2 = new Image();
+			const img1 = document.createElement('img');
+			const img2 = document.createElement('img');
 			
 			const loadImage = (img: HTMLImageElement, url: string): Promise<void> => {
 				return new Promise((resolve, reject) => {

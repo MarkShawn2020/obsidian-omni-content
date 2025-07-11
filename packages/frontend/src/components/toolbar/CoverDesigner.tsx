@@ -10,7 +10,8 @@ import {
 	GenerationStatus
 } from "@/components/toolbar/cover/types";
 import {logger} from "../../../../shared/src/logger";
-import { Image, Download, RotateCcw, Settings, Layers } from "lucide-react";
+import { Image, Download, RotateCcw, Settings, Layers, Save } from "lucide-react";
+import { persistentStorageService } from '../../services/persistentStorage';
 
 interface CoverDesignerProps {
 	articleHTML: string;
@@ -55,7 +56,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	// Helper function to load image and get dimensions
 	const loadImageDimensions = useCallback((src: string): Promise<{ src: string, width: number, height: number }> => {
 		return new Promise((resolve, reject) => {
-			const img = new Image();
+			const img = document.createElement('img');
 			img.onload = () => {
 				logger.info('[CoverDesigner] 图片加载成功', {
 					src: src.substring(0, 100),
@@ -239,6 +240,24 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		onDownloadCovers(covers);
 	}, [cover1PreviewCovers, cover2PreviewCovers, onDownloadCovers]);
 
+	const handleSaveCover = useCallback(async (coverData: CoverData, coverNumber: 1 | 2) => {
+		try {
+			const name = `封面${coverNumber}-${new Date().getTime()}`;
+			await persistentStorageService.saveCover({
+				name,
+				aspectRatio: coverData.aspectRatio as '2.25:1' | '1:1',
+				imageUrl: coverData.imageUrl,
+				width: coverData.width,
+				height: coverData.height,
+				tags: [`封面${coverNumber}`, new Date().toLocaleDateString()]
+			});
+			alert(`封面${coverNumber}已保存到封面库`);
+		} catch (error) {
+			console.error('保存封面失败:', error);
+			alert(`保存封面${coverNumber}失败`);
+		}
+	}, []);
+
 
 	return (
 		<div className="space-y-6">
@@ -332,6 +351,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						aspectRatio={2.25}
 						label="封面1"
 						onClear={() => setCover1PreviewCovers([])}
+						onSave={cover1PreviewCovers[0] ? () => handleSaveCover(cover1PreviewCovers[0], 1) : undefined}
 						placeholder="暂无封面1预览"
 					/>
 					<CoverPreview
@@ -339,6 +359,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						aspectRatio={1}
 						label="封面2"
 						onClear={() => setCover2PreviewCovers([])}
+						onSave={cover2PreviewCovers[0] ? () => handleSaveCover(cover2PreviewCovers[0], 2) : undefined}
 						placeholder="暂无封面2预览"
 					/>
 				</div>

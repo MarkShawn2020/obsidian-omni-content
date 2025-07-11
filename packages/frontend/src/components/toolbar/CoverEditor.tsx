@@ -2,6 +2,8 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs.tsx';
 import { imageGenerationService } from '../../services/imageGenerationService.ts';
 import { CoverData } from '@/components/toolbar/CoverData.tsx';
+import { PersistentFileManager } from './PersistentFileManager';
+import { PersistentCoverManager } from './PersistentCoverManager';
 
 import {CoverAspectRatio, CoverImageSource} from "@/components/toolbar/cover/types";
 import {logger} from "../../../../shared/src/logger";
@@ -56,6 +58,7 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPersistentManager, setShowPersistentManager] = useState(false);
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -173,6 +176,8 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
         <TabsList>
           <TabsTrigger value="article">文中图片</TabsTrigger>
           <TabsTrigger value="upload">本地上传</TabsTrigger>
+          <TabsTrigger value="library">我的档案库</TabsTrigger>
+          <TabsTrigger value="covers">封面库</TabsTrigger>
           <TabsTrigger value="ai">AI生成</TabsTrigger>
         </TabsList>
 
@@ -231,6 +236,21 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
               )
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="library">
+          <PersistentFileManager
+            onFileSelect={async (fileUrl) => await onCreateCover(fileUrl, 'upload')}
+            acceptedTypes={['image/*']}
+            title={`封面${coverNumber}档案库`}
+          />
+        </TabsContent>
+
+        <TabsContent value="covers">
+          <PersistentCoverManager
+            onCoverSelect={async (coverUrl) => await onCreateCover(coverUrl, 'upload')}
+            aspectRatio={aspectRatio === 'custom' ? 'all' : aspectRatio}
+          />
         </TabsContent>
 
         <TabsContent value="ai">

@@ -83,6 +83,30 @@ export interface ArticleInfoData {
 	tags: string[];
 }
 
+// Persistent storage interfaces
+export interface PersistentFile {
+	id: string;
+	name: string;
+	path: string;
+	type: string;
+	size: number;
+	createdAt: string;
+	lastUsed: string;
+	blob?: Blob;
+}
+
+export interface PersistentCover {
+	id: string;
+	name: string;
+	aspectRatio: '2.25:1' | '1:1';
+	imageUrl: string;
+	width: number;
+	height: number;
+	createdAt: string;
+	lastUsed: string;
+	tags: string[];
+}
+
 // Props interface for the main component
 export interface OmniContentReactProps {
 	settings: ViteReactSettings;

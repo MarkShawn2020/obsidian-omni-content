@@ -183,7 +183,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 
 		} catch (error) {
 			logger.error(`使用 ${style.name} 生成文章信息失败:`, error);
-			alert(`AI分析失败: ${error.message}`);
+			alert(`AI分析失败: ${error instanceof Error ? error.message : String(error)}`);
 		} finally {
 			setIsAIGenerating(false);
 		}
