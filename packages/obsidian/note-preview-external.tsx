@@ -37,9 +37,8 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
-		// 获取主插件的设置实例，而不是单例
-		const plugin = (this.app as any).plugins.plugins["lovpen"];
-		this.settings = plugin ? plugin.settings : NMPSettings.getInstance();
+		// 获取主插件的设置实例，确保设置一致性
+		this.settings = this.getPluginSettings();
 		this.assetsManager = AssetsManager.getInstance();
 		this.markedParser = new MarkedParser(this.app, this);
 
@@ -56,6 +55,18 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 
 	get workspace() {
 		return this.app.workspace;
+	}
+
+	private getPluginSettings(): NMPSettings {
+		const plugin = (this.app as any).plugins.plugins["lovpen"];
+		if (plugin && plugin.settings) {
+			logger.debug("获取到主插件的设置实例");
+			return plugin.settings;
+		}
+		
+		// 如果主插件尚未加载，使用单例模式
+		logger.warn("主插件尚未加载，使用单例模式");
+		return NMPSettings.getInstance();
 	}
 
 	getViewType() {
@@ -152,6 +163,12 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	async onOpen() {
 		// 确保React应用已加载
 		await this.loadExternalReactApp();
+
+		// 确保设置实例是最新的
+		this.settings = this.getPluginSettings();
+		logger.debug("onOpen时更新设置实例", this.settings.getAllSettings());
+		logger.debug("onOpen时personalInfo:", this.settings.personalInfo);
+		logger.debug("onOpen时authKey:", this.settings.authKey);
 
 		await this.buildUI();
 		this.listeners = [this.workspace.on("active-leaf-change", () => this.update()),];
@@ -696,12 +713,16 @@ ${customCSS}`;
 				},
 				onPersonalInfoChange: (info: any) => {
 					logger.debug('[onPersonalInfoChange] 个人信息已更新:', info);
+					logger.debug('[onPersonalInfoChange] 更新前的设置:', this.settings.personalInfo);
 					this.settings.personalInfo = info;
+					logger.debug('[onPersonalInfoChange] 更新后的设置:', this.settings.personalInfo);
+					logger.debug('[onPersonalInfoChange] 全部设置:', this.settings.getAllSettings());
 					this.saveSettingsToPlugin();
 				},
 				onSettingsChange: (settingsUpdate: any) => {
 					logger.debug('[onSettingsChange] 设置已更新:', settingsUpdate);
 					logger.debug('[onSettingsChange] 更新前的authKey:', this.settings.authKey);
+					logger.debug('[onSettingsChange] 更新前的全部设置:', this.settings.getAllSettings());
 					
 					// 合并设置更新
 					Object.keys(settingsUpdate).forEach(key => {
@@ -712,6 +733,7 @@ ${customCSS}`;
 					});
 					
 					logger.debug('[onSettingsChange] 更新后的authKey:', this.settings.authKey);
+					logger.debug('[onSettingsChange] 更新后的全部设置:', this.settings.getAllSettings());
 					this.saveSettingsToPlugin();
 				}
 			};
@@ -822,7 +844,24 @@ ${customCSS}`;
 			// 确保主插件使用的是当前的设置实例
 			plugin.settings = this.settings;
 			logger.debug("正在保存设置到持久化存储", this.settings.getAllSettings());
+			
+			// 重要调试：检查设置实例是否正确
+			logger.debug("当前设置实例:", this.settings);
+			logger.debug("主插件设置实例:", plugin.settings);
+			logger.debug("设置实例是否相同:", this.settings === plugin.settings);
+			
+			// 立即同步调用保存
 			plugin.saveSettings();
+		} else {
+			logger.error("无法找到主插件实例，设置保存失败");
+			// 尝试手动保存到本地存储作为备用
+			try {
+				const settingsData = this.settings.getAllSettings();
+				localStorage.setItem('lovpen-settings-backup', JSON.stringify(settingsData));
+				logger.debug("设置已保存到本地存储备份");
+			} catch (error) {
+				logger.error("本地存储备份失败:", error);
+			}
 		}
 	}
 }

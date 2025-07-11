@@ -58,22 +58,33 @@ export default class LovpenPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = NMPSettings.loadSettings(await this.loadData());
+		// 获取单例实例并加载数据
+		this.settings = NMPSettings.getInstance();
+		const data = await this.loadData();
+		logger.info("从存储中加载的原始数据:", data);
+		this.settings.loadSettings(data || {});
+		logger.info("主插件设置加载完成", this.settings.getAllSettings());
 	}
 
 	async saveSettings() {
 		// 确保 settings 已初始化
 		if (!this.settings) {
 			this.settings = NMPSettings.getInstance();
-			console.warn("Settings was undefined in saveSettings, initialized it");
+			logger.warn("Settings was undefined in saveSettings, initialized it");
 		}
 
 		// 保存所有设置 - 使用实例方法而不是静态方法
 		try {
-			await this.saveData(this.settings.getAllSettings());
-			console.info("Settings saved successfully", this.settings.getAllSettings());
+			const settingsToSave = this.settings.getAllSettings();
+			logger.info("准备保存的设置数据:", settingsToSave);
+			await this.saveData(settingsToSave);
+			logger.info("Settings saved successfully");
+			
+			// 验证保存是否成功
+			const savedData = await this.loadData();
+			logger.info("验证保存后的数据:", savedData);
 		} catch (error) {
-			console.error("Error while saving settings:", error);
+			logger.error("Error while saving settings:", error);
 		}
 	}
 
