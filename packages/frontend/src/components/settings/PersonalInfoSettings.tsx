@@ -92,11 +92,16 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 			const reader = new FileReader();
 			reader.onload = (e) => {
 				const base64 = e.target?.result as string;
-				setLocalInfo(prev => ({
-					...prev,
+				const newInfo = {
+					...localInfo,
 					avatar: base64
-				}));
+				};
+				setLocalInfo(newInfo);
 				setPreviewUrl(base64);
+				
+				// 实时更新 Jotai 状态，确保头像持久化
+				console.log('[PersonalInfoSettings] Auto-updating avatar to Jotai state');
+				updatePersonalInfo(newInfo);
 			};
 			reader.readAsDataURL(file);
 		} catch (error) {
@@ -131,66 +136,48 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
 			{/* 头部说明 */}
-			<div className="text-center">
-				<h3 className="text-lg font-semibold text-gray-900 mb-2">个人信息设置</h3>
-				<p className="text-gray-600">配置您的个人资料，这些信息将用于AI生成的内容中</p>
-			</div>
-
-			{/* 头像设置卡片 */}
-			<div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6">
-				<div className="flex items-center gap-3 mb-4">
-					<div className="p-2 bg-blue-100 rounded-lg">
-						<Camera className="h-5 w-5 text-blue-600"/>
-					</div>
-					<div>
-						<h4 className="font-semibold text-gray-900">头像设置</h4>
-						<p className="text-sm text-gray-600">上传您的个人头像照片</p>
-					</div>
-				</div>
-
-				<div className="flex items-center space-x-6">
-					<div className="relative group">
-						<div
-							className="w-20 h-20 rounded-full border-3 border-white shadow-lg flex items-center justify-center bg-gray-50 overflow-hidden">
-							{(localInfo.avatar || previewUrl) ? (
-								<img
-									src={previewUrl || localInfo.avatar}
-									alt="头像预览"
-									className="w-full h-full object-cover"
-								/>
-							) : (
-								<User className="w-8 h-8 text-gray-400"/>
-							)}
-						</div>
-						<div
-							className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-							<Camera className="w-6 h-6 text-white"/>
-						</div>
-					</div>
-					<div className="flex-1 space-y-3">
-						<input
-							type="file"
-							accept="image/*"
-							onChange={handleAvatarChange}
-							className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-white file:text-blue-600 file:shadow-sm hover:file:bg-blue-50 file:cursor-pointer cursor-pointer"
-						/>
-						<p className="text-xs text-blue-700 bg-blue-100 px-3 py-1 rounded-full inline-block">
-							💡 支持 JPG、PNG、GIF 格式，大小不超过 2MB
-						</p>
-					</div>
-				</div>
+			<div className="text-center mb-4">
+				<h3 className="text-lg font-semibold text-gray-900 mb-1">个人信息设置</h3>
+				<p className="text-sm text-gray-600">配置您的个人资料，用于AI生成的内容中</p>
 			</div>
 
 			{/* 基本信息表单 */}
-			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-				<h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-					<User className="h-5 w-5 text-blue-600"/>
-					基本信息
-				</h4>
+			<div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					{/* 头像上传区域 */}
+					<div className="space-y-3 md:col-span-2">
+						<label className="block text-sm font-medium text-gray-700">头像</label>
+						<div className="flex items-center gap-4">
+							<div className="relative group">
+								<div className="w-16 h-16 rounded-full border-2 border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden">
+									{(localInfo.avatar || previewUrl) ? (
+										<img
+											src={previewUrl || localInfo.avatar}
+											alt="头像预览"
+											className="w-full h-full object-cover"
+										/>
+									) : (
+										<User className="w-6 h-6 text-gray-400"/>
+									)}
+								</div>
+								<div className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+									<Camera className="w-4 h-4 text-white"/>
+								</div>
+							</div>
+							<div className="flex-1">
+								<input
+									type="file"
+									accept="image/*"
+									onChange={handleAvatarChange}
+									className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer"
+								/>
+								<p className="text-xs text-gray-500 mt-1">支持 JPG、PNG、GIF 格式，大小不超过 2MB</p>
+							</div>
+						</div>
+					</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* 姓名 */}
 					<FormInput
 						label="姓名"
@@ -225,75 +212,15 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 
 					{/* 个人简介 */}
 					<div className="space-y-2 md:col-span-2">
-						<label className="block text-sm font-medium text-gray-700">
-							个人简介
-						</label>
+						<label className="block text-sm font-medium text-gray-700">个人简介</label>
 						<textarea
 							value={localInfo.bio}
 							onChange={(e) => handleInputChange('bio', e.target.value)}
 							placeholder="介绍一下您自己..."
-							rows={4}
+							rows={3}
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 resize-none transition-colors"
 						/>
-						<p className="text-xs text-gray-500 mt-1">
-							💡 简介信息将会在AI生成的内容中作为作者介绍使用
-						</p>
-					</div>
-				</div>
-			</div>
-
-			{/* 预览卡片 */}
-			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-				<div className="flex items-center gap-3 mb-4">
-					<div className="p-2 bg-green-100 rounded-lg">
-						<Eye className="h-5 w-5 text-green-600"/>
-					</div>
-					<div>
-						<h4 className="font-semibold text-gray-900">信息预览</h4>
-						<p className="text-sm text-gray-600">查看您的个人信息显示效果</p>
-					</div>
-				</div>
-
-				<div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-6">
-					<div className="flex items-start space-x-4">
-						<div
-							className="w-16 h-16 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center overflow-hidden shadow-sm">
-							{(localInfo.avatar || previewUrl) ? (
-								<img
-									src={previewUrl || localInfo.avatar}
-									alt="头像"
-									className="w-full h-full object-cover"
-								/>
-							) : (
-								<User className="w-8 h-8 text-gray-400"/>
-							)}
-						</div>
-						<div className="flex-1">
-							<div className="font-bold text-gray-900 text-lg">
-								{localInfo.name || '您的姓名'}
-							</div>
-							{localInfo.bio && (
-								<div className="text-gray-600 mt-2 leading-relaxed">
-									{localInfo.bio}
-								</div>
-							)}
-							<div className="flex flex-wrap gap-3 mt-3">
-								{localInfo.email && (
-									<div
-										className="flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-										<Mail className="w-3 h-3"/>
-										{localInfo.email}
-									</div>
-								)}
-								{localInfo.website && (
-									<div
-										className="flex items-center gap-1 text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-										<Globe className="w-3 h-3"/>
-										{localInfo.website.replace(/^https?:\/\//, '')}
-									</div>
-								)}
-							</div>
-						</div>
+						<p className="text-xs text-gray-500">简介信息将会在AI生成的内容中作为作者介绍使用</p>
 					</div>
 				</div>
 			</div>
