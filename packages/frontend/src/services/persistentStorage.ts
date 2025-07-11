@@ -36,12 +36,28 @@ export class PersistentStorageService {
 		return PersistentStorageService.instance;
 	}
 
+	private async ensureDirectoryExists(dirPath: string): Promise<void> {
+		try {
+			if (this.obsidianVault?.adapter?.exists) {
+				const exists = await this.obsidianVault.adapter.exists(dirPath);
+				if (!exists && this.obsidianVault?.adapter?.mkdir) {
+					await this.obsidianVault.adapter.mkdir(dirPath);
+				}
+			}
+		} catch (error) {
+			console.warn('创建目录失败:', dirPath, error);
+		}
+	}
+
 	async saveFile(file: File, customName?: string): Promise<PersistentFile> {
 		const id = this.generateId();
 		const name = customName || file.name;
 		const fileName = `lovpen-files/${id}-${name}`;
 		
 		try {
+			// 确保目录存在
+			await this.ensureDirectoryExists('lovpen-files');
+			
 			const arrayBuffer = await file.arrayBuffer();
 			const uint8Array = new Uint8Array(arrayBuffer);
 			
@@ -56,8 +72,8 @@ export class PersistentStorageService {
 				type: file.type,
 				size: file.size,
 				createdAt: new Date().toISOString(),
-				lastUsed: new Date().toISOString(),
-				blob: file
+				lastUsed: new Date().toISOString()
+				// 不保存 blob，因为它无法序列化到 localStorage
 			};
 			
 			await this.addFileToIndex(persistentFile);
@@ -73,6 +89,9 @@ export class PersistentStorageService {
 		const fileName = `lovpen-files/${id}-${name}`;
 		
 		try {
+			// 确保目录存在
+			await this.ensureDirectoryExists('lovpen-files');
+			
 			let arrayBuffer: ArrayBuffer;
 			
 			if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -122,6 +141,9 @@ export class PersistentStorageService {
 		const fileName = `lovpen-covers/${id}-${coverData.name}.jpg`;
 		
 		try {
+			// 确保目录存在
+			await this.ensureDirectoryExists('lovpen-covers');
+			
 			let arrayBuffer: ArrayBuffer;
 			
 			if (coverData.imageUrl.startsWith('http://') || coverData.imageUrl.startsWith('https://')) {
@@ -217,19 +239,96 @@ export class PersistentStorageService {
 
 	async getFileUrl(file: PersistentFile): Promise<string> {
 		try {
-			if (file.blob) {
-				return URL.createObjectURL(file.blob);
+			console.log(`[PersistentStorage] 获取文件URL:`, {
+				id: file.id,
+				name: file.name,
+				path: file.path,
+				type: file.type,
+				size: file.size
+			});
+			
+			if (!file.path) {
+				throw new Error('文件路径不存在');
 			}
 			
-			if (this.obsidianVault?.adapter?.read) {
-				const uint8Array = await this.obsidianVault.adapter.read(file.path);
-				const blob = new Blob([uint8Array], { type: file.type });
-				return URL.createObjectURL(blob);
+			if (!this.obsidianVault?.adapter?.read) {
+				throw new Error('Obsidian adapter 不可用');
 			}
 			
-			throw new Error('无法获取文件URL');
+			// 检查文件是否存在
+			if (this.obsidianVault?.adapter?.exists) {
+				const exists = await this.obsidianVault.adapter.exists(file.path);
+				console.log(`[PersistentStorage] 文件是否存在:`, exists);
+				if (!exists) {
+					throw new Error(`文件不存在: ${file.path}`);
+				}
+			}
+			
+			// 尝试以二进制方式读取文件
+			let data: any;
+			console.log(`[PersistentStorage] 尝试读取文件:`, file.path);
+			
+			// 检查 Obsidian adapter 的可用方法
+			console.log(`[PersistentStorage] Adapter 方法:`, {
+				hasRead: !!this.obsidianVault?.adapter?.read,
+				hasReadBinary: !!this.obsidianVault?.adapter?.readBinary,
+				adapterType: this.obsidianVault?.adapter?.constructor?.name
+			});
+			
+			// 尝试使用 readBinary 方法（如果可用）
+			if (this.obsidianVault?.adapter?.readBinary) {
+				console.log(`[PersistentStorage] 使用 readBinary 方法`);
+				data = await this.obsidianVault.adapter.readBinary(file.path);
+			} else {
+				console.log(`[PersistentStorage] 使用 read 方法`);
+				data = await this.obsidianVault.adapter.read(file.path);
+			}
+			
+			console.log(`[PersistentStorage] 读取文件成功:`, {
+				dataType: typeof data,
+				constructor: data?.constructor?.name,
+				size: data?.length || data?.byteLength || 'unknown',
+				isArrayBuffer: data instanceof ArrayBuffer,
+				isUint8Array: data instanceof Uint8Array,
+				isString: typeof data === 'string'
+			});
+			
+			// 处理不同的数据格式
+			let binaryData: ArrayBuffer | Uint8Array;
+			if (data instanceof ArrayBuffer) {
+				console.log(`[PersistentStorage] 数据是 ArrayBuffer`);
+				binaryData = data;
+			} else if (data instanceof Uint8Array) {
+				console.log(`[PersistentStorage] 数据是 Uint8Array`);
+				binaryData = data;
+			} else if (typeof data === 'string') {
+				console.log(`[PersistentStorage] 数据是字符串，长度:`, data.length);
+				// 字符串数据，可能是被错误地当作文本读取了
+				// 尝试将字符串的每个字符转换为字节
+				const uint8Array = new Uint8Array(data.length);
+				for (let i = 0; i < data.length; i++) {
+					uint8Array[i] = data.charCodeAt(i) & 0xFF; // 只取低8位
+				}
+				binaryData = uint8Array;
+				console.log(`[PersistentStorage] 字符串转二进制完成，长度:`, uint8Array.length);
+			} else {
+				console.log(`[PersistentStorage] 其他数据类型，尝试转换`);
+				binaryData = new Uint8Array(data);
+			}
+			
+			const blob = new Blob([binaryData], { type: file.type || 'application/octet-stream' });
+			console.log(`[PersistentStorage] 创建 blob:`, { size: blob.size, type: blob.type });
+			
+			if (blob.size === 0) {
+				throw new Error('创建的 blob 为空');
+			}
+			
+			const url = URL.createObjectURL(blob);
+			console.log(`[PersistentStorage] 成功创建文件URL`);
+			return url;
+			
 		} catch (error) {
-			console.error('获取文件URL失败:', error);
+			console.error(`[PersistentStorage] 获取文件URL失败:`, error);
 			throw error;
 		}
 	}
@@ -237,7 +336,26 @@ export class PersistentStorageService {
 	async getCoverUrl(cover: PersistentCover): Promise<string> {
 		try {
 			if (this.obsidianVault?.adapter?.read) {
-				const uint8Array = await this.obsidianVault.adapter.read(cover.imageUrl);
+				const data = await this.obsidianVault.adapter.read(cover.imageUrl);
+				
+				// 确保数据是正确的格式
+				let uint8Array: Uint8Array;
+				if (data instanceof Uint8Array) {
+					uint8Array = data;
+				} else if (data instanceof ArrayBuffer) {
+					uint8Array = new Uint8Array(data);
+				} else if (typeof data === 'string') {
+					// 如果是 base64 字符串
+					const binaryString = atob(data);
+					uint8Array = new Uint8Array(binaryString.length);
+					for (let i = 0; i < binaryString.length; i++) {
+						uint8Array[i] = binaryString.charCodeAt(i);
+					}
+				} else {
+					console.error('未知的封面数据格式:', typeof data, data);
+					throw new Error('不支持的封面数据格式');
+				}
+				
 				const blob = new Blob([uint8Array], { type: 'image/jpeg' });
 				return URL.createObjectURL(blob);
 			}

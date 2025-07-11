@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { PersistentCover } from '../../types';
-import { persistentStorageService } from '../../services/persistentStorage';
-import { Trash2, Clock, Image, Star, Tag, Save } from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {PersistentCover} from '../../types';
+import {persistentStorageService} from '../../services/persistentStorage';
+import {Clock, Save, Star, Tag, Trash2} from 'lucide-react';
 
 interface PersistentCoverManagerProps {
 	onCoverSelect: (coverUrl: string) => void;
 	aspectRatio?: '2.25:1' | '1:1' | 'all';
-	onSaveCover?: (cover: { name: string; imageUrl: string; aspectRatio: '2.25:1' | '1:1'; width: number; height: number; tags: string[] }) => void;
+	onSaveCover?: (cover: {
+		name: string;
+		imageUrl: string;
+		aspectRatio: '2.25:1' | '1:1';
+		width: number;
+		height: number;
+		tags: string[]
+	}) => void;
 }
 
 export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
-	onCoverSelect,
-	aspectRatio = 'all',
-	onSaveCover
-}) => {
+																				  onCoverSelect,
+																				  aspectRatio = 'all',
+																				  onSaveCover
+																			  }) => {
 	const [covers, setCovers] = useState<PersistentCover[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>('');
@@ -36,12 +43,12 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 		try {
 			setLoading(true);
 			const allCovers = await persistentStorageService.getCovers();
-			
+
 			const filteredCovers = allCovers.filter(cover => {
 				if (aspectRatio === 'all') return true;
 				return cover.aspectRatio === aspectRatio;
 			}).sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime());
-			
+
 			setCovers(filteredCovers);
 		} catch (err) {
 			setError('加载封面失败');
@@ -63,7 +70,6 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 
 	const handleDeleteCover = async (cover: PersistentCover, e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (!confirm(`确定要删除封面 "${cover.name}" 吗？`)) return;
 
 		try {
 			await persistentStorageService.deleteCover(cover.id);
@@ -105,9 +111,12 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 
 	const getAspectRatioLabel = (ratio: string) => {
 		switch (ratio) {
-			case '2.25:1': return '横版';
-			case '1:1': return '方形';
-			default: return ratio;
+			case '2.25:1':
+				return '横版';
+			case '1:1':
+				return '方形';
+			default:
+				return ratio;
 		}
 	};
 
@@ -125,7 +134,10 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 			<div className="p-4 bg-red-50 border border-red-200 rounded-lg">
 				<p className="text-red-700 text-sm">{error}</p>
 				<button
-					onClick={() => { setError(''); loadCovers(); }}
+					onClick={() => {
+						setError('');
+						loadCovers();
+					}}
 					className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
 				>
 					重试
@@ -138,7 +150,7 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<Star className="h-5 w-5 text-yellow-500" />
+					<Star className="h-5 w-5 text-yellow-500"/>
 					<h4 className="font-medium text-gray-900">
 						我的封面库
 						{aspectRatio !== 'all' && (
@@ -154,7 +166,7 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 						onClick={() => setShowSaveDialog(true)}
 						className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
 					>
-						<Save className="h-4 w-4" />
+						<Save className="h-4 w-4"/>
 						保存当前封面
 					</button>
 				)}
@@ -177,8 +189,8 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 						<button
 							key={tag}
 							onClick={() => {
-								setSelectedTags(prev => 
-									prev.includes(tag) 
+								setSelectedTags(prev =>
+									prev.includes(tag)
 										? prev.filter(t => t !== tag)
 										: [...prev, tag]
 								);
@@ -189,7 +201,7 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 									: 'bg-gray-100 text-gray-700 hover:bg-gray-200'
 							}`}
 						>
-							<Tag className="h-3 w-3 inline mr-1" />
+							<Tag className="h-3 w-3 inline mr-1"/>
 							{tag}
 						</button>
 					))}
@@ -204,7 +216,7 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 
 			{!loading && filteredCovers.length === 0 && (
 				<div className="text-center py-8 text-gray-500">
-					<Star className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+					<Star className="h-12 w-12 mx-auto mb-3 text-gray-400"/>
 					<p>暂无封面</p>
 					<p className="text-sm mt-1">制作封面后点击保存按钮添加到封面库</p>
 				</div>
@@ -218,7 +230,8 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 							onClick={() => handleCoverSelect(cover)}
 							className="relative group cursor-pointer"
 						>
-							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-colors">
+							<div
+								className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-colors">
 								<img
 									src={cover.imageUrl}
 									alt={cover.name}
@@ -228,16 +241,19 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 									}}
 								/>
 							</div>
-							<div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg" />
-							<div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+							<div
+								className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg"/>
+							<div
+								className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
 								<button
 									onClick={(e) => handleDeleteCover(cover, e)}
 									className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
 								>
-									<Trash2 className="h-3 w-3" />
+									<Trash2 className="h-3 w-3"/>
 								</button>
 							</div>
-							<div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 rounded-b-lg">
+							<div
+								className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 rounded-b-lg">
 								<p className="text-white text-xs font-medium truncate">
 									{cover.name}
 								</p>
@@ -246,7 +262,7 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 										{getAspectRatioLabel(cover.aspectRatio)}
 									</span>
 									<div className="flex items-center gap-1">
-										<Clock className="h-3 w-3" />
+										<Clock className="h-3 w-3"/>
 										<span>{formatDate(cover.lastUsed)}</span>
 									</div>
 								</div>
@@ -286,7 +302,10 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 								<input
 									type="text"
 									value={saveDialogData?.name || ''}
-									onChange={(e) => setSaveDialogData(prev => prev ? { ...prev, name: e.target.value } : null)}
+									onChange={(e) => setSaveDialogData(prev => prev ? {
+										...prev,
+										name: e.target.value
+									} : null)}
 									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 									placeholder="输入封面名称"
 								/>
@@ -298,9 +317,9 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 								<input
 									type="text"
 									value={saveDialogData?.tags?.join(', ') || ''}
-									onChange={(e) => setSaveDialogData(prev => prev ? { 
-										...prev, 
-										tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) 
+									onChange={(e) => setSaveDialogData(prev => prev ? {
+										...prev,
+										tags: e.target.value.split(',').map(t => t.trim()).filter(t => t)
 									} : null)}
 									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 									placeholder="例如：科技,蓝色,简约"
@@ -309,7 +328,10 @@ export const PersistentCoverManager: React.FC<PersistentCoverManagerProps> = ({
 						</div>
 						<div className="flex justify-end gap-2 mt-6">
 							<button
-								onClick={() => { setShowSaveDialog(false); setSaveDialogData(null); }}
+								onClick={() => {
+									setShowSaveDialog(false);
+									setSaveDialogData(null);
+								}}
 								className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
 							>
 								取消

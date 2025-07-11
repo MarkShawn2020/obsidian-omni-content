@@ -85,7 +85,6 @@ export const PersistentFileManager: React.FC<PersistentFileManagerProps> = ({
 
 	const handleDeleteFile = async (file: PersistentFile, e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (!confirm(`确定要删除文件 "${file.name}" 吗？`)) return;
 
 		try {
 			await persistentStorageService.deleteFile(file.id);
