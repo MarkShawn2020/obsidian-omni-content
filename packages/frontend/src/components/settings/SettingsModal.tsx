@@ -3,27 +3,35 @@ import { PersonalInfoSettings } from './PersonalInfoSettings';
 import { AISettings } from './AISettings';
 import { PersonalInfo, ViteReactSettings } from '../../types';
 import { Settings, User, Bot, Globe, X } from 'lucide-react';
+import { useSettings } from '../../hooks/useSettings';
 
 interface SettingsModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	personalInfo: PersonalInfo;
-	onPersonalInfoChange: (info: PersonalInfo) => void;
-	onSaveSettings: () => void;
-	settings: ViteReactSettings;
-	onSettingsChange: (settings: Partial<ViteReactSettings>) => void;
+	onPersonalInfoChange?: (info: PersonalInfo) => void;
+	onSaveSettings?: () => void;
+	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
 	isOpen,
 	onClose,
-	personalInfo,
 	onPersonalInfoChange,
 	onSaveSettings,
-	settings,
 	onSettingsChange
 }) => {
+	const { saveStatus } = useSettings(onSaveSettings, onPersonalInfoChange, onSettingsChange);
 	const [activeTab, setActiveTab] = useState<'personal' | 'ai' | 'general'>('personal');
+
+	// 调试信息
+	React.useEffect(() => {
+		if (isOpen) {
+			console.log('[SettingsModal] Modal opened');
+			console.log('[SettingsModal] onPersonalInfoChange:', !!onPersonalInfoChange);
+			console.log('[SettingsModal] onSaveSettings:', !!onSaveSettings);
+			console.log('[SettingsModal] onSettingsChange:', !!onSettingsChange);
+		}
+	}, [isOpen, onPersonalInfoChange, onSaveSettings, onSettingsChange]);
 
 	if (!isOpen) return null;
 
@@ -85,19 +93,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 					<div className="p-6 max-h-[60vh] overflow-y-auto">
 						{activeTab === 'personal' && (
 							<PersonalInfoSettings
-								personalInfo={personalInfo}
+								onClose={onClose}
 								onPersonalInfoChange={onPersonalInfoChange}
 								onSaveSettings={onSaveSettings}
-								onClose={onClose}
 							/>
 						)}
 						
 						{activeTab === 'ai' && (
 							<AISettings
-								settings={settings}
+								onClose={onClose}
 								onSettingsChange={onSettingsChange}
 								onSaveSettings={onSaveSettings}
-								onClose={onClose}
 							/>
 						)}
 						
@@ -149,11 +155,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 					<div className="border-t bg-gray-50 px-6 py-4">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2 text-sm text-gray-500">
-								<span className="w-2 h-2 bg-green-500 rounded-full"></span>
-								设置已同步保存
+								<span className={`w-2 h-2 rounded-full ${
+									saveStatus === 'saved' ? 'bg-green-500' : 
+									saveStatus === 'saving' ? 'bg-yellow-500' : 
+									saveStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
+								}`}></span>
+								{saveStatus === 'saved' ? '设置已同步保存' : 
+								 saveStatus === 'saving' ? '正在保存...' : 
+								 saveStatus === 'error' ? '保存失败' : '等待保存'}
 							</div>
 							<button
-								onClick={onClose}
+								onClick={() => {
+									console.log('[SettingsModal] 完成设置 button clicked!');
+									// 确保在关闭前保存数据
+									if (onSaveSettings) {
+										console.log('[SettingsModal] Auto-saving before close');
+										onSaveSettings();
+									}
+									onClose();
+								}}
 								className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all shadow-lg"
 							>
 								完成设置

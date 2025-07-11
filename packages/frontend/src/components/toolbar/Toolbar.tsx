@@ -579,11 +579,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 				<SettingsModal
 					isOpen={isSettingsModalOpen}
 					onClose={() => setIsSettingsModalOpen(false)}
-					personalInfo={settings.personalInfo}
-					onPersonalInfoChange={onPersonalInfoChange || (() => {})}
+					onPersonalInfoChange={onPersonalInfoChange}
 					onSaveSettings={onSaveSettings}
-					settings={settings}
-					onSettingsChange={onSettingsChange || (() => {})}
+					onSettingsChange={onSettingsChange}
 				/>
 			</div>
 		);

@@ -1,6 +1,7 @@
 import {createRoot, Root} from "react-dom/client";
 import {LovpenReact} from "./components/LovpenReact";
 import {type LovpenReactLib, LovpenReactProps} from "./types";
+import {JotaiProvider} from "./providers/JotaiProvider";
 import "./index.css";
 
 // Store for managing React roots
@@ -18,7 +19,11 @@ const LovpenReactLib: LovpenReactLib = {
 		const root = createRoot(container);
 		rootStore.set(container, root);
 
-		root.render(<LovpenReact {...props} />);
+		root.render(
+			<JotaiProvider>
+				<LovpenReact {...props} />
+			</JotaiProvider>
+		);
 	},
 
 	unmount: (container: HTMLElement) => {
@@ -33,7 +38,11 @@ const LovpenReactLib: LovpenReactLib = {
 		return new Promise<void>((resolve) => {
 			const root = rootStore.get(container);
 			if (root) {
-				root.render(<LovpenReact {...props} />);
+				root.render(
+			<JotaiProvider>
+				<LovpenReact {...props} />
+			</JotaiProvider>
+		);
 				// 使用多个requestAnimationFrame确保React的useEffect完全执行完毕
 				requestAnimationFrame(() => {
 					requestAnimationFrame(() => {

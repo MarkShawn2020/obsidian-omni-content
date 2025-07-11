@@ -19,20 +19,20 @@ import {
 	Tag,
 	User
 } from 'lucide-react';
+import { useSettings } from '../../hooks/useSettings';
 
 interface AISettingsProps {
-	settings: ViteReactSettings;
-	onSettingsChange: (settings: Partial<ViteReactSettings>) => void;
-	onSaveSettings: () => void;
 	onClose: () => void;
+	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
+	onSaveSettings?: () => void;
 }
 
 export const AISettings: React.FC<AISettingsProps> = ({
-	settings,
+	onClose,
 	onSettingsChange,
-	onSaveSettings,
-	onClose
+	onSaveSettings
 }) => {
+	const { settings, saveStatus, updateSettings, saveSettings } = useSettings(onSaveSettings, undefined, onSettingsChange);
 	const [claudeApiKey, setClaudeApiKey] = useState<string>(settings.authKey || '');
 	const [aiPromptTemplate, setAiPromptTemplate] = useState<string>(settings.aiPromptTemplate || '');
 	const [isTestingConnection, setIsTestingConnection] = useState(false);
@@ -105,11 +105,12 @@ export const AISettings: React.FC<AISettingsProps> = ({
 	};
 
 	const handleSave = () => {
-		onSettingsChange({ 
+		// 使用jotai更新设置
+		updateSettings({ 
 			authKey: claudeApiKey.trim(),
 			aiPromptTemplate: aiPromptTemplate.trim()
 		});
-		onSaveSettings();
+		saveSettings();
 		logger.info('AI设置已保存');
 		onClose();
 	};

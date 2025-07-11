@@ -3,12 +3,12 @@ import { Button } from '../ui/button';
 import { PersonalInfo } from '../../types';
 import { logger } from '../../../../shared/src/logger';
 import { User, Mail, Globe, Camera, Eye, RotateCcw, Save } from 'lucide-react';
+import { useSettings } from '../../hooks/useSettings';
 
 interface PersonalInfoSettingsProps {
-	personalInfo: PersonalInfo;
-	onPersonalInfoChange: (info: PersonalInfo) => void;
-	onSaveSettings: () => void;
 	onClose: () => void;
+	onPersonalInfoChange?: (info: PersonalInfo) => void;
+	onSaveSettings?: () => void;
 }
 
 const defaultPersonalInfo: PersonalInfo = {
@@ -20,11 +20,18 @@ const defaultPersonalInfo: PersonalInfo = {
 };
 
 export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
-	personalInfo,
+	onClose,
 	onPersonalInfoChange,
-	onSaveSettings,
-	onClose
+	onSaveSettings
 }) => {
+	console.log('[PersonalInfoSettings] Component rendered');
+	console.log('[PersonalInfoSettings] onPersonalInfoChange:', !!onPersonalInfoChange);
+	console.log('[PersonalInfoSettings] onSaveSettings:', !!onSaveSettings);
+	
+	const { personalInfo, saveStatus, updatePersonalInfo, saveSettings } = useSettings(onSaveSettings, onPersonalInfoChange);
+	
+	console.log('[PersonalInfoSettings] personalInfo from useSettings:', personalInfo);
+	console.log('[PersonalInfoSettings] saveStatus:', saveStatus);
 	const [localInfo, setLocalInfo] = useState<PersonalInfo>(() => ({
 		...defaultPersonalInfo,
 		...personalInfo
@@ -32,18 +39,30 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 
 	const [previewUrl, setPreviewUrl] = useState<string>('');
 
+	// 只在组件初始化时设置 localInfo，避免覆盖用户输入
 	useEffect(() => {
-		setLocalInfo(prev => ({
+		console.log('[PersonalInfoSettings] Initial personalInfo:', personalInfo);
+		setLocalInfo({
 			...defaultPersonalInfo,
 			...personalInfo
-		}));
-	}, [personalInfo]);
+		});
+	}, []); // 空依赖数组，只在组件挂载时执行一次
 
 	const handleInputChange = (field: keyof PersonalInfo, value: string) => {
-		setLocalInfo(prev => ({
-			...prev,
-			[field]: value
-		}));
+		console.log('[PersonalInfoSettings] handleInputChange called:', field, value);
+		setLocalInfo(prev => {
+			const newInfo = {
+				...prev,
+				[field]: value
+			};
+			console.log('[PersonalInfoSettings] localInfo updated to:', newInfo);
+			
+			// 实时更新 Jotai 状态，这样用户不需要点击保存按钮
+			console.log('[PersonalInfoSettings] Auto-updating Jotai state');
+			updatePersonalInfo(newInfo);
+			
+			return newInfo;
+		});
 	};
 
 	const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,14 +100,19 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 	};
 
 	const handleSave = () => {
+		console.log('[PersonalInfoSettings] handleSave called with localInfo:', localInfo);
+		
 		// 验证必填字段
 		if (!localInfo.name.trim()) {
+			console.log('[PersonalInfoSettings] Validation failed: name is empty');
 			alert('请输入姓名');
 			return;
 		}
 
-		onPersonalInfoChange(localInfo);
-		onSaveSettings();
+		console.log('[PersonalInfoSettings] Validation passed, updating personal info');
+		// 使用jotai更新个人信息
+		updatePersonalInfo(localInfo);
+		saveSettings();
 		logger.info('个人信息已保存:', localInfo);
 		onClose();
 	};
@@ -293,7 +317,10 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 					重置信息
 				</Button>
 				<Button
-					onClick={handleSave}
+					onClick={() => {
+						console.log('[PersonalInfoSettings] Save button clicked!');
+						handleSave();
+					}}
 					className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
 				>
 					<Save className="w-4 h-4 mr-2" />

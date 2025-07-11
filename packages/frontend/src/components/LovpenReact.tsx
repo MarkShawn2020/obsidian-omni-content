@@ -2,7 +2,8 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import {LovpenReactProps} from "../types";
 import {Toolbar} from "./toolbar/Toolbar";
 import {MessageModal} from "./preview/MessageModal";
-
+import {useSetAtom} from "jotai";
+import {initializeSettingsAtom} from "../store/atoms";
 
 import {logger} from "../../../shared/src/logger";
 
@@ -29,6 +30,12 @@ export const LovpenReact: React.FC<LovpenReactProps> = ({
 																	  onPersonalInfoChange,
 																	  onSettingsChange
 																  }) => {
+	const initializeSettings = useSetAtom(initializeSettingsAtom);
+	
+	// 调试：检查传入的设置数据
+	console.log('[LovpenReact] Component props received:');
+	console.log('[LovpenReact] settings:', settings);
+	console.log('[LovpenReact] settings.personalInfo:', settings?.personalInfo);
 	logger.debug("[LovpenReact] Component render started", {
 		articleHTMLLength: articleHTML?.length || 0,
 		cssContentLength: cssContent?.length || 0,
@@ -58,6 +65,31 @@ export const LovpenReact: React.FC<LovpenReactProps> = ({
 			logger.debug("[mount-useEffect] Component will unmount");
 		};
 	}, []);
+
+	// 初始化Jotai状态
+	useEffect(() => {
+		console.log("[jotai-init] useEffect called, settings:", settings);
+		if (settings) {
+			const personalInfo = settings.personalInfo || {
+				name: '',
+				avatar: '',
+				bio: '',
+				email: '',
+				website: ''
+			};
+			
+			console.log("[jotai-init] Initializing Jotai with settings:", settings);
+			console.log("[jotai-init] Initializing Jotai with personalInfo:", personalInfo);
+			
+			initializeSettings({
+				settings,
+				personalInfo
+			});
+			
+			logger.debug("[jotai-init] Jotai state initialized with settings:", settings);
+			logger.debug("[jotai-init] Personal info:", personalInfo);
+		}
+	}, [settings, initializeSettings]);
 
 	// 检测 CSS 内容变化并触发更新
 	useEffect(() => {
