@@ -44,6 +44,7 @@ export const FormInput: React.FC<FormInputProps> = ({
 					onChange={(e) => onChange(e.target.value)}
 					placeholder={placeholder}
 					className={`w-full ${Icon ? 'pl-12' : 'pl-3'} pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors ${className}`}
+					style={Icon ? { paddingLeft: '3rem' } : undefined}
 				/>
 			</div>
 		</div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
+import { FormInput } from '../ui/FormInput';
 import { ViteReactSettings } from '../../types';
 import { logger } from '../../../../shared/src/logger';
 import { 
@@ -48,10 +49,14 @@ export const AISettings: React.FC<AISettingsProps> = ({
 		setClaudeApiKey(value);
 		setConnectionStatus('idle');
 		setErrorMessage('');
+		// 实时更新 Jotai 状态
+		updateSettings({ authKey: value.trim() });
 	};
 
 	const handlePromptTemplateChange = (value: string) => {
 		setAiPromptTemplate(value);
+		// 实时更新 Jotai 状态
+		updateSettings({ aiPromptTemplate: value.trim() });
 	};
 
 	const testConnection = async () => {
@@ -230,21 +235,16 @@ export const AISettings: React.FC<AISettingsProps> = ({
 				</div>
 				
 				<div className="space-y-4">
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700">
-							Claude API 密钥 <span className="text-red-500">*</span>
-						</label>
-						<div className="relative">
-							<input
-								type="password"
-								value={claudeApiKey}
-								onChange={(e) => handleApiKeyChange(e.target.value)}
-								placeholder="sk-ant-api03-..."
-								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors font-mono text-sm"
-							/>
-							<Key className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-						</div>
-					</div>
+					<FormInput
+						label="Claude API 密钥"
+						value={claudeApiKey}
+						onChange={handleApiKeyChange}
+						placeholder="sk-ant-api03-..."
+						type="password"
+						required={true}
+						icon={Key}
+						className="font-mono text-sm"
+					/>
 					
 					<div className="flex items-center justify-between">
 						<Button
