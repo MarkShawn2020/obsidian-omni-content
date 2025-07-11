@@ -183,19 +183,10 @@ export interface PersistentFile {
 	createdAt: string;
 	lastUsed: string;
 	blob?: Blob;
+	isPinned?: boolean;
+	pinnedAt?: string;
 }
 
-export interface PersistentCover {
-	id: string;
-	name: string;
-	aspectRatio: '2.25:1' | '1:1';
-	imageUrl: string;
-	width: number;
-	height: number;
-	createdAt: string;
-	lastUsed: string;
-	tags: string[];
-}
 
 // Persistent configuration interfaces
 export interface PersistentTemplateKit {

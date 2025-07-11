@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '../ui/tabs';
 import {PersistentFileManager} from './PersistentFileManager';
-import {PersistentCoverManager} from './PersistentCoverManager';
 import {persistentStorageService} from '../../services/persistentStorage';
 
 import {CoverAspectRatio, CoverImageSource} from "@/components/toolbar/cover/types";
@@ -252,7 +251,6 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
 				<TabsList>
 					<TabsTrigger value="article">文中图片</TabsTrigger>
 					<TabsTrigger value="library">我的档案库</TabsTrigger>
-					<TabsTrigger value="covers">封面库</TabsTrigger>
 					<TabsTrigger value="ai">AI生成</TabsTrigger>
 				</TabsList>
 
@@ -291,12 +289,6 @@ export const CoverEditor: React.FC<CoverEditorProps> = ({
 					/>
 				</TabsContent>
 
-				<TabsContent value="covers">
-					<PersistentCoverManager
-						onCoverSelect={async (coverUrl) => await onCreateCover(coverUrl, 'upload')}
-						aspectRatio={aspectRatio === 'custom' ? 'all' : aspectRatio}
-					/>
-				</TabsContent>
 
 				<TabsContent value="ai">
 					<div className="space-y-4">

@@ -1,6 +1,5 @@
 import {
 	PersistentFile,
-	PersistentCover,
 	PersistentTemplateKit,
 	PersistentPluginConfig,
 	PersistentPersonalInfo,
@@ -13,7 +12,6 @@ import {
 
 const STORAGE_KEYS = {
 	FILES: 'lovpen-persistent-files',
-	COVERS: 'lovpen-persistent-covers',
 	TEMPLATE_KITS: 'lovpen-persistent-template-kits',
 	PLUGIN_CONFIGS: 'lovpen-persistent-plugin-configs',
 	PERSONAL_INFO: 'lovpen-persistent-personal-info',
@@ -129,59 +127,6 @@ export class PersistentStorageService {
 		}
 	}
 
-	async saveCover(coverData: {
-		name: string;
-		aspectRatio: '2.25:1' | '1:1';
-		imageUrl: string;
-		width: number;
-		height: number;
-		tags?: string[];
-	}): Promise<PersistentCover> {
-		const id = this.generateId();
-		const fileName = `lovpen-covers/${id}-${coverData.name}.jpg`;
-		
-		try {
-			// 确保目录存在
-			await this.ensureDirectoryExists('lovpen-covers');
-			
-			let arrayBuffer: ArrayBuffer;
-			
-			if (coverData.imageUrl.startsWith('http://') || coverData.imageUrl.startsWith('https://')) {
-				const { requestUrl } = require('obsidian');
-				const response = await requestUrl({ url: coverData.imageUrl, method: 'GET' });
-				arrayBuffer = response.arrayBuffer;
-			} else if (coverData.imageUrl.startsWith('blob:') || coverData.imageUrl.startsWith('data:')) {
-				const response = await fetch(coverData.imageUrl);
-				arrayBuffer = await response.arrayBuffer();
-			} else {
-				throw new Error('不支持的图片URL类型');
-			}
-			
-			const uint8Array = new Uint8Array(arrayBuffer);
-			
-			if (this.obsidianVault?.adapter?.write) {
-				await this.obsidianVault.adapter.write(fileName, uint8Array);
-			}
-			
-			const persistentCover: PersistentCover = {
-				id,
-				name: coverData.name,
-				aspectRatio: coverData.aspectRatio,
-				imageUrl: fileName,
-				width: coverData.width,
-				height: coverData.height,
-				createdAt: new Date().toISOString(),
-				lastUsed: new Date().toISOString(),
-				tags: coverData.tags || []
-			};
-			
-			await this.addCoverToIndex(persistentCover);
-			return persistentCover;
-		} catch (error) {
-			console.error('保存封面失败:', error);
-			throw error;
-		}
-	}
 
 	async getFiles(): Promise<PersistentFile[]> {
 		try {
@@ -193,15 +138,6 @@ export class PersistentStorageService {
 		}
 	}
 
-	async getCovers(): Promise<PersistentCover[]> {
-		try {
-			const stored = localStorage.getItem(STORAGE_KEYS.COVERS);
-			return stored ? JSON.parse(stored) : [];
-		} catch (error) {
-			console.error('获取封面列表失败:', error);
-			return [];
-		}
-	}
 
 	async deleteFile(id: string): Promise<void> {
 		try {
@@ -220,22 +156,6 @@ export class PersistentStorageService {
 		}
 	}
 
-	async deleteCover(id: string): Promise<void> {
-		try {
-			const covers = await this.getCovers();
-			const coverToDelete = covers.find(c => c.id === id);
-			
-			if (coverToDelete && this.obsidianVault?.adapter?.remove) {
-				await this.obsidianVault.adapter.remove(coverToDelete.imageUrl);
-			}
-			
-			const updatedCovers = covers.filter(c => c.id !== id);
-			localStorage.setItem(STORAGE_KEYS.COVERS, JSON.stringify(updatedCovers));
-		} catch (error) {
-			console.error('删除封面失败:', error);
-			throw error;
-		}
-	}
 
 	async getFileUrl(file: PersistentFile): Promise<string> {
 		try {
@@ -333,39 +253,6 @@ export class PersistentStorageService {
 		}
 	}
 
-	async getCoverUrl(cover: PersistentCover): Promise<string> {
-		try {
-			if (this.obsidianVault?.adapter?.read) {
-				const data = await this.obsidianVault.adapter.read(cover.imageUrl);
-				
-				// 确保数据是正确的格式
-				let uint8Array: Uint8Array;
-				if (data instanceof Uint8Array) {
-					uint8Array = data;
-				} else if (data instanceof ArrayBuffer) {
-					uint8Array = new Uint8Array(data);
-				} else if (typeof data === 'string') {
-					// 如果是 base64 字符串
-					const binaryString = atob(data);
-					uint8Array = new Uint8Array(binaryString.length);
-					for (let i = 0; i < binaryString.length; i++) {
-						uint8Array[i] = binaryString.charCodeAt(i);
-					}
-				} else {
-					console.error('未知的封面数据格式:', typeof data, data);
-					throw new Error('不支持的封面数据格式');
-				}
-				
-				const blob = new Blob([uint8Array], { type: 'image/jpeg' });
-				return URL.createObjectURL(blob);
-			}
-			
-			throw new Error('无法获取封面URL');
-		} catch (error) {
-			console.error('获取封面URL失败:', error);
-			throw error;
-		}
-	}
 
 	async updateFileUsage(id: string): Promise<void> {
 		const files = await this.getFiles();
@@ -377,15 +264,36 @@ export class PersistentStorageService {
 		}
 	}
 
-	async updateCoverUsage(id: string): Promise<void> {
-		const covers = await this.getCovers();
-		const coverIndex = covers.findIndex(c => c.id === id);
+	async pinFile(id: string): Promise<void> {
+		const files = await this.getFiles();
+		const fileIndex = files.findIndex(f => f.id === id);
 		
-		if (coverIndex !== -1) {
-			covers[coverIndex].lastUsed = new Date().toISOString();
-			localStorage.setItem(STORAGE_KEYS.COVERS, JSON.stringify(covers));
+		if (fileIndex === -1) {
+			throw new Error('文件不存在');
+		}
+
+		// 检查已pin的文件数量
+		const pinnedFiles = files.filter(f => f.isPinned);
+		if (pinnedFiles.length >= 3 && !files[fileIndex].isPinned) {
+			throw new Error('最多只能pin 3个文件');
+		}
+
+		files[fileIndex].isPinned = true;
+		files[fileIndex].pinnedAt = new Date().toISOString();
+		localStorage.setItem(STORAGE_KEYS.FILES, JSON.stringify(files));
+	}
+
+	async unpinFile(id: string): Promise<void> {
+		const files = await this.getFiles();
+		const fileIndex = files.findIndex(f => f.id === id);
+		
+		if (fileIndex !== -1) {
+			files[fileIndex].isPinned = false;
+			delete files[fileIndex].pinnedAt;
+			localStorage.setItem(STORAGE_KEYS.FILES, JSON.stringify(files));
 		}
 	}
+
 
 	private async addFileToIndex(file: PersistentFile): Promise<void> {
 		const files = await this.getFiles();
@@ -393,11 +301,6 @@ export class PersistentStorageService {
 		localStorage.setItem(STORAGE_KEYS.FILES, JSON.stringify(files));
 	}
 
-	private async addCoverToIndex(cover: PersistentCover): Promise<void> {
-		const covers = await this.getCovers();
-		covers.push(cover);
-		localStorage.setItem(STORAGE_KEYS.COVERS, JSON.stringify(covers));
-	}
 
 	// Template Kit Management
 	async saveTemplateKit(kitData: TemplateKit, customName?: string): Promise<PersistentTemplateKit> {
@@ -595,7 +498,6 @@ export class PersistentStorageService {
 		try {
 			const data = {
 				files: await this.getFiles(),
-				covers: await this.getCovers(),
 				templateKits: await this.getTemplateKits(),
 				pluginConfigs: await this.getPluginConfigs(),
 				personalInfo: await this.getPersonalInfo(),

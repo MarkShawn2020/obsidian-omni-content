@@ -50,8 +50,8 @@ export const LovpenReact: React.FC<LovpenReactProps> = ({
 	const styleElRef = useRef<HTMLStyleElement>(null);
 	const articleDivRef = useRef<HTMLDivElement>(null);
 
-	// 工具栏宽度状态 - 默认自适应内容
-	const [toolbarWidth, setToolbarWidth] = useState<string>("auto");
+	// 工具栏宽度状态 - 固定默认宽度
+	const [toolbarWidth, setToolbarWidth] = useState<string>("420px");
 
 	// 强制触发标记，确保 useEffect 能被调用
 	const [cssUpdateTrigger, setCssUpdateTrigger] = useState(0);
@@ -231,20 +231,25 @@ export const LovpenReact: React.FC<LovpenReactProps> = ({
 			<div
 				className="column-resizer"
 				style={{
-					width: "5px",
+					width: "6px",
 					backgroundColor: "var(--background-modifier-border)",
 					cursor: "col-resize",
-					opacity: 0.7,
-					transition: "opacity 0.2s",
+					opacity: 0.5,
+					transition: "all 0.2s ease",
 					zIndex: 10,
-					flexShrink: 0 // 防止被压缩
+					flexShrink: 0, // 防止被压缩
+					borderRadius: "2px"
 				}}
 				onMouseDown={handleMouseDown}
 				onMouseEnter={(e) => {
 					e.currentTarget.style.opacity = "1";
+					e.currentTarget.style.backgroundColor = "var(--interactive-accent)";
+					e.currentTarget.style.width = "8px";
 				}}
 				onMouseLeave={(e) => {
-					e.currentTarget.style.opacity = "0.7";
+					e.currentTarget.style.opacity = "0.5";
+					e.currentTarget.style.backgroundColor = "var(--background-modifier-border)";
+					e.currentTarget.style.width = "6px";
 				}}
 			/>
 

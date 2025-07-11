@@ -375,23 +375,6 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		onDownloadCovers(covers);
 	}, [cover1PreviewCovers, cover2PreviewCovers, onDownloadCovers]);
 
-	const handleSaveCover = useCallback(async (coverData: CoverData, coverNumber: 1 | 2) => {
-		try {
-			const name = `封面${coverNumber}-${new Date().getTime()}`;
-			await persistentStorageService.saveCover({
-				name,
-				aspectRatio: coverData.aspectRatio as '2.25:1' | '1:1',
-				imageUrl: coverData.imageUrl,
-				width: coverData.width,
-				height: coverData.height,
-				tags: [`封面${coverNumber}`, new Date().toLocaleDateString()]
-			});
-			alert(`封面${coverNumber}已保存到封面库`);
-		} catch (error) {
-			console.error('保存封面失败:', error);
-			alert(`保存封面${coverNumber}失败`);
-		}
-	}, []);
 
 	// 通用的清空封面预览函数
 	const clearCoverPreview = useCallback((coverNumber: 1 | 2) => {
@@ -522,7 +505,6 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						aspectRatio={2.25}
 						label="封面1"
 						onClear={() => handleClearPreviews(1)}
-						onSave={cover1PreviewCovers[0] ? () => handleSaveCover(cover1PreviewCovers[0], 1) : undefined}
 						placeholder="暂无封面1预览"
 					/>
 					<CoverPreview
@@ -530,7 +512,6 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						aspectRatio={1}
 						label="封面2"
 						onClear={() => handleClearPreviews(2)}
-						onSave={cover2PreviewCovers[0] ? () => handleSaveCover(cover2PreviewCovers[0], 2) : undefined}
 						placeholder="暂无封面2预览"
 					/>
 				</div>
