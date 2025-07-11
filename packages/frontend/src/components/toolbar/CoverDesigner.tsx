@@ -190,6 +190,98 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		return extractedImages;
 	}, [loadImageDimensions]);
 
+	// 通用的图片匹配函数
+	const findMatchedFile = useCallback(async (originalFileName: string, savedAt: string) => {
+		const files = await persistentStorageService.getFiles();
+		const imageFiles = files.filter(f => f.type.startsWith('image/'));
+		
+		// 1. 首先按原始文件名精确匹配
+		let matchedFile = imageFiles.find(f => f.name === originalFileName);
+		
+		// 2. 如果没找到，按文件名包含匹配
+		if (!matchedFile) {
+			matchedFile = imageFiles.find(f => f.name.includes(originalFileName));
+		}
+		
+		// 3. 如果还没找到，按保存时间附近匹配（前后5分钟内）
+		if (!matchedFile && savedAt) {
+			const savedTime = new Date(savedAt).getTime();
+			matchedFile = imageFiles.find(f => {
+				const fileTime = new Date(f.createdAt).getTime();
+				return Math.abs(savedTime - fileTime) < 5 * 60 * 1000; // 5分钟内
+			});
+		}
+		
+		// 4. 最后选择最近使用的图片文件
+		if (!matchedFile && imageFiles.length > 0) {
+			matchedFile = imageFiles.sort((a, b) => 
+				new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
+			)[0];
+		}
+		
+		return matchedFile;
+	}, []);
+
+	// 通用的封面恢复函数
+	const restoreCoverFromData = useCallback(async (cover: CoverData, data: any, coverNumber: number): Promise<CoverData> => {
+		if (!cover.imageUrl.startsWith('blob:')) {
+			return cover;
+		}
+		
+		try {
+			if (!data.originalFileName) return cover;
+			
+			const matchedFile = await findMatchedFile(data.originalFileName, data.savedAt);
+			if (matchedFile) {
+				const newUrl = await persistentStorageService.getFileUrl(matchedFile);
+				logger.info(`[CoverDesigner] 恢复封面${coverNumber}图片: ${matchedFile.name}`);
+				return { ...cover, imageUrl: newUrl };
+			}
+		} catch (error) {
+			logger.error('[CoverDesigner] 恢复档案库图片失败:', error);
+		}
+		
+		return cover;
+	}, [findMatchedFile]);
+
+	// 通用的加载封面数据函数
+	const loadCoverData = useCallback(async (coverNumber: 1 | 2) => {
+		try {
+			const storageKey = `cover-designer-preview-${coverNumber}`;
+			const saved = localStorage.getItem(storageKey);
+			
+			if (!saved) return;
+			
+			const data = JSON.parse(saved);
+			if (!data.covers || !Array.isArray(data.covers)) return;
+			
+			const restoredCovers = await Promise.all(
+				data.covers.map((cover: CoverData) => restoreCoverFromData(cover, data, coverNumber))
+			);
+			
+			if (coverNumber === 1) {
+				setCover1PreviewCovers(restoredCovers);
+			} else {
+				setCover2PreviewCovers(restoredCovers);
+			}
+		} catch (error) {
+			logger.error(`[CoverDesigner] 加载封面${coverNumber}持久化数据失败:`, error);
+		}
+	}, [restoreCoverFromData]);
+
+	// 初始化时加载持久化数据
+	useEffect(() => {
+		const loadPersistedData = async () => {
+			await Promise.all([
+				loadCoverData(1),
+				loadCoverData(2)
+			]);
+			logger.info('[CoverDesigner] 加载封面预览持久化数据完成');
+		};
+		
+		loadPersistedData();
+	}, [loadCoverData]);
+
 	useEffect(() => {
 		const extractImages = async () => {
 			try {
@@ -233,6 +325,41 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		} else {
 			setCover2PreviewCovers([coverData]);
 		}
+
+		// 保存封面预览持久化数据
+		try {
+			const storageKey = `cover-designer-preview-${coverNum}`;
+			let originalFileName = '';
+			
+			// 如果是档案库来源，尝试从文件列表中获取原始文件名
+			if (source === 'upload' && imageUrl.startsWith('blob:')) {
+				try {
+					const files = await persistentStorageService.getFiles();
+					const imageFiles = files.filter(f => f.type.startsWith('image/'));
+					// 根据最近使用时间推测文件
+					if (imageFiles.length > 0) {
+						const latestFile = imageFiles.sort((a, b) => 
+							new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
+						)[0];
+						originalFileName = latestFile.name;
+					}
+				} catch (error) {
+					logger.error('[CoverDesigner] 获取原始文件名失败:', error);
+				}
+			}
+			
+			const persistData = {
+				covers: [coverData],
+				source,
+				originalFileName,
+				savedAt: new Date().toISOString()
+			};
+			
+			localStorage.setItem(storageKey, JSON.stringify(persistData));
+			logger.debug(`[CoverDesigner] 保存封面${coverNum}预览持久化数据`);
+		} catch (error) {
+			logger.error(`[CoverDesigner] 保存封面${coverNum}预览持久化数据失败:`, error);
+		}
 	}, [getDimensions]);
 
 	const handleDownloadCovers = useCallback(async () => {
@@ -265,6 +392,16 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		} else {
 			setCover2PreviewCovers([]);
 		}
+		
+		// 清空持久化数据
+		try {
+			const storageKey = `cover-designer-preview-${coverNumber}`;
+			localStorage.removeItem(storageKey);
+			logger.debug(`[CoverDesigner] 清空封面${coverNumber}持久化数据`);
+		} catch (error) {
+			logger.error(`[CoverDesigner] 清空封面${coverNumber}持久化数据失败:`, error);
+		}
+		
 		logger.info(`[CoverDesigner] 清空封面${coverNumber}预览`);
 	}, []);
 
@@ -338,6 +475,14 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 							onClick={() => {
 								setCover1PreviewCovers([]);
 								setCover2PreviewCovers([]);
+								// 清空持久化数据
+								try {
+									localStorage.removeItem('cover-designer-preview-1');
+									localStorage.removeItem('cover-designer-preview-2');
+									logger.debug('[CoverDesigner] 清空全部封面持久化数据');
+								} catch (error) {
+									logger.error('[CoverDesigner] 清空全部封面持久化数据失败:', error);
+								}
 							}}
 							className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
@@ -366,7 +511,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						coverData={cover1PreviewCovers[0]}
 						aspectRatio={2.25}
 						label="封面1"
-						onClear={() => setCover1PreviewCovers([])}
+						onClear={() => handleClearPreviews(1)}
 						onSave={cover1PreviewCovers[0] ? () => handleSaveCover(cover1PreviewCovers[0], 1) : undefined}
 						placeholder="暂无封面1预览"
 					/>
@@ -374,7 +519,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						coverData={cover2PreviewCovers[0]}
 						aspectRatio={1}
 						label="封面2"
-						onClear={() => setCover2PreviewCovers([])}
+						onClear={() => handleClearPreviews(2)}
 						onSave={cover2PreviewCovers[0] ? () => handleSaveCover(cover2PreviewCovers[0], 2) : undefined}
 						placeholder="暂无封面2预览"
 					/>
