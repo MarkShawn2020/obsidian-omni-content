@@ -5,7 +5,7 @@ import { copy } from "esbuild-plugin-copy";
 import { watch } from "fs";
 import path from "path";
 import { execSync } from "child_process";
-import { existsSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 
 const banner =
 `/*
@@ -15,16 +15,22 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = process.env.NODE_ENV === "production";
-const obsidianPluginPath = process.env.OBSIDIAN_PLUGIN_PATH;
+const obsidianVaultPath = process.env.OBSIDIAN_VAULT_PATH;
+const obsidianPluginPath = obsidianVaultPath ? path.join(obsidianVaultPath, '.obsidian', 'plugins', 'obsidian-lovpen') : process.env.OBSIDIAN_PLUGIN_PATH;
 
 // 自动同步到 Obsidian 插件目录的函数
 const syncToObsidian = () => {
 	if (obsidianPluginPath) {
-		// 检查目标目录是否存在
+		// 检查目标目录是否存在，不存在则创建
 		if (!existsSync(obsidianPluginPath)) {
-			console.error(`❌ Obsidian plugin directory does not exist: ${obsidianPluginPath}`);
-			console.error('Please create the directory first or check your OBSIDIAN_PLUGIN_PATH');
-			process.exit(1);
+			console.log(`📁 Creating Obsidian plugin directory: ${obsidianPluginPath}`);
+			try {
+				mkdirSync(obsidianPluginPath, { recursive: true });
+				console.log(`✅ Directory created successfully`);
+			} catch (error) {
+				console.error(`❌ Failed to create directory: ${error.message}`);
+				process.exit(1);
+			}
 		}
 		
 		try {
