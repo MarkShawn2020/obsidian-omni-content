@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { FormInput } from '../ui/FormInput';
-import { PersonalInfo } from '../../types';
-import { logger } from '../../../../shared/src/logger';
-import { User, Mail, Globe, Camera, Eye, RotateCcw, Save } from 'lucide-react';
-import { useSettings } from '../../hooks/useSettings';
+import React, {useEffect, useState} from 'react';
+import {Button} from '../ui/button';
+import {FormInput} from '../ui/FormInput';
+import {PersonalInfo} from '../../types';
+import {logger} from '../../../../shared/src/logger';
+import {AtSign, Camera, Eye, Globe, Mail, RotateCcw, Save, User, UserCircle} from 'lucide-react';
+import {useSettings} from '../../hooks/useSettings';
 
 interface PersonalInfoSettingsProps {
 	onClose: () => void;
@@ -21,16 +21,21 @@ const defaultPersonalInfo: PersonalInfo = {
 };
 
 export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
-	onClose,
-	onPersonalInfoChange,
-	onSaveSettings
-}) => {
+																			  onClose,
+																			  onPersonalInfoChange,
+																			  onSaveSettings
+																		  }) => {
 	console.log('[PersonalInfoSettings] Component rendered');
 	console.log('[PersonalInfoSettings] onPersonalInfoChange:', !!onPersonalInfoChange);
 	console.log('[PersonalInfoSettings] onSaveSettings:', !!onSaveSettings);
-	
-	const { personalInfo, saveStatus, updatePersonalInfo, saveSettings } = useSettings(onSaveSettings, onPersonalInfoChange);
-	
+
+	const {
+		personalInfo,
+		saveStatus,
+		updatePersonalInfo,
+		saveSettings
+	} = useSettings(onSaveSettings, onPersonalInfoChange);
+
 	console.log('[PersonalInfoSettings] personalInfo from useSettings:', personalInfo);
 	console.log('[PersonalInfoSettings] saveStatus:', saveStatus);
 	const [localInfo, setLocalInfo] = useState<PersonalInfo>(() => ({
@@ -57,11 +62,11 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 				[field]: value
 			};
 			console.log('[PersonalInfoSettings] localInfo updated to:', newInfo);
-			
+
 			// 实时更新 Jotai 状态，这样用户不需要点击保存按钮
 			console.log('[PersonalInfoSettings] Auto-updating Jotai state');
 			updatePersonalInfo(newInfo);
-			
+
 			return newInfo;
 		});
 	};
@@ -102,7 +107,7 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 
 	const handleSave = () => {
 		console.log('[PersonalInfoSettings] handleSave called with localInfo:', localInfo);
-		
+
 		// 验证必填字段
 		if (!localInfo.name.trim()) {
 			console.log('[PersonalInfoSettings] Validation failed: name is empty');
@@ -137,29 +142,31 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 			<div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6">
 				<div className="flex items-center gap-3 mb-4">
 					<div className="p-2 bg-blue-100 rounded-lg">
-						<Camera className="h-5 w-5 text-blue-600" />
+						<Camera className="h-5 w-5 text-blue-600"/>
 					</div>
 					<div>
 						<h4 className="font-semibold text-gray-900">头像设置</h4>
 						<p className="text-sm text-gray-600">上传您的个人头像照片</p>
 					</div>
 				</div>
-				
+
 				<div className="flex items-center space-x-6">
 					<div className="relative group">
-						<div className="w-20 h-20 rounded-full border-3 border-white shadow-lg flex items-center justify-center bg-gray-50 overflow-hidden">
+						<div
+							className="w-20 h-20 rounded-full border-3 border-white shadow-lg flex items-center justify-center bg-gray-50 overflow-hidden">
 							{(localInfo.avatar || previewUrl) ? (
-								<img 
-									src={previewUrl || localInfo.avatar} 
-									alt="头像预览" 
+								<img
+									src={previewUrl || localInfo.avatar}
+									alt="头像预览"
 									className="w-full h-full object-cover"
 								/>
 							) : (
-								<User className="w-8 h-8 text-gray-400" />
+								<User className="w-8 h-8 text-gray-400"/>
 							)}
 						</div>
-						<div className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-							<Camera className="w-6 h-6 text-white" />
+						<div
+							className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+							<Camera className="w-6 h-6 text-white"/>
 						</div>
 					</div>
 					<div className="flex-1 space-y-3">
@@ -179,30 +186,30 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 			{/* 基本信息表单 */}
 			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
 				<h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-					<User className="h-5 w-5 text-blue-600" />
+					<User className="h-5 w-5 text-blue-600"/>
 					基本信息
 				</h4>
-				
+
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* 姓名 */}
 					<FormInput
 						label="姓名"
-						value={localInfo.name}
+						value={localInfo.name || ''}
 						onChange={(value) => handleInputChange('name', value)}
 						placeholder="请输入您的姓名"
 						type="text"
 						required={true}
-						icon={User}
+						icon={UserCircle}
 					/>
 
-					{/* 邮箱 */}
+					{/*邮箱 */}
 					<FormInput
 						label="邮箱地址"
 						value={localInfo.email || ''}
 						onChange={(value) => handleInputChange('email', value)}
 						placeholder="your@email.com"
 						type="email"
-						icon={Mail}
+						icon={AtSign}
 					/>
 
 					{/* 个人网站 */}
@@ -239,25 +246,26 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 			<div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
 				<div className="flex items-center gap-3 mb-4">
 					<div className="p-2 bg-green-100 rounded-lg">
-						<Eye className="h-5 w-5 text-green-600" />
+						<Eye className="h-5 w-5 text-green-600"/>
 					</div>
 					<div>
 						<h4 className="font-semibold text-gray-900">信息预览</h4>
 						<p className="text-sm text-gray-600">查看您的个人信息显示效果</p>
 					</div>
 				</div>
-				
+
 				<div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-6">
 					<div className="flex items-start space-x-4">
-						<div className="w-16 h-16 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center overflow-hidden shadow-sm">
+						<div
+							className="w-16 h-16 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center overflow-hidden shadow-sm">
 							{(localInfo.avatar || previewUrl) ? (
-								<img 
-									src={previewUrl || localInfo.avatar} 
-									alt="头像" 
+								<img
+									src={previewUrl || localInfo.avatar}
+									alt="头像"
 									className="w-full h-full object-cover"
 								/>
 							) : (
-								<User className="w-8 h-8 text-gray-400" />
+								<User className="w-8 h-8 text-gray-400"/>
 							)}
 						</div>
 						<div className="flex-1">
@@ -271,14 +279,16 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 							)}
 							<div className="flex flex-wrap gap-3 mt-3">
 								{localInfo.email && (
-									<div className="flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-										<Mail className="w-3 h-3" />
+									<div
+										className="flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+										<Mail className="w-3 h-3"/>
 										{localInfo.email}
 									</div>
 								)}
 								{localInfo.website && (
-									<div className="flex items-center gap-1 text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-										<Globe className="w-3 h-3" />
+									<div
+										className="flex items-center gap-1 text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+										<Globe className="w-3 h-3"/>
 										{localInfo.website.replace(/^https?:\/\//, '')}
 									</div>
 								)}
@@ -295,7 +305,7 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 					variant="outline"
 					className="text-red-600 border-red-300 hover:bg-red-50"
 				>
-					<RotateCcw className="w-4 h-4 mr-2" />
+					<RotateCcw className="w-4 h-4 mr-2"/>
 					重置信息
 				</Button>
 				<Button
@@ -305,7 +315,7 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 					}}
 					className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
 				>
-					<Save className="w-4 h-4 mr-2" />
+					<Save className="w-4 h-4 mr-2"/>
 					保存设置
 				</Button>
 			</div>
