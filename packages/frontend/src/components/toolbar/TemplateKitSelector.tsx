@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
-import { ViteReactSettings, PersonalInfo } from '../../types';
+import { ViteReactSettings, PersonalInfo, TemplateKit } from '../../types';
 import { logger } from '../../../../shared/src/logger';
 import {
 	Package,
@@ -55,33 +55,7 @@ const CardContent: React.FC<{ className?: string; children: React.ReactNode }> =
 	</div>
 );
 
-// 模板套装相关类型定义
-interface TemplateKit {
-	basicInfo: {
-		id: string;
-		name: string;
-		description: string;
-		author: string;
-		version: string;
-		tags: string[];
-		previewImage?: string;
-	};
-	styleConfig: {
-		theme: string;
-		codeHighlight: string;
-		enableCustomThemeColor: boolean;
-		customThemeColor?: string;
-	};
-	templateConfig: {
-		templateFileName: string;
-		useTemplate: boolean;
-	};
-	pluginConfig: {
-		enabledMarkdownPlugins: string[];
-		enabledHtmlPlugins: string[];
-		pluginSettings: Record<string, any>;
-	};
-}
+// 模板套装相关类型定义已移动到 ../../types.ts
 
 interface TemplateKitSelectorProps {
 	settings: ViteReactSettings;
@@ -116,86 +90,14 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 			setLoading(true);
 			setError('');
 			
-			// 模拟加载套装数据（实际应该调用后端API）
-			const mockKits: TemplateKit[] = [
-				{
-					basicInfo: {
-						id: 'claude-style',
-						name: 'Claude Style',
-						description: '基于微信公众号Claude风格的优雅模板套装，采用温暖的橙红色主题和圆角设计',
-						author: 'Lovpen Team',
-						version: '1.0.0',
-						tags: ['微信风格', '技术文章', '橙红主题']
-					},
-					styleConfig: {
-						theme: 'claude-style',
-						codeHighlight: 'github',
-						enableCustomThemeColor: true,
-						customThemeColor: '#c86442'
-					},
-					templateConfig: {
-						templateFileName: 'Claude Style.html',
-						useTemplate: true
-					},
-					pluginConfig: {
-						enabledMarkdownPlugins: ['CodeHighlight', 'LinkRenderer'],
-						enabledHtmlPlugins: ['Images', 'Tables'],
-						pluginSettings: {}
-					}
-				},
-				{
-					basicInfo: {
-						id: 'minimal-clean',
-						name: 'Minimal Clean',
-						description: '简约清新的模板套装，采用极简设计理念，适合学术论文和正式文档',
-						author: 'Lovpen Team',
-						version: '1.0.0',
-						tags: ['极简', '学术', '正式']
-					},
-					styleConfig: {
-						theme: 'bento',
-						codeHighlight: 'vs',
-						enableCustomThemeColor: false
-					},
-					templateConfig: {
-						templateFileName: 'Bento 1.html',
-						useTemplate: true
-					},
-					pluginConfig: {
-						enabledMarkdownPlugins: ['CodeHighlight'],
-						enabledHtmlPlugins: ['Images'],
-						pluginSettings: {}
-					}
-				},
-				{
-					basicInfo: {
-						id: 'tech-dark',
-						name: 'Tech Dark',
-						description: '深色科技风格模板套装，采用暗色主题和蓝色强调色，适合程序员和技术博客',
-						author: 'Lovpen Team',
-						version: '1.0.0',
-						tags: ['暗色主题', '科技风', '程序员']
-					},
-					styleConfig: {
-						theme: 'bento-dark',
-						codeHighlight: 'vs-dark',
-						enableCustomThemeColor: true,
-						customThemeColor: '#007ACC'
-					},
-					templateConfig: {
-						templateFileName: '手工川 - 2.html',
-						useTemplate: true
-					},
-					pluginConfig: {
-						enabledMarkdownPlugins: ['CodeHighlight', 'CalloutRenderer'],
-						enabledHtmlPlugins: ['Images', 'CodeBlocks'],
-						pluginSettings: {}
-					}
-				}
-			];
-
-			setKits(mockKits);
-			logger.info('[TemplateKitSelector] Loaded template kits:', mockKits.length);
+			// 直接调用全局的template kit加载函数
+			if (window.lovpenReactAPI && window.lovpenReactAPI.loadTemplateKits) {
+				const loadedKits = await window.lovpenReactAPI.loadTemplateKits();
+				setKits(loadedKits);
+				logger.info('[TemplateKitSelector] Loaded template kits:', loadedKits.length);
+			} else {
+				throw new Error('Template kit API not available');
+			}
 		} catch (error) {
 			logger.error('[TemplateKitSelector] Error loading kits:', error);
 			setError((error as Error).message || 'Failed to load template kits');

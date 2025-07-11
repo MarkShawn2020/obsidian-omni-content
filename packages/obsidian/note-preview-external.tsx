@@ -115,6 +115,9 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 					windowLovpenReact: (window as any).LovpenReact,
 					windowLovpenReactDefault: (window as any).LovpenReact?.default,
 				});
+				
+				// 立即设置全局API，确保React组件可以访问
+				this.setupGlobalAPI();
 			} else {
 				logger.error("找不到外部React应用的全局对象", {
 					windowKeys: Object.keys(window).filter(key => key.includes('Omni') || key.includes('React') || key.includes('react')),
@@ -800,6 +803,18 @@ ${customCSS}`;
 						logger.error(`[onKitDelete] 删除套装时出错:`, error);
 						new Notice(`删除套装时出错: ${error.message}`);
 					}
+				},
+				loadTemplateKits: async () => {
+					logger.debug(`[loadTemplateKits] 加载模板套装列表`);
+					try {
+						const templateManager = TemplateManager.getInstance();
+						const kits = await templateManager.getAvailableKits();
+						logger.info(`[loadTemplateKits] 加载到 ${kits.length} 个套装`);
+						return kits;
+					} catch (error) {
+						logger.error(`[loadTemplateKits] 加载套装时出错:`, error);
+						throw error;
+					}
 				}
 			};
 
@@ -821,6 +836,128 @@ ${customCSS}`;
 					</div>
 				`;
 			}
+		}
+	}
+
+	private setupGlobalAPI() {
+		try {
+			// 设置全局API对象
+			(window as any).lovpenReactAPI = {
+				loadTemplateKits: async () => {
+					logger.debug(`[loadTemplateKits] 加载模板套装列表`);
+					try {
+						const templateManager = TemplateManager.getInstance();
+						const kits = await templateManager.getAvailableKits();
+						logger.info(`[loadTemplateKits] 加载到 ${kits.length} 个套装`);
+						return kits;
+					} catch (error) {
+						logger.error(`[loadTemplateKits] 加载套装时出错:`, error);
+						throw error;
+					}
+				},
+				onKitApply: async (kitId: string) => {
+					logger.debug(`[onKitApply] 应用模板套装: ${kitId}`);
+					try {
+						const templateManager = TemplateManager.getInstance();
+						const result = await templateManager.applyTemplateKit(kitId, {
+							overrideExisting: true,
+							applyStyles: true,
+							applyTemplate: true,
+							applyPlugins: true,
+							showConfirmDialog: false
+						});
+
+						if (result.success) {
+							logger.info(`[onKitApply] 套装 ${kitId} 应用成功`);
+							// 重新渲染文章
+							await this.renderMarkdown();
+							// 更新React组件
+							await this.updateExternalReactComponent();
+							new Notice(`模板套装应用成功！`);
+						} else {
+							logger.error(`[onKitApply] 套装应用失败:`, result.error);
+							new Notice(`应用套装失败: ${result.error}`);
+						}
+					} catch (error) {
+						logger.error(`[onKitApply] 应用套装时出错:`, error);
+						new Notice(`应用套装时出错: ${error.message}`);
+					}
+				},
+				onKitCreate: async (basicInfo: any) => {
+					logger.debug(`[onKitCreate] 创建模板套装:`, basicInfo);
+					try {
+						const templateManager = TemplateManager.getInstance();
+						const result = await templateManager.createKitFromCurrentSettings(basicInfo);
+
+						if (result.success) {
+							logger.info(`[onKitCreate] 套装 ${basicInfo.name} 创建成功`);
+							new Notice(`模板套装 "${basicInfo.name}" 创建成功！`);
+						} else {
+							logger.error(`[onKitCreate] 套装创建失败:`, result.error);
+							new Notice(`创建套装失败: ${result.error}`);
+						}
+					} catch (error) {
+						logger.error(`[onKitCreate] 创建套装时出错:`, error);
+						new Notice(`创建套装时出错: ${error.message}`);
+					}
+				},
+				onKitDelete: async (kitId: string) => {
+					logger.debug(`[onKitDelete] 删除模板套装: ${kitId}`);
+					try {
+						const kitManager = TemplateKitManager.getInstance();
+						const result = await kitManager.deleteKit(kitId);
+
+						if (result.success) {
+							logger.info(`[onKitDelete] 套装 ${kitId} 删除成功`);
+							new Notice(`模板套装删除成功！`);
+						} else {
+							logger.error(`[onKitDelete] 套装删除失败:`, result.error);
+							new Notice(`删除套装失败: ${result.error}`);
+						}
+					} catch (error) {
+						logger.error(`[onKitDelete] 删除套装时出错:`, error);
+						new Notice(`删除套装时出错: ${error.message}`);
+					}
+				},
+				onSettingsChange: (settingsUpdate: any) => {
+					logger.debug('[onSettingsChange] 设置已更新:', settingsUpdate);
+					
+					// 合并设置更新
+					Object.keys(settingsUpdate).forEach(key => {
+						if (settingsUpdate[key] !== undefined) {
+							(this.settings as any)[key] = settingsUpdate[key];
+							logger.debug(`[onSettingsChange] 已更新 ${key}:`, settingsUpdate[key]);
+						}
+					});
+					
+					this.saveSettingsToPlugin();
+				},
+				onPersonalInfoChange: (info: any) => {
+					logger.debug('[onPersonalInfoChange] 个人信息已更新:', info);
+					this.settings.personalInfo = info;
+					this.saveSettingsToPlugin();
+				},
+				onArticleInfoChange: (info: any) => {
+					if (this.isUpdatingFromToolbar) {
+						return;
+					}
+					
+					logger.debug('[onArticleInfoChange] 文章信息已更新:', info);
+					this.toolbarArticleInfo = info;
+					
+					this.isUpdatingFromToolbar = true;
+					this.updateArticleContentOnly().then(() => {
+						this.isUpdatingFromToolbar = false;
+					});
+				},
+				onSaveSettings: () => {
+					this.saveSettingsToPlugin();
+				}
+			};
+			
+			logger.info('[setupGlobalAPI] 全局API已设置完成');
+		} catch (error) {
+			logger.error('[setupGlobalAPI] 设置全局API时出错:', error);
 		}
 	}
 

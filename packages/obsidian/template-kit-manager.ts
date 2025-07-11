@@ -415,21 +415,21 @@ export default class TemplateKitManager extends Component implements ITemplateKi
 			const kit: TemplateKit = {
 				basicInfo,
 				styleConfig: {
-					theme: settings.defaultStyle || 'bento',
-					codeHighlight: settings.defaultHighlight || 'github',
+					theme: String(settings.defaultStyle || 'bento'),
+					codeHighlight: String(settings.defaultHighlight || 'github'),
 					cssVariables: {},
-					enableCustomThemeColor: settings.enableThemeColor || false,
-					customThemeColor: settings.themeColor || '',
+					enableCustomThemeColor: Boolean(settings.enableThemeColor || false),
+					customThemeColor: String(settings.themeColor || ''),
 					customCSS: ''
 				},
 				templateConfig: {
-					templateFileName: settings.defaultTemplate || '',
-					useTemplate: settings.useTemplate || false
+					templateFileName: String(settings.defaultTemplate || ''),
+					useTemplate: Boolean(settings.useTemplate || false)
 				},
 				pluginConfig: {
 					enabledMarkdownPlugins: [],
 					enabledHtmlPlugins: [],
-					pluginSettings: settings.pluginsConfig || {}
+					pluginSettings: (settings.pluginsConfig as Record<string, any>) || {}
 				}
 			};
 
@@ -447,11 +447,12 @@ export default class TemplateKitManager extends Component implements ITemplateKi
 
 	private async loadKits(): Promise<void> {
 		try {
-			const kitsFile = this.app.vault.adapter.path.join(
-				this.app.vault.adapter.basePath,
+			const adapter = this.app.vault.adapter as any;
+			const kitsFile = adapter.path?.join(
+				adapter.basePath,
 				this.config.kitsStoragePath,
 				this.KITS_FILE_NAME
-			);
+			) || `${this.config.kitsStoragePath}/${this.KITS_FILE_NAME}`;
 
 			if (await this.app.vault.adapter.exists(kitsFile)) {
 				const content = await this.app.vault.adapter.read(kitsFile);
@@ -470,17 +471,18 @@ export default class TemplateKitManager extends Component implements ITemplateKi
 
 	private async saveKits(): Promise<void> {
 		try {
-			const kitsDir = this.app.vault.adapter.path.join(
-				this.app.vault.adapter.basePath,
+			const adapter = this.app.vault.adapter as any;
+			const kitsDir = adapter.path?.join(
+				adapter.basePath,
 				this.config.kitsStoragePath
-			);
+			) || this.config.kitsStoragePath;
 
 			// 确保目录存在
 			if (!await this.app.vault.adapter.exists(kitsDir)) {
 				await this.app.vault.adapter.mkdir(kitsDir);
 			}
 
-			const kitsFile = this.app.vault.adapter.path.join(kitsDir, this.KITS_FILE_NAME);
+			const kitsFile = adapter.path?.join(kitsDir, this.KITS_FILE_NAME) || `${kitsDir}/${this.KITS_FILE_NAME}`;
 			const content = JSON.stringify(this.kitsCollection, null, 2);
 			await this.app.vault.adapter.write(kitsFile, content);
 
@@ -495,22 +497,35 @@ export default class TemplateKitManager extends Component implements ITemplateKi
 		logger.info('[TemplateKitManager] Initializing default kits');
 		
 		try {
-			// 尝试从资源文件中加载预定义套装
+			// 尝试从资源文件中加载预定义套装，使用多个可能的路径
 			const assetsManager = AssetsManager.getInstance();
-			const templateKitsPath = assetsManager.manifest.dir + '/assets/template-kits.json';
+			const possiblePaths = [
+				assetsManager.manifest.dir + '/assets/template-kits.json',
+				assetsManager.manifest.dir + '/../assets/template-kits.json',
+				assetsManager.manifest.dir + '/packages/assets/template-kits.json'
+			];
 			
-			if (await this.app.vault.adapter.exists(templateKitsPath)) {
-				const content = await this.app.vault.adapter.read(templateKitsPath);
-				const defaultKits = JSON.parse(content);
-				this.kitsCollection = defaultKits;
-				logger.info(`[TemplateKitManager] Loaded ${this.kitsCollection.kits.length} default kits from assets`);
-			} else {
+			let loadedKits = false;
+			for (const templateKitsPath of possiblePaths) {
+				logger.debug(`[TemplateKitManager] Trying to load kits from: ${templateKitsPath}`);
+				
+				if (await this.app.vault.adapter.exists(templateKitsPath)) {
+					const content = await this.app.vault.adapter.read(templateKitsPath);
+					const defaultKits = JSON.parse(content);
+					this.kitsCollection = defaultKits;
+					logger.info(`[TemplateKitManager] Loaded ${this.kitsCollection.kits.length} default kits from: ${templateKitsPath}`);
+					loadedKits = true;
+					break;
+				}
+			}
+			
+			if (!loadedKits) {
 				// 如果资源文件不存在，创建空集合
 				this.kitsCollection = {
 					version: '1.0.0',
 					kits: []
 				};
-				logger.warn('[TemplateKitManager] No default kits file found, created empty collection');
+				logger.warn('[TemplateKitManager] No default kits file found in any location, created empty collection');
 			}
 		} catch (error) {
 			logger.error('[TemplateKitManager] Error loading default kits:', error);

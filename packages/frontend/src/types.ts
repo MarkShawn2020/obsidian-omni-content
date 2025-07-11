@@ -7,6 +7,52 @@ export interface PersonalInfo {
 	website?: string;
 }
 
+// Template Kit types
+export interface TemplateKit {
+	basicInfo: {
+		id: string;
+		name: string;
+		description: string;
+		author: string;
+		version: string;
+		tags: string[];
+		previewImage?: string;
+	};
+	styleConfig: {
+		theme: string;
+		codeHighlight: string;
+		enableCustomThemeColor: boolean;
+		customThemeColor?: string;
+	};
+	templateConfig: {
+		templateFileName: string;
+		useTemplate: boolean;
+	};
+	pluginConfig: {
+		enabledMarkdownPlugins: string[];
+		enabledHtmlPlugins: string[];
+		pluginSettings: Record<string, any>;
+	};
+}
+
+// Global API interface
+interface LovpenReactAPI {
+	loadTemplateKits: () => Promise<TemplateKit[]>;
+	onKitApply?: (kitId: string) => void;
+	onKitCreate?: (basicInfo: any) => void;
+	onKitDelete?: (kitId: string) => void;
+	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
+	onPersonalInfoChange?: (info: PersonalInfo) => void;
+	onArticleInfoChange?: (info: any) => void;
+	onSaveSettings?: () => void;
+}
+
+declare global {
+	interface Window {
+		lovpenReactAPI: LovpenReactAPI;
+	}
+}
+
 // Settings interface for the Vite React components
 export interface ViteReactSettings {
 	defaultStyle: string;
