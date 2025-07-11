@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {ToggleSwitch} from "../ui/ToggleSwitch";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select";
 import {PluginData} from "../../types";
+import {persistentStorageService} from "../../services/persistentStorage";
 
 import {logger} from "../../../../shared/src/logger";
 import { ChevronDown, Settings, Info, Plug } from "lucide-react";
@@ -52,6 +53,27 @@ export const ConfigComponent = <T extends PluginData>({
 	// 本地配置状态管理
 	const [localConfig, setLocalConfig] = useState(getInitialConfig);
 	const hasLocalUpdate = useRef(false);
+	
+	// 初始化时从持久化存储加载配置
+	useEffect(() => {
+		const loadPersistedConfig = async () => {
+			try {
+				const persistedConfig = await persistentStorageService.getPluginConfig(item.name);
+				if (persistedConfig) {
+					// 合并持久化配置到本地状态
+					const mergedConfig = {...getInitialConfig(), ...persistedConfig.config};
+					setLocalConfig(mergedConfig);
+					// 同时更新item.config
+					Object.assign(item.config, mergedConfig);
+					logger.info(`[PluginConfigComponent] Loaded persisted config for ${item.name}`);
+				}
+			} catch (error) {
+				logger.error(`[PluginConfigComponent] Failed to load persisted config for ${item.name}:`, error);
+			}
+		};
+		
+		loadPersistedConfig();
+	}, [item.name]);
 
 	// 当外部配置变化时同步本地状态（但避免覆盖刚刚的本地更新）
 	useEffect(() => {
@@ -67,16 +89,28 @@ export const ConfigComponent = <T extends PluginData>({
 	const configEntries = Object.entries(item.metaConfig || {});
 	const hasConfigOptions = configEntries.length > 0;
 
-	const handleEnabledChange = (enabled: boolean) => {
-		// 持久化enabled状态
+	const handleEnabledChange = async (enabled: boolean) => {
+		// 持久化enabled状态到本地存储
 		const enabledStorageKey = `${storageKey}-enabled`;
 		saveToStorage(enabledStorageKey, enabled);
+		
+		// 持久化到统一的插件配置存储
+		try {
+			await persistentStorageService.savePluginConfig(
+				item.name,
+				{...localConfig, enabled},
+				item.metaConfig
+			);
+			logger.info(`[PluginConfigComponent] Saved plugin enabled state: ${item.name} = ${enabled}`);
+		} catch (error) {
+			logger.error(`[PluginConfigComponent] Failed to save plugin enabled state:`, error);
+		}
 
 		onEnabledChange(item.name, enabled);
 	};
 
 
-	const handleConfigChange = (key: string, value: string | boolean) => {
+	const handleConfigChange = async (key: string, value: string | boolean) => {
 		// 标记为本地更新，防止外部同步覆盖
 		hasLocalUpdate.current = true;
 
@@ -89,13 +123,25 @@ export const ConfigComponent = <T extends PluginData>({
 
 		// 3. 持久化到localStorage作为备份
 		saveToStorage(storageKey, newConfig);
+		
+		// 4. 持久化到统一的插件配置存储
+		try {
+			await persistentStorageService.savePluginConfig(
+				item.name,
+				newConfig,
+				item.metaConfig
+			);
+			logger.info(`[PluginConfigComponent] Saved plugin config: ${item.name}.${key} = ${value}`);
+		} catch (error) {
+			logger.error(`[PluginConfigComponent] Failed to save plugin config:`, error);
+		}
 
 		// 调试日志
 		logger.debug(`[PluginConfigComponent] 配置更新: ${item.name}.${key} = ${value}`);
 		logger.debug(`[PluginConfigComponent] 更新后的item.config:`, {...item.config});
 		logger.debug(`[PluginConfigComponent] 更新后的localConfig:`, {...newConfig});
 
-		// 4. 调用外部回调更新原始数据
+		// 5. 调用外部回调更新原始数据
 		if (onConfigChange) {
 			onConfigChange(item.name, key, value);
 		}

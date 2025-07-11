@@ -13,6 +13,7 @@ import TemplateManager from "./template-manager";
 import TemplateKitManager from "./template-kit-manager";
 import {uevent} from "./utils";
 import {LovpenReactProps} from "@/types";
+import {persistentStorageService} from "../frontend/src/services/persistentStorage";
 
 import {logger} from "../shared/src/logger";
 
@@ -952,10 +953,187 @@ ${customCSS}`;
 				},
 				onSaveSettings: () => {
 					this.saveSettingsToPlugin();
+				},
+				
+				// 添加持久化存储APIs
+				persistentStorage: {
+					// Template Kit Management
+					saveTemplateKit: async (kitData: any, customName?: string) => {
+						try {
+							return await persistentStorageService.saveTemplateKit(kitData, customName);
+						} catch (error) {
+							logger.error('[persistentStorage.saveTemplateKit] Error:', error);
+							throw error;
+						}
+					},
+					getTemplateKits: async () => {
+						try {
+							return await persistentStorageService.getTemplateKits();
+						} catch (error) {
+							logger.error('[persistentStorage.getTemplateKits] Error:', error);
+							throw error;
+						}
+					},
+					deleteTemplateKit: async (id: string) => {
+						try {
+							return await persistentStorageService.deleteTemplateKit(id);
+						} catch (error) {
+							logger.error('[persistentStorage.deleteTemplateKit] Error:', error);
+							throw error;
+						}
+					},
+					
+					// Plugin Configuration Management
+					savePluginConfig: async (pluginName: string, config: any, metaConfig: any) => {
+						try {
+							return await persistentStorageService.savePluginConfig(pluginName, config, metaConfig);
+						} catch (error) {
+							logger.error('[persistentStorage.savePluginConfig] Error:', error);
+							throw error;
+						}
+					},
+					getPluginConfigs: async () => {
+						try {
+							return await persistentStorageService.getPluginConfigs();
+						} catch (error) {
+							logger.error('[persistentStorage.getPluginConfigs] Error:', error);
+							throw error;
+						}
+					},
+					getPluginConfig: async (pluginName: string) => {
+						try {
+							return await persistentStorageService.getPluginConfig(pluginName);
+						} catch (error) {
+							logger.error('[persistentStorage.getPluginConfig] Error:', error);
+							throw error;
+						}
+					},
+					
+					// Personal Info Management
+					savePersonalInfo: async (info: any) => {
+						try {
+							return await persistentStorageService.savePersonalInfo(info);
+						} catch (error) {
+							logger.error('[persistentStorage.savePersonalInfo] Error:', error);
+							throw error;
+						}
+					},
+					getPersonalInfo: async () => {
+						try {
+							return await persistentStorageService.getPersonalInfo();
+						} catch (error) {
+							logger.error('[persistentStorage.getPersonalInfo] Error:', error);
+							throw error;
+						}
+					},
+					
+					// Article Info Management
+					saveArticleInfo: async (info: any) => {
+						try {
+							return await persistentStorageService.saveArticleInfo(info);
+						} catch (error) {
+							logger.error('[persistentStorage.saveArticleInfo] Error:', error);
+							throw error;
+						}
+					},
+					getArticleInfo: async () => {
+						try {
+							return await persistentStorageService.getArticleInfo();
+						} catch (error) {
+							logger.error('[persistentStorage.getArticleInfo] Error:', error);
+							throw error;
+						}
+					},
+					
+					// Style Settings Management
+					saveStyleSettings: async (settings: any) => {
+						try {
+							return await persistentStorageService.saveStyleSettings(settings);
+						} catch (error) {
+							logger.error('[persistentStorage.saveStyleSettings] Error:', error);
+							throw error;
+						}
+					},
+					getStyleSettings: async () => {
+						try {
+							return await persistentStorageService.getStyleSettings();
+						} catch (error) {
+							logger.error('[persistentStorage.getStyleSettings] Error:', error);
+							throw error;
+						}
+					},
+					
+					// File and Cover Management
+					saveFile: async (file: File, customName?: string) => {
+						try {
+							return await persistentStorageService.saveFile(file, customName);
+						} catch (error) {
+							logger.error('[persistentStorage.saveFile] Error:', error);
+							throw error;
+						}
+					},
+					getFiles: async () => {
+						try {
+							return await persistentStorageService.getFiles();
+						} catch (error) {
+							logger.error('[persistentStorage.getFiles] Error:', error);
+							throw error;
+						}
+					},
+					deleteFile: async (id: string) => {
+						try {
+							return await persistentStorageService.deleteFile(id);
+						} catch (error) {
+							logger.error('[persistentStorage.deleteFile] Error:', error);
+							throw error;
+						}
+					},
+					saveCover: async (coverData: any) => {
+						try {
+							return await persistentStorageService.saveCover(coverData);
+						} catch (error) {
+							logger.error('[persistentStorage.saveCover] Error:', error);
+							throw error;
+						}
+					},
+					getCovers: async () => {
+						try {
+							return await persistentStorageService.getCovers();
+						} catch (error) {
+							logger.error('[persistentStorage.getCovers] Error:', error);
+							throw error;
+						}
+					},
+					deleteCover: async (id: string) => {
+						try {
+							return await persistentStorageService.deleteCover(id);
+						} catch (error) {
+							logger.error('[persistentStorage.deleteCover] Error:', error);
+							throw error;
+						}
+					},
+					
+					// Utility functions
+					clearAllPersistentData: async () => {
+						try {
+							return await persistentStorageService.clearAllPersistentData();
+						} catch (error) {
+							logger.error('[persistentStorage.clearAllPersistentData] Error:', error);
+							throw error;
+						}
+					},
+					exportAllData: async () => {
+						try {
+							return await persistentStorageService.exportAllData();
+						} catch (error) {
+							logger.error('[persistentStorage.exportAllData] Error:', error);
+							throw error;
+						}
+					}
 				}
 			};
 			
-			logger.info('[setupGlobalAPI] 全局API已设置完成');
+			logger.info('[setupGlobalAPI] 全局API已设置完成，包含持久化存储APIs');
 		} catch (error) {
 			logger.error('[setupGlobalAPI] 设置全局API时出错:', error);
 		}

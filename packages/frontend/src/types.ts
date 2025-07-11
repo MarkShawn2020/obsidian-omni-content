@@ -45,6 +45,50 @@ interface LovpenReactAPI {
 	onPersonalInfoChange?: (info: PersonalInfo) => void;
 	onArticleInfoChange?: (info: any) => void;
 	onSaveSettings?: () => void;
+	
+	// Persistent storage APIs
+	persistentStorage?: {
+		// Template Kit Management
+		saveTemplateKit: (kitData: TemplateKit, customName?: string) => Promise<PersistentTemplateKit>;
+		getTemplateKits: () => Promise<PersistentTemplateKit[]>;
+		deleteTemplateKit: (id: string) => Promise<void>;
+		
+		// Plugin Configuration Management
+		savePluginConfig: (pluginName: string, config: any, metaConfig: any) => Promise<PersistentPluginConfig>;
+		getPluginConfigs: () => Promise<PersistentPluginConfig[]>;
+		getPluginConfig: (pluginName: string) => Promise<PersistentPluginConfig | null>;
+		
+		// Personal Info Management
+		savePersonalInfo: (info: PersonalInfo) => Promise<PersistentPersonalInfo>;
+		getPersonalInfo: () => Promise<PersistentPersonalInfo | null>;
+		
+		// Article Info Management
+		saveArticleInfo: (info: ArticleInfoData) => Promise<PersistentArticleInfo>;
+		getArticleInfo: () => Promise<PersistentArticleInfo | null>;
+		
+		// Style Settings Management
+		saveStyleSettings: (settings: {
+			defaultStyle: string;
+			defaultHighlight: string;
+			defaultTemplate: string;
+			useTemplate: boolean;
+			enableThemeColor: boolean;
+			themeColor: string;
+		}) => Promise<PersistentStyleSettings>;
+		getStyleSettings: () => Promise<PersistentStyleSettings | null>;
+		
+		// File and Cover Management (already available)
+		saveFile: (file: File, customName?: string) => Promise<PersistentFile>;
+		getFiles: () => Promise<PersistentFile[]>;
+		deleteFile: (id: string) => Promise<void>;
+		saveCover: (coverData: any) => Promise<PersistentCover>;
+		getCovers: () => Promise<PersistentCover[]>;
+		deleteCover: (id: string) => Promise<void>;
+		
+		// Utility functions
+		clearAllPersistentData: () => Promise<void>;
+		exportAllData: () => Promise<any>;
+	};
 }
 
 declare global {
@@ -151,6 +195,50 @@ export interface PersistentCover {
 	createdAt: string;
 	lastUsed: string;
 	tags: string[];
+}
+
+// Persistent configuration interfaces
+export interface PersistentTemplateKit {
+	id: string;
+	name: string;
+	description: string;
+	author: string;
+	version: string;
+	tags: string[];
+	configData: TemplateKit;
+	createdAt: string;
+	lastUsed: string;
+}
+
+export interface PersistentPluginConfig {
+	id: string;
+	pluginName: string;
+	config: any;
+	metaConfig: ConfigMetaCollection;
+	updatedAt: string;
+}
+
+export interface PersistentPersonalInfo {
+	id: string;
+	data: PersonalInfo;
+	updatedAt: string;
+}
+
+export interface PersistentArticleInfo {
+	id: string;
+	data: ArticleInfoData;
+	updatedAt: string;
+}
+
+export interface PersistentStyleSettings {
+	id: string;
+	defaultStyle: string;
+	defaultHighlight: string;
+	defaultTemplate: string;
+	useTemplate: boolean;
+	enableThemeColor: boolean;
+	themeColor: string;
+	updatedAt: string;
 }
 
 // Props interface for the main component

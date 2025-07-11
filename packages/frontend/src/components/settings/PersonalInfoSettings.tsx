@@ -3,6 +3,7 @@ import {Button} from '../ui/button';
 import {FormInput} from '../ui/FormInput';
 import {PersonalInfo} from '../../types';
 import {logger} from '../../../../shared/src/logger';
+import {persistentStorageService} from '../../services/persistentStorage';
 import {AtSign, Camera, Eye, Globe, Mail, RotateCcw, Save, User, UserCircle} from 'lucide-react';
 import {useSettings} from '../../hooks/useSettings';
 
@@ -90,7 +91,7 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 		try {
 			// 转换为base64
 			const reader = new FileReader();
-			reader.onload = (e) => {
+			reader.onload = async (e) => {
 				const base64 = e.target?.result as string;
 				const newInfo = {
 					...localInfo,
@@ -102,6 +103,14 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 				// 实时更新 Jotai 状态，确保头像持久化
 				console.log('[PersonalInfoSettings] Auto-updating avatar to Jotai state');
 				updatePersonalInfo(newInfo);
+				
+				// 持久化个人信息
+				try {
+					await persistentStorageService.savePersonalInfo(newInfo);
+					logger.info('[PersonalInfoSettings] Personal info with avatar saved successfully');
+				} catch (error) {
+					logger.error('[PersonalInfoSettings] Failed to save personal info with avatar:', error);
+				}
 			};
 			reader.readAsDataURL(file);
 		} catch (error) {

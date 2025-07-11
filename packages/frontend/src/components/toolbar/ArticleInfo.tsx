@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Button} from '../ui/button';
 import {ViteReactSettings} from '../../types';
 import {logger} from '../../../../shared/src/logger';
+import {persistentStorageService} from '../../services/persistentStorage';
 import Handlebars from 'handlebars';
 import { AIAnalysisSplitButton, AIStyle } from '../ui/ai-analysis-split-button';
 import { CustomPromptModal } from '../ui/custom-prompt-modal';
@@ -104,9 +105,17 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 		}
 	}, []); // 只在组件挂载时执行一次
 
-	// 当文章信息变化时，保存到localStorage并通知父组件
+	// 当文章信息变化时，持久化存储并通知父组件
 	useEffect(() => {
+		// 保存到持久化存储
+		persistentStorageService.saveArticleInfo(articleInfo).catch(error => {
+			logger.error('[ArticleInfo] Failed to save article info:', error);
+		});
+		
+		// 保存到localStorage作为备份
 		localStorage.setItem('lovpen-article-info', JSON.stringify(articleInfo));
+		
+		// 通知父组件
 		onInfoChange(articleInfo);
 	}, [articleInfo, onInfoChange]);
 
