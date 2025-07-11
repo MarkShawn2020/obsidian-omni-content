@@ -8,17 +8,20 @@ interface TabsProps {
 
 interface TabsListProps {
   children: React.ReactNode;
+  className?: string;
 }
 
 interface TabsTriggerProps {
   value: string;
   children: React.ReactNode;
   disabled?: boolean;
+  className?: string;
 }
 
 interface TabsContentProps {
   value: string;
   children: React.ReactNode;
+  className?: string;
 }
 
 const TabsContext = React.createContext<{
@@ -36,10 +39,10 @@ export const Tabs: React.FC<TabsProps> = ({ value, onValueChange, children }) =>
   );
 };
 
-export const TabsList: React.FC<TabsListProps & { style?: React.CSSProperties }> = ({ children, style }) => {
+export const TabsList: React.FC<TabsListProps & { style?: React.CSSProperties }> = ({ children, className, style }) => {
   return (
     <div 
-      className="inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500 w-full"
+      className={`inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500 w-full ${className || ''}`}
       style={style}
     >
       {children}
@@ -47,7 +50,7 @@ export const TabsList: React.FC<TabsListProps & { style?: React.CSSProperties }>
   );
 };
 
-export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, disabled = false }) => {
+export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, disabled = false, className }) => {
   const context = React.useContext(TabsContext);
   if (!context) {
     throw new Error('TabsTrigger must be used within Tabs');
@@ -65,7 +68,7 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, disab
         isSelected
           ? 'bg-white text-gray-950 shadow-sm'
           : 'text-gray-600 hover:bg-gray-200'
-      }`}
+      } ${className || ''}`}
       style={{ 
         flex: '1 1 0',
         minWidth: '60px',
@@ -77,7 +80,7 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, disab
   );
 };
 
-export const TabsContent: React.FC<TabsContentProps> = ({ value, children }) => {
+export const TabsContent: React.FC<TabsContentProps> = ({ value, children, className }) => {
   const context = React.useContext(TabsContext);
   if (!context) {
     throw new Error('TabsContent must be used within Tabs');
@@ -90,7 +93,7 @@ export const TabsContent: React.FC<TabsContentProps> = ({ value, children }) => 
   }
   
   return (
-    <div className="mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2">
+    <div className={`mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 ${className || ''}`}>
       {children}
     </div>
   );
