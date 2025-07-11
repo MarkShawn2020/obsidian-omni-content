@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {OmniContentReactProps} from "../types";
+import {LovpenReactProps} from "../types";
 import {Toolbar} from "./toolbar/Toolbar";
 import {MessageModal} from "./preview/MessageModal";
 
 
 import {logger} from "../../../shared/src/logger";
 
-export const OmniContentReact: React.FC<OmniContentReactProps> = ({
+export const LovpenReact: React.FC<LovpenReactProps> = ({
 																	  settings,
 																	  articleHTML,
 																	  cssContent,
@@ -29,7 +29,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 																	  onPersonalInfoChange,
 																	  onSettingsChange
 																  }) => {
-	logger.debug("[OmniContentReact] Component render started", {
+	logger.debug("[LovpenReact] Component render started", {
 		articleHTMLLength: articleHTML?.length || 0,
 		cssContentLength: cssContent?.length || 0,
 		cssContentHash: cssContent ? cssContent.substring(0, 50) + "..." : "",
@@ -231,7 +231,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 				}}
 			>
 				{(() => {
-					logger.debug("[OmniContentReact] 渲染工具栏", {
+					logger.debug("[LovpenReact] 渲染工具栏", {
 						pluginsCount: plugins?.length || 0,
 						settingsKeys: Object.keys(settings || {}),
 						hasOnCopy: !!onCopy,

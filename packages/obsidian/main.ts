@@ -2,14 +2,14 @@ import {App, Plugin, PluginManifest, WorkspaceLeaf} from "obsidian";
 import {VIEW_TYPE_NOTE_PREVIEW} from "./constants";
 import AssetsManager from "./assets";
 import {NotePreviewExternal} from "./note-preview-external";
-import {OmniContentSettingTab} from "./setting-tab";
+import {LovpenSettingTab} from "./setting-tab";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {setVersion, uevent} from "./utils";
 
 import {logger} from "../shared/src/logger";
 
-export default class OmniContentPlugin extends Plugin {
+export default class LovpenPlugin extends Plugin {
 	settings: NMPSettings;
 	assetsManager: AssetsManager;
 
@@ -20,7 +20,7 @@ export default class OmniContentPlugin extends Plugin {
 	}
 
 	async onload() {
-		logger.info("Loading OmniContent");
+		logger.info("Loading Lovpen");
 		setVersion(this.manifest.version);
 		uevent("load");
 		await this.loadSettings();
@@ -41,7 +41,7 @@ export default class OmniContentPlugin extends Plugin {
 				this.activateView();
 			}
 		);
-		ribbonIconEl.addClass('omnicontent-plugin-ribbon-class');
+		ribbonIconEl.addClass('lovpen-plugin-ribbon-class');
 
 		this.addCommand({
 			id: "open-note-preview",
@@ -51,7 +51,7 @@ export default class OmniContentPlugin extends Plugin {
 			},
 		});
 
-		this.addSettingTab(new OmniContentSettingTab(this.app, this));
+		this.addSettingTab(new LovpenSettingTab(this.app, this));
 	}
 
 	onunload() {

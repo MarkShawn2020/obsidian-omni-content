@@ -17,7 +17,7 @@ export default defineConfig({
 		emptyOutDir: true,
 		lib: {
 			entry: 'src/main.tsx',
-			name: 'OmniContentReact',
+			name: 'LovpenReact',
 			fileName: 'lovpen-react',
 			formats: ['iife']
 		},

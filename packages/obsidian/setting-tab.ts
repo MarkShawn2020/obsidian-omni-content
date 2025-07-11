@@ -1,5 +1,5 @@
 import {App, FileSystemAdapter, Notice, PluginSettingTab, Setting, TextAreaComponent,} from "obsidian";
-import OmniContentPlugin from "./main";
+import LovpenPlugin from "./main";
 import {cleanMathCache} from "./markdown-plugins/math";
 import {LinkDescriptionMode, NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
@@ -7,13 +7,13 @@ import {PlatformType} from "./types";
 
 import {logger} from "../shared/src/logger";
 
-export class OmniContentSettingTab extends PluginSettingTab {
-	plugin: OmniContentPlugin;
+export class LovpenSettingTab extends PluginSettingTab {
+	plugin: LovpenPlugin;
 	wxInfo: string;
 	wxTextArea: TextAreaComponent | null;
 	settings: NMPSettings;
 
-	constructor(app: App, plugin: OmniContentPlugin) {
+	constructor(app: App, plugin: LovpenPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.settings = NMPSettings.getInstance();

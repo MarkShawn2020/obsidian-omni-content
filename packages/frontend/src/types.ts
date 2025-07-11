@@ -108,7 +108,7 @@ export interface PersistentCover {
 }
 
 // Props interface for the main component
-export interface OmniContentReactProps {
+export interface LovpenReactProps {
 	settings: ViteReactSettings;
 	articleHTML: string;
 	cssContent: string;
@@ -133,8 +133,8 @@ export interface OmniContentReactProps {
 }
 
 // Global interface for the exported library
-export interface OmniContentReactLib {
-	mount: (container: HTMLElement, props: OmniContentReactProps) => void;
+export interface LovpenReactLib {
+	mount: (container: HTMLElement, props: LovpenReactProps) => void;
 	unmount: (container: HTMLElement) => void;
-	update: (container: HTMLElement, props: OmniContentReactProps) => Promise<void>;
+	update: (container: HTMLElement, props: LovpenReactProps) => Promise<void>;
 }

@@ -1,24 +1,24 @@
 import {createRoot, Root} from "react-dom/client";
-import {OmniContentReact} from "./components/OmniContentReact";
-import {type OmniContentReactLib, OmniContentReactProps} from "./types";
+import {LovpenReact} from "./components/LovpenReact";
+import {type LovpenReactLib, LovpenReactProps} from "./types";
 import "./index.css";
 
 // Store for managing React roots
 const rootStore = new Map<HTMLElement, Root>();
 
 // Library implementation
-const OmniContentReactLib: OmniContentReactLib = {
-	mount: (container: HTMLElement, props: OmniContentReactProps) => {
+const LovpenReactLib: LovpenReactLib = {
+	mount: (container: HTMLElement, props: LovpenReactProps) => {
 		// Clean up existing root if any
 		if (rootStore.has(container)) {
-			OmniContentReactLib.unmount(container);
+			LovpenReactLib.unmount(container);
 		}
 
 		// Create new root and render component
 		const root = createRoot(container);
 		rootStore.set(container, root);
 
-		root.render(<OmniContentReact {...props} />);
+		root.render(<LovpenReact {...props} />);
 	},
 
 	unmount: (container: HTMLElement) => {
@@ -29,11 +29,11 @@ const OmniContentReactLib: OmniContentReactLib = {
 		}
 	},
 
-	update: (container: HTMLElement, props: OmniContentReactProps) => {
+	update: (container: HTMLElement, props: LovpenReactProps) => {
 		return new Promise<void>((resolve) => {
 			const root = rootStore.get(container);
 			if (root) {
-				root.render(<OmniContentReact {...props} />);
+				root.render(<LovpenReact {...props} />);
 				// 使用多个requestAnimationFrame确保React的useEffect完全执行完毕
 				requestAnimationFrame(() => {
 					requestAnimationFrame(() => {
@@ -44,7 +44,7 @@ const OmniContentReactLib: OmniContentReactLib = {
 				});
 			} else {
 				// If no root exists, create one
-				OmniContentReactLib.mount(container, props);
+				LovpenReactLib.mount(container, props);
 				resolve();
 			}
 		});
@@ -53,9 +53,9 @@ const OmniContentReactLib: OmniContentReactLib = {
 
 // Export for UMD build
 if (typeof window !== 'undefined') {
-	(window as any).OmniContentReactLib = OmniContentReactLib;
+	(window as any).LovpenReactLib = LovpenReactLib;
 }
 
 // Export for ES modules
-export {OmniContentReactLib as default, OmniContentReact};
-export type {OmniContentReactProps, OmniContentReactLib};
+export {LovpenReactLib as default, LovpenReact};
+export type {LovpenReactProps, LovpenReactLib};

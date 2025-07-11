@@ -11,7 +11,7 @@ import {UnifiedPluginManager} from "./shared/unified-plugin-system";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
 import {uevent} from "./utils";
-import {OmniContentReactProps} from "@/types";
+import {LovpenReactProps} from "@/types";
 
 import {logger} from "../shared/src/logger";
 
@@ -88,10 +88,10 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			await this.loadExternalCSS(pluginDir);
 
 			// 获取全局对象
-			this.externalReactLib = (window as any).OmniContentReactLib ||
-				(window as any).OmniContentReact ||
-				(window as any).OmniContentReact?.default ||
-				(window as any).omniContentReact;
+			this.externalReactLib = (window as any).LovpenReactLib ||
+				(window as any).LovpenReact ||
+				(window as any).LovpenReact?.default ||
+				(window as any).lovpenReact;
 
 			if (this.externalReactLib) {
 				logger.debug("外部React应用加载成功", {
@@ -100,15 +100,15 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 					hasUpdate: typeof this.externalReactLib.update === 'function',
 					hasUnmount: typeof this.externalReactLib.unmount === 'function',
 					actualObject: this.externalReactLib,
-					windowOmniContentReact: (window as any).OmniContentReact,
-					windowOmniContentReactDefault: (window as any).OmniContentReact?.default,
+					windowLovpenReact: (window as any).LovpenReact,
+					windowLovpenReactDefault: (window as any).LovpenReact?.default,
 				});
 			} else {
 				logger.error("找不到外部React应用的全局对象", {
 					windowKeys: Object.keys(window).filter(key => key.includes('Omni') || key.includes('React') || key.includes('react')),
-					omniContentReact: !!(window as any).OmniContentReact,
-					omniContentReactLib: !!(window as any).OmniContentReactLib,
-					omniContentReactLowerCase: !!(window as any).omniContentReact
+					lovpenReact: !!(window as any).LovpenReact,
+					lovpenReactLib: !!(window as any).LovpenReactLib,
+					lovpenReactLowerCase: !!(window as any).lovpenReact
 				});
 			}
 		} catch (error) {
