@@ -3,6 +3,7 @@ import {App, Notice} from 'obsidian';
 
 
 import {logger} from "../shared/src/logger";
+import { TemplateKit, TemplateKitOperationResult } from './template-kit-types';
 
 // 定义模板数据类型
 export interface TemplateData {
@@ -165,6 +166,262 @@ export default class TemplateManager {
 		} catch (error) {
 			console.error('Error deleting template:', error);
 			new Notice('删除模板失败！');
+		}
+	}
+
+	// === 模板套装支持方法 ===
+
+	/**
+	 * 获取模板套装管理器
+	 */
+	private getTemplateKitManager(): any {
+		// 延迟导入避免循环依赖
+		try {
+			const TemplateKitManager = require('./template-kit-manager').default;
+			return TemplateKitManager.getInstance();
+		} catch (error) {
+			logger.error('[TemplateManager] Failed to get TemplateKitManager:', error);
+			return null;
+		}
+	}
+
+	/**
+	 * 获取所有可用的模板套装
+	 */
+	public async getAvailableKits(): Promise<TemplateKit[]> {
+		try {
+			const kitManager = this.getTemplateKitManager();
+			if (!kitManager) {
+				logger.warn('[TemplateManager] TemplateKitManager not available');
+				return [];
+			}
+			return await kitManager.getAllKits();
+		} catch (error) {
+			logger.error('[TemplateManager] Error getting available kits:', error);
+			return [];
+		}
+	}
+
+	/**
+	 * 应用模板套装
+	 * @param kitId 套装ID
+	 * @param options 应用选项
+	 */
+	public async applyTemplateKit(kitId: string, options: any = {}): Promise<TemplateKitOperationResult> {
+		try {
+			const kitManager = this.getTemplateKitManager();
+			if (!kitManager) {
+				return {
+					success: false,
+					error: 'TemplateKitManager not available'
+				};
+			}
+
+			logger.info(`[TemplateManager] Applying template kit: ${kitId}`);
+			const result = await kitManager.applyKit(kitId, options);
+			
+			if (result.success) {
+				// 重新加载模板以确保新模板可用
+				await this.loadTemplates();
+				logger.info(`[TemplateManager] Template kit ${kitId} applied successfully`);
+			}
+			
+			return result;
+		} catch (error) {
+			logger.error('[TemplateManager] Error applying template kit:', error);
+			return {
+				success: false,
+				error: error.message || 'Unknown error occurred while applying template kit'
+			};
+		}
+	}
+
+	/**
+	 * 根据当前设置创建模板套装
+	 * @param basicInfo 套装基本信息
+	 */
+	public async createKitFromCurrentSettings(basicInfo: any): Promise<TemplateKitOperationResult> {
+		try {
+			const kitManager = this.getTemplateKitManager();
+			if (!kitManager) {
+				return {
+					success: false,
+					error: 'TemplateKitManager not available'
+				};
+			}
+
+			logger.info(`[TemplateManager] Creating kit from current settings: ${basicInfo.name}`);
+			return await kitManager.createKitFromCurrentSettings(basicInfo);
+		} catch (error) {
+			logger.error('[TemplateManager] Error creating kit from current settings:', error);
+			return {
+				success: false,
+				error: error.message || 'Unknown error occurred while creating kit'
+			};
+		}
+	}
+
+	/**
+	 * 验证模板是否适用于套装
+	 * @param templateName 模板名称
+	 * @param kitId 套装ID
+	 */
+	public async validateTemplateForKit(templateName: string, kitId: string): Promise<boolean> {
+		try {
+			const template = this.getTemplate(templateName);
+			if (!template) {
+				logger.warn(`[TemplateManager] Template ${templateName} not found`);
+				return false;
+			}
+
+			const kits = await this.getAvailableKits();
+			const kit = kits.find(k => k.basicInfo.id === kitId);
+			if (!kit) {
+				logger.warn(`[TemplateManager] Kit ${kitId} not found`);
+				return false;
+			}
+
+			// 验证模板是否与套装配置匹配
+			return kit.templateConfig.templateFileName === `${templateName}.html`;
+		} catch (error) {
+			logger.error('[TemplateManager] Error validating template for kit:', error);
+			return false;
+		}
+	}
+
+	/**
+	 * 获取套装的模板预览
+	 * @param kitId 套装ID
+	 * @param sampleContent 示例内容
+	 */
+	public async getKitPreview(kitId: string, sampleContent: string = ''): Promise<string> {
+		try {
+			const kitManager = this.getTemplateKitManager();
+			if (!kitManager) {
+				logger.warn('[TemplateManager] TemplateKitManager not available');
+				return sampleContent;
+			}
+
+			const preview = await kitManager.generatePreview(kitId, sampleContent);
+			return preview.previewHtml;
+		} catch (error) {
+			logger.error('[TemplateManager] Error generating kit preview:', error);
+			return sampleContent;
+		}
+	}
+
+	/**
+	 * 检查模板是否为套装专用模板
+	 * @param templateName 模板名称
+	 */
+	public async isKitTemplate(templateName: string): Promise<boolean> {
+		try {
+			const kits = await this.getAvailableKits();
+			return kits.some(kit => 
+				kit.templateConfig.templateFileName === `${templateName}.html`
+			);
+		} catch (error) {
+			logger.error('[TemplateManager] Error checking if template is kit template:', error);
+			return false;
+		}
+	}
+
+	/**
+	 * 获取模板关联的套装信息
+	 * @param templateName 模板名称
+	 */
+	public async getTemplateKitInfo(templateName: string): Promise<TemplateKit[]> {
+		try {
+			const kits = await this.getAvailableKits();
+			return kits.filter(kit => 
+				kit.templateConfig.templateFileName === `${templateName}.html`
+			);
+		} catch (error) {
+			logger.error('[TemplateManager] Error getting template kit info:', error);
+			return [];
+		}
+	}
+
+	/**
+	 * 应用模板时自动应用套装样式
+	 * @param content 内容
+	 * @param templateName 模板名称 
+	 * @param meta 模板数据
+	 * @param autoApplyKitStyles 是否自动应用套装样式
+	 */
+	public async applyTemplateWithKitSupport(
+		content: string, 
+		templateName: string, 
+		meta: TemplateData = {},
+		autoApplyKitStyles: boolean = true
+	): Promise<string> {
+		try {
+			// 先应用基础模板
+			let result = this.applyTemplate(content, templateName, meta);
+
+			// 如果启用了自动应用套装样式，查找并应用对应套装
+			if (autoApplyKitStyles) {
+				const kitInfo = await this.getTemplateKitInfo(templateName);
+				if (kitInfo.length > 0) {
+					const kit = kitInfo[0]; // 使用第一个匹配的套装
+					logger.info(`[TemplateManager] Auto-applying kit styles for: ${kit.basicInfo.name}`);
+					
+					// 这里可以添加样式注入逻辑
+					// 将套装的CSS变量和自定义样式注入到结果中
+					if (kit.styleConfig.cssVariables || kit.styleConfig.customCSS) {
+						result = this.injectKitStyles(result, kit);
+					}
+				}
+			}
+
+			return result;
+		} catch (error) {
+			logger.error('[TemplateManager] Error applying template with kit support:', error);
+			return this.applyTemplate(content, templateName, meta);
+		}
+	}
+
+	/**
+	 * 向HTML结果中注入套装样式
+	 * @param html HTML内容
+	 * @param kit 模板套装
+	 */
+	private injectKitStyles(html: string, kit: TemplateKit): string {
+		try {
+			let styles = '';
+
+			// 添加CSS变量
+			if (kit.styleConfig.cssVariables) {
+				styles += ':root {\n';
+				for (const [key, value] of Object.entries(kit.styleConfig.cssVariables)) {
+					styles += `  ${key}: ${value};\n`;
+				}
+				styles += '}\n';
+			}
+
+			// 添加自定义CSS
+			if (kit.styleConfig.customCSS) {
+				styles += kit.styleConfig.customCSS;
+			}
+
+			// 注入样式到HTML
+			if (styles) {
+				const styleTag = `<style>\n${styles}\n</style>`;
+				
+				// 尝试在head标签中插入，如果没有head则在开头插入
+				if (html.includes('<head>')) {
+					html = html.replace('<head>', `<head>\n${styleTag}`);
+				} else if (html.includes('</head>')) {
+					html = html.replace('</head>', `${styleTag}\n</head>`);
+				} else {
+					html = styleTag + '\n' + html;
+				}
+			}
+
+			return html;
+		} catch (error) {
+			logger.error('[TemplateManager] Error injecting kit styles:', error);
+			return html;
 		}
 	}
 }

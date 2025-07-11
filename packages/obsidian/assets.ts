@@ -33,6 +33,7 @@ export default class AssetsManager {
 	hilightCfg: string;
 	customCSSPath: string;
 	iconsPath: string;
+	templatesPath: string;
 
 	private constructor() {
 
@@ -54,20 +55,42 @@ export default class AssetsManager {
 		await this.loadThemes();
 		await this.loadHighlights();
 		await this.loadCustomCSS();
+		await this.loadTemplates();
 	}
 
 	async loadThemes() {
 		try {
+			// 首先加载默认主题
+			this.themes = [this.defaultTheme];
+			
+			// 添加Claude Style主题
+			const claudeStyleTheme = {
+				name: 'Claude Style',
+				className: 'claude-style',
+				desc: 'Claude风格主题，采用温暖的橙红色配色',
+				author: 'Lovpen Team',
+				css: ''
+			};
+			
+			// 尝试加载Claude Style主题的CSS
+			const claudeStylePath = this.themesPath + 'claude-style.css';
+			if (await this.app.vault.adapter.exists(claudeStylePath)) {
+				const claudeStyleCSS = await this.app.vault.adapter.read(claudeStylePath);
+				claudeStyleTheme.css = claudeStyleCSS;
+				this.themes.push(claudeStyleTheme);
+			}
+			
+			// 加载其他主题配置
 			if (!await this.app.vault.adapter.exists(this.themeCfg)) {
 				new Notice('主题资源未下载，请前往设置下载！');
-				this.themes = [this.defaultTheme];
 				return;
 			}
+			
 			const data = await this.app.vault.adapter.read(this.themeCfg);
 			if (data) {
 				const themes = JSON.parse(data);
 				await this.loadCSS(themes);
-				this.themes = [this.defaultTheme, ...themes];
+				this.themes.push(...themes);
 			}
 		} catch (error) {
 			console.error(error);
@@ -103,6 +126,71 @@ export default class AssetsManager {
 		} catch (error) {
 			console.error(error);
 			new Notice('读取CSS失败！');
+		}
+	}
+
+	async loadTemplates() {
+		try {
+			// 确保模板目录存在
+			if (!await this.app.vault.adapter.exists(this.templatesPath)) {
+				await this.app.vault.adapter.mkdir(this.templatesPath);
+			}
+
+			// 从开发目录复制模板文件到运行目录
+			await this.copyTemplatesFromSource();
+		} catch (error) {
+			console.error('[AssetsManager] Error loading templates:', error);
+			new Notice('模板加载失败！');
+		}
+	}
+
+	async copyTemplatesFromSource() {
+		try {
+			// 开发环境中的模板文件路径
+			const sourcePath = this.manifest.dir + '/assets/templates/';
+			
+			// 检查源路径是否存在
+			if (!await this.app.vault.adapter.exists(sourcePath)) {
+				console.warn('[AssetsManager] Source templates path not found:', sourcePath);
+				return;
+			}
+
+			// 获取源目录中的所有文件
+			const files = await this.app.vault.adapter.list(sourcePath);
+			
+			for (const file of files.files) {
+				const filename = file.split('/').pop();
+				if (filename && filename.endsWith('.html')) {
+					const sourceFile = file;
+					const targetFile = this.templatesPath + filename;
+					
+					// 读取源文件内容
+					const content = await this.app.vault.adapter.read(sourceFile);
+					
+					// 写入到目标文件
+					await this.app.vault.adapter.write(targetFile, content);
+					console.log('[AssetsManager] Copied template:', filename);
+				}
+			}
+
+			// 复制Claude Style.css主题文件
+			const claudeStyleSource = this.manifest.dir + '/assets/themes/claude-style.css';
+			const claudeStyleTarget = this.themesPath + 'claude-style.css';
+			
+			if (await this.app.vault.adapter.exists(claudeStyleSource)) {
+				// 确保themes目录存在
+				if (!await this.app.vault.adapter.exists(this.themesPath)) {
+					await this.app.vault.adapter.mkdir(this.themesPath);
+				}
+				
+				const cssContent = await this.app.vault.adapter.read(claudeStyleSource);
+				await this.app.vault.adapter.write(claudeStyleTarget, cssContent);
+				console.log('[AssetsManager] Copied Claude Style theme');
+			}
+
+			console.log('[AssetsManager] Templates copied successfully');
+		} catch (error) {
+			console.error('[AssetsManager] Error copying templates:', error);
 		}
 	}
 
@@ -327,5 +415,6 @@ export default class AssetsManager {
 		this.hilightCfg = this.assetsPath + 'highlights.json';
 		this.customCSSPath = this.assetsPath + 'custom.css';
 		this.iconsPath = this.assetsPath + 'icons/';
+		this.templatesPath = this.assetsPath + 'templates/';
 	}
 }

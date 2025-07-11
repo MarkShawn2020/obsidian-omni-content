@@ -1,6 +1,6 @@
 <!--
-手工川 AI 时代生存指南 文章模板 v4 - Handlebars 版
-专为微信公众号优化，采用 Bento Grid 风格，头部专注内容展示。
+手工川 AI 时代生存指南 文章模板 v5 - 社群版本
+专为微信公众号优化，采用 Bento Grid 风格，集成社群和线下活动信息。
 请根据需要修改变量，用您的实际内容替换。
 头部变量说明：
 - {{seriesName}}: 系列名称（如：工程系列、产品系列、创业系列）
@@ -9,19 +9,19 @@
 - {{articleSubtitle}}: 文章副标题或简述
 - {{author}}: 作者名称，如：手工川
 - {{publishDate}}: 发布日期，如：2025.05.05
+- {{coverImage}}: 封面图片URL（可选）
 -->
 
 <!-- 开头 Section - 专注内容本身 -->
-<section style="max-width: 1280px; margin: 16px auto; background-color: #000000; padding: 16px; box-sizing: border-box; font-family: sans-serif; color: #d1d5db; line-height: 1.6;">
-    <div style="border: 1px solid #E31937; padding: 24px; margin-bottom: 24px; border-radius: 8px; position: relative; overflow: hidden; background-color: #000000;">
-        <!-- 透明度渐变背景叠加层 -->
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom right, rgba(227, 25, 55, 0.4), transparent); opacity: 1; z-index: 0;"></div>
-        <div style="position: relative; z-index: 1;">
+<section style="max-width: 1280px; margin: 16px 0px; background-color: #000000; padding: 16px; box-sizing: border-box; font-family: sans-serif; color: #d1d5db; line-height: 1.6;">
+    <!-- 使用单一section并添加边框和背景样式，避免嵌套定位 -->
+    <section style="border: 1px solid #E31937; padding: 24px; margin-bottom: 24px; border-radius: 8px; background-color: #000000; background-image: linear-gradient(to bottom right, rgba(227, 25, 55, 0.4), transparent);">
+        <!-- 内容容器，不使用z-index -->
             <!-- 系列标识和期数 -->
-            <div style="margin-bottom: 16px;">
+            <section style="margin-bottom: 16px;">
                 <p style="font-size: 14px; color: #E31937; margin: 0; text-transform: uppercase;">{{seriesName}}</p>
                 <p style="font-size: 16px; color: #ffffff; margin: 4px 0 0 0; font-weight: bold;">{{episodeNum}}</p>
-            </div>
+            </section>
             
             <!-- 文章标题 -->
             <h1 style="font-size: 32px; font-weight: bold; color: #ffffff; margin: 0 0 8px 0; line-height: 1.2;">{{articleTitle}}</h1>
@@ -30,22 +30,29 @@
             <p style="font-size: 18px; color: #d1d5db; margin: 0 0 24px 0; line-height: 1.4;">{{articleSubtitle}}</p>
             
             <!-- 作者和日期信息 -->
-            <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 16px; color: #a0a0a0; font-size: 14px;">
+            <section style="margin-bottom: 16px; color: #a0a0a0; font-size: 14px;">
                 <span>作者：{{author}}</span>
-                <span style="color: #666;">·</span>
+                <span style="color: #666; margin: 0 8px;">·</span>
                 <span>{{publishDate}}</span>
-            </div>
+            </section>
+            
+            <!-- 封面图片（可选） -->
+            {{#if coverImage}}
+            <section style="margin: 24px 0;">
+                <img src="{{coverImage}}" alt="文章封面" style="width: 100%; border-radius: 6px; display: block; background-color: rgba(255, 255, 255, 0.1);">
+            </section>
+            {{/if}}
             
             <!-- 可选的标签区域 -->
             {{#if tags}}
-            <div style="margin-top: 16px;">
+            <section style="margin-top: 16px;">
                 {{#each tags}}
                 <span style="display: inline-block; background-color: rgba(255, 255, 255, 0.1); color: #E31937; padding: 4px 12px; margin: 0 8px 8px 0; border-radius: 16px; font-size: 14px;">#{{this}}</span>
                 {{/each}}
-            </div>
+            </section>
             {{/if}}
-        </div>
-    </div>
+        </section>
+    </section>
 </section>
 
 <!-- ===================================================== -->
@@ -57,76 +64,14 @@
 <!-- END ARTICLE CONTENT - 请在此处粘贴您的文章主体内容 -->
 <!-- ===================================================== -->
 
-<section class="js_darkmode__200"
-style="-webkit-tap-highlight-color: transparent;margin-bottom: 0px;outline: 0px;font-family: &quot;PingFang SC&quot;, system-ui, -apple-system, &quot;system-ui&quot;, &quot;Helvetica Neue&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei UI&quot;, &quot;Microsoft YaHei&quot;, Arial, sans-serif;letter-spacing: 0.544px;background-color: rgb(255, 255, 255);text-align: center;">
-<a href="https://mp.weixin.qq.com/s?__biz=Mzg2OTg5NDg3Mg==&amp;mid=2247487048&amp;idx=1&amp;sn=2f8c447da4feb670a3a94edff0bb4ff3&amp;scene=21#wechat_redirect"
-    imgurl="https://mmbiz.qpic.cn/sz_mmbiz_gif/2niaYkVLHpnGI7oTqr1SPDbWJH43RJ5CThcRPyxibARYI48jicrtzbd9tw46KAyMeh0K53cxeb9Q9XHaIykBkCPqQ/640?wx_fmt=gif&amp;from=appmsg&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1&amp;tp=webp"
-    linktype="image" tab="innerlink" data-itemshowtype="0" target="_blank" data-linktype="1" hasload="1"
-    _href="https://mp.weixin.qq.com/s?__biz=Mzg2OTg5NDg3Mg==&amp;mid=2247487048&amp;idx=1&amp;sn=2f8c447da4feb670a3a94edff0bb4ff3&amp;scene=21#wechat_redirect"><span
-        class="js_jump_icon h5_image_link"
-        style="-webkit-tap-highlight-color: transparent;outline: 0px;vertical-align: bottom;user-select: none;width: 677px;"><img
-            alt="图片" class="rich_pages wxw-img __bg_gif" data-imgfileid="100004324"
-            data-ratio="0.5405405405405406"
-            src="https://mmbiz.qpic.cn/sz_mmbiz_gif/2niaYkVLHpnGI7oTqr1SPDbWJH43RJ5CThcRPyxibARYI48jicrtzbd9tw46KAyMeh0K53cxeb9Q9XHaIykBkCPqQ/640?wx_fmt=gif&amp;from=appmsg&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1&amp;tp=webp"
-            data-w="814"
-            style="-webkit-tap-highlight-color: transparent;outline: 0px;border-width: 0px;border-style: initial;border-color: initial;visibility: visible !important;width: 677px !important;"></span></a>
+<section style="text-align: center; margin: 16px 0px;">
+<a href="https://mp.weixin.qq.com/s?__biz=Mzg2OTg5NDg3Mg==&amp;mid=2247487048&amp;idx=1&amp;sn=2f8c447da4feb670a3a94edff0bb4ff3&amp;scene=21#wechat_redirect" target="_blank">
+    <img alt="手工川公众号广告图" src="https://mmbiz.qpic.cn/sz_mmbiz_gif/2niaYkVLHpnGI7oTqr1SPDbWJH43RJ5CThcRPyxibARYI48jicrtzbd9tw46KAyMeh0K53cxeb9Q9XHaIykBkCPqQ/640?wx_fmt=gif" style="max-width: 100%; border-radius: 4px;">
+</a>
 </section>
-
 
 <!-- 结尾 Section - 公众号推广 -->
-<section style="max-width: 1280px; margin: 16px auto; background-color: #000000; padding: 16px; box-sizing: border-box; font-family: sans-serif; color: #d1d5db; line-height: 1.6;">
-    <div style="border: 1px solid #E31937; border-radius: 8px; background-color: #000000; padding: 24px;">
-        <!-- 头部区域 - 公众号标识 -->
-        <div style="text-align: center; margin-bottom: 32px;">
-            <h2 style="font-size: 28px; font-weight: bold; color: #E31937; margin: 0 0 8px 0; font-family: sans-serif;">手工川</h2>
-            <p style="font-size: 14px; color: #a0a0a0; margin: 0; letter-spacing: 0.5px;">Stay Fool, Stay Hungry.</p>
-        </div>
-
-        <p style="font-size: 14px; color: #a0a0a0; margin: 0; letter-spacing: 0.5px; color:rgb(160, 160, 160); background-color:rgba(0, 0, 0, 0); font-family:sans-serif; font-size:14px; font-weight:400; line-height:24px; text-align:center; margin:0px; padding:0px; border:0px none rgb(160, 160, 160); border-radius:0px;"><span leaf=""><br class="ProseMirror-trailingBreak"></span></p>
-        
-        <!-- 核心价值 -->
-        <div style="text-align: center; margin-bottom: 32px;">
-            <p style="font-size: 20px; color: #ffffff; margin: 0 0 16px 0; line-height: 1.6;">精选 <strong style="color: #E31937;">真正有价值的内容</strong></p>
-            <p style="font-size: 16px; color: #d1d5db; margin: 0;">在这里遇见高质量的思考</p>
-            <p style="font-size: 16px; color: #d1d5db; margin: 0;">为对的人，带来对的启发</p>
-        </div>
-        
-        <!-- 三大主题 -->
-        <section style="display: flex; justify-content: center; gap: 24px; margin-bottom: 32px;">
-            <section style="text-align: center;">
-                <p style="color: #E31937; font-weight: bold; margin: 0 0 4px 0;">工程</p>
-                <p style="color: #a0a0a0; font-size: 14px; margin: 0;">技术实践</p>
-            </section>
-            <section style="text-align: center;">
-                <p style="color: #E31937; font-weight: bold; margin: 0 0 4px 0;">产品</p>
-                <p style="color: #a0a0a0; font-size: 14px; margin: 0;">设计思维</p>
-            </section>
-            <section style="text-align: center;">
-                <p style="color: #E31937; font-weight: bold; margin: 0 0 4px 0;">创业</p>
-                <p style="color: #a0a0a0; font-size: 14px; margin: 0;">商业洞察</p>
-            </section>
-        </section>
-
-
-
-        <!-- CTA -->
-        <section style="text-align: center; margin-bottom: 24px;">
-            <section style="display: inline-block; background-color: #E31937; color: #ffffff; padding: 12px 32px; border-radius: 24px; font-size: 16px; font-weight: bold; cursor: pointer;">感谢您的阅读！</section>
-        </section>
-
-            <section><span leaf=""><br class="ProseMirror-trailingBreak"></span></section> 
-         
-        
-        <!-- 分享理念 -->
-        <section style="text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px;">
-
-            <p style="font-size: 14px; color: #a0a0a0; margin: 0; line-height: 1.6; color:rgb(160, 160, 160); background-color:rgba(0, 0, 0, 0); font-family:sans-serif; font-size:14px; font-weight:400; line-height:22.4px; text-align:center; margin:0px; padding:0px; border:0px none rgb(160, 160, 160); border-radius:0px;"><span leaf=""><br class="ProseMirror-trailingBreak"></span></p>
-
-            <p style="font-size: 14px; color: #a0a0a0; margin: 0; line-height: 1.6;">如果文章对您有价值，欢迎分享给同行</p>
-        </section>
-    </div>
-</section>
-
+<section style="max-width: 1280px;margin: 16px 0px;background-color: #000000;padding: 16px;box-sizing: border-box;font-family: sans-serif;color: #d1d5db;line-height: 1.6;color: rgb(209, 213, 219);background-color: rgb(0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: start;line-height: 24px;margin: 16px 0px;padding: 16px;border: 0px none rgb(209, 213, 219);border-radius: 0px;max-width: 1280px;box-sizing: border-box;margin-bottom: 16px;"><section style="border: 1px solid #E31937;border-radius: 8px;background-color: #000000;padding: 24px;color: rgb(209, 213, 219);background-color: rgb(0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: start;line-height: 24px;margin: 0px;padding: 24px;border: 1px solid rgb(227, 25, 55);border-radius: 8px;box-sizing: border-box;margin-bottom: 0px;"><section style="text-align: center;margin-bottom: 24px;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px 0px 24px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 24px;"><section style="font-size: 28px;font-weight: bold;color: #E31937;margin: 0 0 8px 0;font-family: sans-serif;color: rgb(227, 25, 55);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 28px;font-weight: 700;text-align: center;line-height: 24px;margin: 0px 0px 8px;padding: 0px;border: 0px none rgb(227, 25, 55);border-radius: 0px;box-sizing: border-box;margin-bottom: 8px;"><span leaf="">手工川</span></section><p style="font-size: 14px;color: #a0a0a0;margin: 0;letter-spacing: 0.5px;color: rgb(160, 160, 160);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 14px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(160, 160, 160);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">Stay Hungry, Stay Foolish.</span></p></section><section style="text-align: center;margin-bottom: 24px;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px 0px 24px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 24px;"><p style="font-size: 20px;color: #ffffff;margin: 0 0 16px 0;line-height: 1.6;color: rgb(255, 255, 255);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 20px;font-weight: 400;text-align: center;line-height: 32px;margin: 0px 0px 16px;padding: 0px;border: 0px none rgb(255, 255, 255);border-radius: 0px;box-sizing: border-box;margin-bottom: 16px;"><span leaf="">精选</span><strong style="color: #E31937;color: rgb(227, 25, 55);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 20px;font-weight: 600;text-align: center;line-height: 32px;margin: 0px;padding: 0px;border: 0px none rgb(227, 25, 55);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">真正有价值的内容</span></strong></p><p style="font-size: 16px;color: #d1d5db;margin: 0;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 16px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">为对的人，带来对的启发</span></p><p style="font-size: 16px;color: #d1d5db;margin: 0;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 16px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">在这里遇见高质量的思考</span></p></section><section style="text-align: center;margin-bottom: 24px;padding: 16px 0;display: flex;align-items: center;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px 0px 24px;padding: 16px 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 24px;"><section style="display: inline-block;text-align: center;width: 32%;vertical-align: top;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><p style="color: #E31937;font-weight: bold;margin: 0 0 8px 0;font-size: 18px;color: rgb(227, 25, 55);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 18px;font-weight: 700;text-align: center;line-height: 24px;margin: 0px 0px 8px;padding: 0px;border: 0px none rgb(227, 25, 55);border-radius: 0px;box-sizing: border-box;margin-bottom: 8px;"><span leaf="">工程</span></p><p style="color: #d1d5db;font-size: 14px;margin: 0;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 14px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">技术实践</span></p></section><section style="display: inline-block;width: 1px;height: 40px;background-color: rgba(227, 25, 55, 0.5);margin: 0 1%;vertical-align: middle;color: rgb(209, 213, 219);background-color: rgba(227, 25, 55, 0.5);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px 11.9766px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf=""><br class="ProseMirror-trailingBreak"></span></section><section style="display: inline-block;text-align: center;width: 32%;vertical-align: top;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><p style="color: #E31937;font-weight: bold;margin: 0 0 8px 0;font-size: 18px;color: rgb(227, 25, 55);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 18px;font-weight: 700;text-align: center;line-height: 24px;margin: 0px 0px 8px;padding: 0px;border: 0px none rgb(227, 25, 55);border-radius: 0px;box-sizing: border-box;margin-bottom: 8px;"><span leaf="">产品</span></p><p style="color: #d1d5db;font-size: 14px;margin: 0;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 14px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">设计思维</span></p></section><section style="display: inline-block;width: 1px;height: 40px;background-color: rgba(227, 25, 55, 0.5);margin: 0 1%;vertical-align: middle;color: rgb(209, 213, 219);background-color: rgba(227, 25, 55, 0.5);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px 11.9766px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf=""><br class="ProseMirror-trailingBreak"></span></section><section style="display: inline-block;text-align: center;width: 32%;vertical-align: top;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><p style="color: #E31937;font-weight: bold;margin: 0 0 8px 0;font-size: 18px;color: rgb(227, 25, 55);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 18px;font-weight: 700;text-align: center;line-height: 24px;margin: 0px 0px 8px;padding: 0px;border: 0px none rgb(227, 25, 55);border-radius: 0px;box-sizing: border-box;margin-bottom: 8px;"><span leaf="">创业</span></p><p style="color: #d1d5db;font-size: 14px;margin: 0;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 14px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">商业洞察</span></p></section></section><section style="text-align: center;margin-bottom: 24px;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px 0px 24px;padding: 0px;border: 0px none rgb(209, 213, 219);border-radius: 0px;box-sizing: border-box;margin-bottom: 24px;"><span style="display: inline-block;background-color: #E31937;color: #ffffff;padding: 12px 32px;border-radius: 24px;font-size: 16px;font-weight: bold;margin-right: 8px;color: rgb(255, 255, 255);background-color: rgb(227, 25, 55);font-family: sans-serif;font-size: 16px;font-weight: 700;text-align: center;line-height: 24px;margin: 0px 8px 0px 0px;padding: 12px 32px;border: 0px none rgb(255, 255, 255);border-radius: 24px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">感谢您的时间！</span></span></section><section style="text-align: center;border-top: 1px solid rgba(255, 255, 255, 0.1);padding-top: 16px;color: rgb(209, 213, 219);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 15px;font-weight: 400;text-align: center;line-height: 24px;margin: 0px;padding: 16px 0px 0px;border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><p style="font-size: 14px;color: #a0a0a0;margin: 0;line-height: 1.6;color: rgb(160, 160, 160);background-color: rgba(0, 0, 0, 0);font-family: sans-serif;font-size: 14px;font-weight: 400;text-align: center;line-height: 22.4px;margin: 0px;padding: 0px;border: 0px none rgb(160, 160, 160);border-radius: 0px;box-sizing: border-box;margin-bottom: 0px;"><span leaf="">如果文章对您有价值，欢迎分享给同行</span></p></section></section></section>
 
 <section class="mp_profile_iframe_wrp custom_select_card_wrp" nodeleaf="">
     <mp-common-profile class="mpprofile js_uneditable custom_select_card mp_profile_iframe"
@@ -137,4 +82,3 @@ style="-webkit-tap-highlight-color: transparent;margin-bottom: 0px;outline: 0px;
     </mp-common-profile>
     <!-- <br class="ProseMirror-trailingBreak"> -->
     </section>
-

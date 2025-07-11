@@ -10,6 +10,7 @@ import {MarkedParser} from "./markdown-plugins/parser";
 import {UnifiedPluginManager} from "./shared/unified-plugin-system";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
+import TemplateKitManager from "./template-kit-manager";
 import {uevent} from "./utils";
 import {LovpenReactProps} from "@/types";
 
@@ -735,6 +736,70 @@ ${customCSS}`;
 					logger.debug('[onSettingsChange] 更新后的authKey:', this.settings.authKey);
 					logger.debug('[onSettingsChange] 更新后的全部设置:', this.settings.getAllSettings());
 					this.saveSettingsToPlugin();
+				},
+				onKitApply: async (kitId: string) => {
+					logger.debug(`[onKitApply] 应用模板套装: ${kitId}`);
+					try {
+						const templateManager = TemplateManager.getInstance();
+						const result = await templateManager.applyTemplateKit(kitId, {
+							overrideExisting: true,
+							applyStyles: true,
+							applyTemplate: true,
+							applyPlugins: true,
+							showConfirmDialog: false
+						});
+
+						if (result.success) {
+							logger.info(`[onKitApply] 套装 ${kitId} 应用成功`);
+							// 重新渲染文章
+							await this.renderMarkdown();
+							// 更新React组件
+							await this.updateExternalReactComponent();
+							new Notice(`模板套装应用成功！`);
+						} else {
+							logger.error(`[onKitApply] 套装应用失败:`, result.error);
+							new Notice(`应用套装失败: ${result.error}`);
+						}
+					} catch (error) {
+						logger.error(`[onKitApply] 应用套装时出错:`, error);
+						new Notice(`应用套装时出错: ${error.message}`);
+					}
+				},
+				onKitCreate: async (basicInfo: any) => {
+					logger.debug(`[onKitCreate] 创建模板套装:`, basicInfo);
+					try {
+						const templateManager = TemplateManager.getInstance();
+						const result = await templateManager.createKitFromCurrentSettings(basicInfo);
+
+						if (result.success) {
+							logger.info(`[onKitCreate] 套装 ${basicInfo.name} 创建成功`);
+							new Notice(`模板套装 "${basicInfo.name}" 创建成功！`);
+						} else {
+							logger.error(`[onKitCreate] 套装创建失败:`, result.error);
+							new Notice(`创建套装失败: ${result.error}`);
+						}
+					} catch (error) {
+						logger.error(`[onKitCreate] 创建套装时出错:`, error);
+						new Notice(`创建套装时出错: ${error.message}`);
+					}
+				},
+				onKitDelete: async (kitId: string) => {
+					logger.debug(`[onKitDelete] 删除模板套装: ${kitId}`);
+					try {
+						const kitManager = TemplateKitManager.getInstance();
+						const result = await kitManager.deleteKit(kitId);
+
+						if (result.success) {
+							logger.info(`[onKitDelete] 套装 ${kitId} 删除成功`);
+							new Notice(`模板套装删除成功！`);
+						} else {
+							logger.error(`[onKitDelete] 套装删除失败:`, result.error);
+							new Notice(`删除套装失败: ${result.error}`);
+						}
+					} catch (error) {
+						logger.error(`[onKitDelete] 删除套装时出错:`, error);
+						new Notice(`删除套装时出错: ${error.message}`);
+					}
 				}
 			};
 

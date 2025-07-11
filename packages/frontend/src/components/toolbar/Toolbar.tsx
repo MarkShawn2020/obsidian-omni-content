@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {BrandSection} from "./BrandSection";
 import {StyleSettings} from "./StyleSettings";
+import {TemplateKitSelector} from "./TemplateKitSelector";
 import {CoverDesigner} from "./CoverDesigner";
 import {ArticleInfo, ArticleInfoData} from "./ArticleInfo";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "../ui/tabs";
@@ -17,7 +18,8 @@ import {
 	CheckCircle2, 
 	XCircle, 
 	Zap, 
-	Download 
+	Download,
+	Package
 } from "lucide-react";
 
 interface ToolbarProps {
@@ -40,6 +42,9 @@ interface ToolbarProps {
 	onArticleInfoChange?: (info: ArticleInfoData) => void;
 	onPersonalInfoChange?: (info: PersonalInfo) => void;
 	onSettingsChange?: (settings: Partial<ViteReactSettings>) => void;
+	onKitApply?: (kitId: string) => void;
+	onKitCreate?: (basicInfo: any) => void;
+	onKitDelete?: (kitId: string) => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -62,6 +67,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 													onArticleInfoChange,
 													onPersonalInfoChange,
 													onSettingsChange,
+													onKitApply,
+													onKitCreate,
+													onKitDelete,
 												}) => {
 	logger.info("[Toolbar] 完整工具栏开始渲染", {
 		pluginsCount: plugins?.length || 0,
@@ -334,7 +342,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 						</div>
 						
 						<Tabs value={activeTab} onValueChange={handleTabChange}>
-							<TabsList className="grid w-full grid-cols-4 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-1">
+							<TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-1">
 								<TabsTrigger 
 									value="info"
 									className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
@@ -351,6 +359,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 										<span className="hidden sm:inline">样式</span>
 									</TabsTrigger>
 								)}
+								<TabsTrigger 
+									value="kits"
+									className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm"
+								>
+									<Package className="h-4 w-4" />
+									<span className="hidden sm:inline">套装</span>
+								</TabsTrigger>
 								<TabsTrigger 
 									value="plugins"
 									className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm"
@@ -396,6 +411,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 									</div>
 								</TabsContent>
 							)}
+
+							<TabsContent value="kits" className="mt-6">
+								<div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-sm">
+									<TemplateKitSelector
+										settings={settings}
+										onKitApply={onKitApply}
+										onKitCreate={onKitCreate}
+										onKitDelete={onKitDelete}
+										onSettingsChange={onSettingsChange}
+									/>
+								</div>
+							</TabsContent>
 
 							<TabsContent value="plugins" className="mt-6">
 								<div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-sm">

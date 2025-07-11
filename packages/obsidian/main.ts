@@ -5,6 +5,7 @@ import {NotePreviewExternal} from "./note-preview-external";
 import {LovpenSettingTab} from "./setting-tab";
 import {NMPSettings} from "./settings";
 import TemplateManager from "./template-manager";
+import TemplateKitManager from "./template-kit-manager";
 import {setVersion, uevent} from "./utils";
 
 import {logger} from "../shared/src/logger";
@@ -12,6 +13,7 @@ import {logger} from "../shared/src/logger";
 export default class LovpenPlugin extends Plugin {
 	settings: NMPSettings;
 	assetsManager: AssetsManager;
+	templateKitManager: TemplateKitManager;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -30,6 +32,10 @@ export default class LovpenPlugin extends Plugin {
 		const templateManager = TemplateManager.getInstance();
 		templateManager.setup(this.app);
 		await templateManager.loadTemplates();
+
+		// 初始化模板套装管理器
+		this.templateKitManager = TemplateKitManager.getInstance(this.app, this);
+		await this.templateKitManager.onload();
 
 
 		this.registerView(
@@ -54,7 +60,11 @@ export default class LovpenPlugin extends Plugin {
 		this.addSettingTab(new LovpenSettingTab(this.app, this));
 	}
 
-	onunload() {
+	async onunload() {
+		// 清理模板套装管理器
+		if (this.templateKitManager) {
+			await this.templateKitManager.onunload();
+		}
 	}
 
 	async loadSettings() {
