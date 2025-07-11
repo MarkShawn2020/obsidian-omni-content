@@ -1,6 +1,6 @@
 {
 	"name": "lovpen-vite-react",
-	"version": "0.12.6",
+	"version": "0.13.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite build --watch",
