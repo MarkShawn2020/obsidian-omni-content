@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
+import { FormInput } from '../ui/FormInput';
 import { PersonalInfo } from '../../types';
 import { logger } from '../../../../shared/src/logger';
 import { User, Mail, Globe, Camera, Eye, RotateCcw, Save } from 'lucide-react';
@@ -184,55 +185,36 @@ export const PersonalInfoSettings: React.FC<PersonalInfoSettingsProps> = ({
 				
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* 姓名 */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700">
-							姓名 <span className="text-red-500">*</span>
-						</label>
-						<div className="relative">
-							<input
-								type="text"
-								value={localInfo.name}
-								onChange={(e) => handleInputChange('name', e.target.value)}
-								placeholder="请输入您的姓名"
-								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors"
-							/>
-							<User className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-						</div>
-					</div>
+					<FormInput
+						label="姓名"
+						value={localInfo.name}
+						onChange={(value) => handleInputChange('name', value)}
+						placeholder="请输入您的姓名"
+						type="text"
+						required={true}
+						icon={User}
+					/>
 
 					{/* 邮箱 */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700">
-							邮箱地址
-						</label>
-						<div className="relative">
-							<input
-								type="email"
-								value={localInfo.email || ''}
-								onChange={(e) => handleInputChange('email', e.target.value)}
-								placeholder="your@email.com"
-								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors"
-							/>
-							<Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-						</div>
-					</div>
+					<FormInput
+						label="邮箱地址"
+						value={localInfo.email || ''}
+						onChange={(value) => handleInputChange('email', value)}
+						placeholder="your@email.com"
+						type="email"
+						icon={Mail}
+					/>
 
 					{/* 个人网站 */}
-					<div className="space-y-2 md:col-span-2">
-						<label className="block text-sm font-medium text-gray-700">
-							个人网站
-						</label>
-						<div className="relative">
-							<input
-								type="url"
-								value={localInfo.website || ''}
-								onChange={(e) => handleInputChange('website', e.target.value)}
-								placeholder="https://your-website.com"
-								className="w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-0 transition-colors"
-							/>
-							<Globe className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-						</div>
-					</div>
+					<FormInput
+						label="个人网站"
+						value={localInfo.website || ''}
+						onChange={(value) => handleInputChange('website', value)}
+						placeholder="https://your-website.com"
+						type="url"
+						icon={Globe}
+						containerClassName="md:col-span-2"
+					/>
 
 					{/* 个人简介 */}
 					<div className="space-y-2 md:col-span-2">
