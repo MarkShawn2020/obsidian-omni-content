@@ -5,6 +5,7 @@ import { copy } from "esbuild-plugin-copy";
 import { watch } from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import { existsSync } from "fs";
 
 const banner =
 `/*
@@ -19,6 +20,13 @@ const obsidianPluginPath = process.env.OBSIDIAN_PLUGIN_PATH;
 // 自动同步到 Obsidian 插件目录的函数
 const syncToObsidian = () => {
 	if (obsidianPluginPath) {
+		// 检查目标目录是否存在
+		if (!existsSync(obsidianPluginPath)) {
+			console.error(`❌ Obsidian plugin directory does not exist: ${obsidianPluginPath}`);
+			console.error('Please create the directory first or check your OBSIDIAN_PLUGIN_PATH');
+			process.exit(1);
+		}
+		
 		try {
 			execSync(`rsync -a packages/obsidian/dist/ "${obsidianPluginPath}"`, { 
 				stdio: 'inherit',
@@ -27,6 +35,7 @@ const syncToObsidian = () => {
 			console.log(`🔄 Synced to Obsidian plugin directory: ${obsidianPluginPath}`);
 		} catch (error) {
 			console.error('❌ Failed to sync to Obsidian:', error.message);
+			process.exit(1);
 		}
 	}
 };
