@@ -131,7 +131,7 @@ export class PluginConfigManager {
 			if (app) {
 				const pluginManager = app as any;
 				if (pluginManager.plugins) {
-					const plugin = pluginManager.plugins.plugins["omni-content"];
+					const plugin = pluginManager.plugins.plugins["lovpen"];
 					if (plugin && typeof plugin.saveSettings === "function") {
 						plugin.saveSettings();
 						logger.debug(`已触发插件的 saveSettings 方法`);

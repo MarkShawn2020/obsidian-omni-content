@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-omni-content",
+	"name": "obsidian-lovpen",
 	"version": "0.12.6",
 	"description": "This is a plugin for Obsidian (https://obsidian.md)",
 	"main": "dist/main.js",

@@ -189,7 +189,7 @@ export const OmniContentReact: React.FC<OmniContentReactProps> = ({
 					minWidth: "300px" // 最小宽度保护
 				}}
 			>
-				<style ref={styleElRef} title="omni-content-style">
+				<style ref={styleElRef} title="lovpen-style">
 					{cssContent}
 				</style>
 				<div ref={articleDivRef} dangerouslySetInnerHTML={{__html: articleHTML}}/>

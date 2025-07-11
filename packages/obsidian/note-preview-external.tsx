@@ -38,7 +38,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
 		// 获取主插件的设置实例，而不是单例
-		const plugin = (this.app as any).plugins.plugins["omni-content"];
+		const plugin = (this.app as any).plugins.plugins["lovpen"];
 		this.settings = plugin ? plugin.settings : NMPSettings.getInstance();
 		this.assetsManager = AssetsManager.getInstance();
 		this.markedParser = new MarkedParser(this.app, this);
@@ -73,8 +73,8 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	private async loadExternalReactApp() {
 		try {
 			const adapter = this.app.vault.adapter;
-			const pluginDir = (this.app as any).plugins.plugins["omni-content"].manifest.dir;
-			const scriptPath = `${pluginDir}/frontend/omni-content-react.iife.js`;
+			const pluginDir = (this.app as any).plugins.plugins["lovpen"].manifest.dir;
+			const scriptPath = `${pluginDir}/frontend/lovpen-react.iife.js`;
 
 			logger.debug("加载React应用:", scriptPath);
 			const scriptContent = await adapter.read(scriptPath);
@@ -125,14 +125,14 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 			const cssContent = await adapter.read(cssPath);
 
 			// 检查是否已经有这个CSS
-			const existingStyle = document.querySelector('style[data-omni-content-react]');
+			const existingStyle = document.querySelector('style[data-lovpen-react]');
 			if (existingStyle) {
 				existingStyle.remove();
 			}
 
 			// 创建style标签并插入CSS
 			const style = document.createElement('style');
-			style.setAttribute('data-omni-content-react', 'true');
+			style.setAttribute('data-lovpen-react', 'true');
 			style.textContent = cssContent;
 			document.head.appendChild(style);
 
@@ -532,7 +532,7 @@ ${customCSS}`;
 		this.reactContainer.style.width = '100%';
 		this.reactContainer.style.height = '100%';
 		this.reactContainer.style.minWidth = '800px'; // 确保React容器也有最小宽度
-		this.reactContainer.id = 'omni-content-react-container';
+		this.reactContainer.id = 'lovpen-react-container';
 		this.container.appendChild(this.reactContainer);
 
 		logger.debug("UI构建完成", {
@@ -817,7 +817,7 @@ ${customCSS}`;
 
 	private saveSettingsToPlugin(): void {
 		uevent("save-settings");
-		const plugin = (this.app as any).plugins.plugins["omni-content"];
+		const plugin = (this.app as any).plugins.plugins["lovpen"];
 		if (plugin) {
 			// 确保主插件使用的是当前的设置实例
 			plugin.settings = this.settings;

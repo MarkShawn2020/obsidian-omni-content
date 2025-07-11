@@ -37,7 +37,7 @@ export default class TemplateManager {
 
 	public setup(app: App): void {
 		this.app = app;
-		this.templateDir = `${this.app.vault.configDir}/plugins/obsidian-omni-content/assets/templates/`;
+		this.templateDir = `${this.app.vault.configDir}/plugins/obsidian-lovpen/assets/templates/`;
 		logger.info('模板目录:', this.templateDir);
 	}
 

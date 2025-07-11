@@ -6,7 +6,7 @@ import {PluginData} from "../../types";
 import {logger} from "../../../../shared/src/logger";
 import { ChevronDown, Settings, Info, Plug } from "lucide-react";
 
-const STORAGE_KEY_PREFIX = 'omni-content-config';
+const STORAGE_KEY_PREFIX = 'lovpen-config';
 
 const getStorageKey = (type: string, itemName: string) => {
 	return `${STORAGE_KEY_PREFIX}-${type}-${itemName}`;

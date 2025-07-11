@@ -18,7 +18,7 @@ export default defineConfig({
 		lib: {
 			entry: 'src/main.tsx',
 			name: 'OmniContentReact',
-			fileName: 'omni-content-react',
+			fileName: 'lovpen-react',
 			formats: ['iife']
 		},
 		rollupOptions: {

@@ -251,7 +251,7 @@ export class OmniContentSettingTab extends PluginSettingTab {
 						const path = require("path");
 						const adapter = this.app.vault.adapter as FileSystemAdapter;
 						const vaultRoot = adapter.getBasePath();
-						const templatesPath = `${this.app.vault.configDir}/plugins/obsidian-omni-content/templates/`;
+						const templatesPath = `${this.app.vault.configDir}/plugins/obsidian-lovpen/templates/`;
 						const dst = path.join(vaultRoot, templatesPath);
 						shell.openPath(dst);
 					} catch (error) {

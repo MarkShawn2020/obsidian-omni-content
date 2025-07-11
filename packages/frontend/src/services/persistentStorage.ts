@@ -1,8 +1,8 @@
 import { PersistentFile, PersistentCover } from '../types';
 
 const STORAGE_KEYS = {
-	FILES: 'omni-content-persistent-files',
-	COVERS: 'omni-content-persistent-covers'
+	FILES: 'lovpen-persistent-files',
+	COVERS: 'lovpen-persistent-covers'
 } as const;
 
 export class PersistentStorageService {
@@ -23,7 +23,7 @@ export class PersistentStorageService {
 	async saveFile(file: File, customName?: string): Promise<PersistentFile> {
 		const id = this.generateId();
 		const name = customName || file.name;
-		const fileName = `omni-content-files/${id}-${name}`;
+		const fileName = `lovpen-files/${id}-${name}`;
 		
 		try {
 			const arrayBuffer = await file.arrayBuffer();
@@ -54,7 +54,7 @@ export class PersistentStorageService {
 
 	async saveFileFromUrl(url: string, name: string, type: string): Promise<PersistentFile> {
 		const id = this.generateId();
-		const fileName = `omni-content-files/${id}-${name}`;
+		const fileName = `lovpen-files/${id}-${name}`;
 		
 		try {
 			let arrayBuffer: ArrayBuffer;
@@ -103,7 +103,7 @@ export class PersistentStorageService {
 		tags?: string[];
 	}): Promise<PersistentCover> {
 		const id = this.generateId();
-		const fileName = `omni-content-covers/${id}-${coverData.name}.jpg`;
+		const fileName = `lovpen-covers/${id}-${coverData.name}.jpg`;
 		
 		try {
 			let arrayBuffer: ArrayBuffer;

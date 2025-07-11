@@ -320,7 +320,7 @@ export default class AssetsManager {
 	private _setup(app: App, manifest: PluginManifest) {
 		this.app = app;
 		this.manifest = manifest;
-		this.assetsPath = this.app.vault.configDir + '/plugins/obsidian-omni-content/assets/';
+		this.assetsPath = this.app.vault.configDir + '/plugins/obsidian-lovpen/assets/';
 		this.themesPath = this.assetsPath + 'themes/';
 		this.hilightPath = this.assetsPath + 'highlights/';
 		this.themeCfg = this.assetsPath + 'themes.json';

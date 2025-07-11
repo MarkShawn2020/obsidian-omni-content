@@ -53,7 +53,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 	const [isCustomPromptModalOpen, setIsCustomPromptModalOpen] = useState(false);
 	const [articleInfo, setArticleInfo] = useState<ArticleInfoData>(() => {
 		// 从localStorage读取保存的文章信息
-		const saved = localStorage.getItem('omni-content-article-info');
+		const saved = localStorage.getItem('lovpen-article-info');
 		const defaultInfo = getDefaultArticleInfo(settings);
 
 		if (saved) {
@@ -106,7 +106,7 @@ export const ArticleInfo: React.FC<ArticleInfoProps> = ({
 
 	// 当文章信息变化时，保存到localStorage并通知父组件
 	useEffect(() => {
-		localStorage.setItem('omni-content-article-info', JSON.stringify(articleInfo));
+		localStorage.setItem('lovpen-article-info', JSON.stringify(articleInfo));
 		onInfoChange(articleInfo);
 	}, [articleInfo, onInfoChange]);
 
