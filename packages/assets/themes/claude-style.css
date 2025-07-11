@@ -2,9 +2,10 @@
  * Claude Style Theme
  * 基于微信公众号Claude风格的主题样式
  * 特点：温暖的橙红色主题，圆角设计，优雅的排版
+ * 注意：所有样式都限制在 .rich_media_content 容器内，避免影响工具栏
  */
 
-:root {
+.rich_media_content {
     /* === 主要颜色变量 === */
     --primary-color: rgb(200, 100, 66);           /* 主题色：温暖的橙红色 */
     --primary-color-hover: rgb(180, 85, 50);      /* 主题色悬停态 */
@@ -59,10 +60,8 @@
     --shadow-sm: rgba(0, 0, 0, 0.1) 0px 2px 4px;
     --shadow-md: rgba(0, 0, 0, 0.1) 0px 4px 8px;
     --shadow-lg: rgba(0, 0, 0, 0.1) 0px 8px 16px;
-}
-
-/* === 整体容器样式 === */
-.rich_media_content {
+    
+    /* === 容器样式 === */
     font-family: var(--font-family);
     font-size: var(--font-size-base);
     line-height: var(--line-height-base);
@@ -76,7 +75,7 @@
 }
 
 /* === 段落样式 === */
-p {
+.rich_media_content p {
     margin: var(--spacing-lg) var(--spacing-md);
     text-align: justify;
     line-height: var(--line-height-base);
@@ -89,7 +88,12 @@ p {
 }
 
 /* === 标题样式 === */
-h1, h2, h3, h4, h5, h6 {
+.rich_media_content h1, 
+.rich_media_content h2, 
+.rich_media_content h3, 
+.rich_media_content h4, 
+.rich_media_content h5, 
+.rich_media_content h6 {
     font-family: var(--font-family);
     font-weight: bold;
     color: var(--text-primary);
@@ -99,7 +103,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* H1 样式 */
-h1 {
+.rich_media_content h1 {
     font-size: var(--font-size-h1);
     text-align: center;
     margin: var(--spacing-xxl) auto var(--spacing-xl);
@@ -112,7 +116,7 @@ h1 {
 }
 
 /* H2 样式 - 居中带背景 */
-h2 {
+.rich_media_content h2 {
     font-size: var(--font-size-h2);
     text-align: center;
     margin: var(--spacing-xxl) auto var(--spacing-xl);
@@ -125,7 +129,7 @@ h2 {
 }
 
 /* H3 样式 - 左侧竖线边框 */
-h3 {
+.rich_media_content h3 {
     font-size: var(--font-size-h3);
     border-left: 4px solid var(--primary-color);
     border-bottom: 1px dashed var(--primary-color);
@@ -135,31 +139,34 @@ h3 {
 }
 
 /* H4 样式 */
-h4 {
+.rich_media_content h4 {
     font-size: var(--font-size-h4);
     color: var(--primary-color);
     margin: var(--spacing-xl) var(--spacing-md) -var(--spacing-md);
 }
 
 /* H5, H6 样式 */
-h5, h6 {
+.rich_media_content h5, 
+.rich_media_content h6 {
     font-size: var(--font-size-base);
     color: var(--primary-color);
 }
 
 /* === 强调文本样式 === */
-strong, b {
+.rich_media_content strong, 
+.rich_media_content b {
     font-weight: bold;
     color: var(--primary-color);
 }
 
-em, i {
+.rich_media_content em, 
+.rich_media_content i {
     font-style: italic;
     color: var(--primary-color);
 }
 
 /* === 图片样式 === */
-img {
+.rich_media_content img {
     display: block;
     max-width: 100%;
     height: auto;
@@ -170,7 +177,7 @@ img {
 }
 
 /* === 图片说明样式 === */
-figcaption {
+.rich_media_content figcaption {
     text-align: center;
     font-size: var(--font-size-small);
     color: var(--text-tertiary);
@@ -179,19 +186,20 @@ figcaption {
 }
 
 /* === 列表样式 === */
-ul, ol {
+.rich_media_content ul, 
+.rich_media_content ol {
     margin: var(--spacing-lg) var(--spacing-md);
     padding-left: var(--spacing-xl);
     color: var(--text-primary);
 }
 
-li {
+.rich_media_content li {
     margin: var(--spacing-sm) 0;
     line-height: var(--line-height-base);
 }
 
 /* === 引用样式 === */
-blockquote {
+.rich_media_content blockquote {
     margin: var(--spacing-lg) var(--spacing-md);
     padding: var(--spacing-md);
     background: var(--primary-color-light);
@@ -202,7 +210,7 @@ blockquote {
 }
 
 /* === 代码样式 === */
-code {
+.rich_media_content code {
     background: var(--background-tertiary);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-sm);
@@ -211,7 +219,7 @@ code {
     color: var(--primary-color);
 }
 
-pre {
+.rich_media_content pre {
     background: var(--background-tertiary);
     padding: var(--spacing-md);
     border-radius: var(--border-radius-md);
@@ -219,14 +227,14 @@ pre {
     margin: var(--spacing-lg) var(--spacing-md);
 }
 
-pre code {
+.rich_media_content pre code {
     background: none;
     padding: 0;
     color: var(--text-primary);
 }
 
 /* === 表格样式 === */
-table {
+.rich_media_content table {
     width: 100%;
     border-collapse: collapse;
     margin: var(--spacing-lg) var(--spacing-md);
@@ -235,41 +243,42 @@ table {
     box-shadow: var(--shadow-sm);
 }
 
-th, td {
+.rich_media_content th, 
+.rich_media_content td {
     padding: var(--spacing-sm) var(--spacing-md);
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
 
-th {
+.rich_media_content th {
     background: var(--primary-color);
     color: var(--text-on-primary);
     font-weight: bold;
 }
 
-tr:nth-child(even) {
+.rich_media_content tr:nth-child(even) {
     background: var(--background-secondary);
 }
 
-tr:hover {
+.rich_media_content tr:hover {
     background: var(--primary-color-light);
 }
 
 /* === 链接样式 === */
-a {
+.rich_media_content a {
     color: var(--primary-color);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s ease;
 }
 
-a:hover {
+.rich_media_content a:hover {
     color: var(--primary-color-hover);
     border-bottom-color: var(--primary-color-hover);
 }
 
 /* === 分隔线样式 === */
-hr {
+.rich_media_content hr {
     border: none;
     height: 1px;
     background: var(--border-color);
@@ -277,7 +286,7 @@ hr {
 }
 
 /* === 特殊容器样式 === */
-.highlight-box {
+.rich_media_content .highlight-box {
     background: var(--primary-color-light);
     border: 1px solid var(--primary-color);
     border-radius: var(--border-radius-md);
@@ -285,7 +294,7 @@ hr {
     margin: var(--spacing-lg) var(--spacing-md);
 }
 
-.info-box {
+.rich_media_content .info-box {
     background: var(--background-secondary);
     border-left: 4px solid var(--primary-color);
     padding: var(--spacing-md);
@@ -299,21 +308,25 @@ hr {
         padding: var(--spacing-sm);
     }
     
-    p, ul, ol, blockquote {
+    .rich_media_content p, 
+    .rich_media_content ul, 
+    .rich_media_content ol, 
+    .rich_media_content blockquote {
         margin-left: var(--spacing-sm);
         margin-right: var(--spacing-sm);
     }
     
-    h1, h2 {
+    .rich_media_content h1, 
+    .rich_media_content h2 {
         font-size: var(--font-size-large);
         padding: var(--spacing-xs) var(--spacing-sm);
     }
     
-    h3 {
+    .rich_media_content h3 {
         margin-right: var(--spacing-sm);
     }
     
-    img {
+    .rich_media_content img {
         margin-left: var(--spacing-sm);
         margin-right: var(--spacing-sm);
     }
@@ -322,32 +335,20 @@ hr {
 /* === 打印样式 === */
 @media print {
     .rich_media_content {
-        background: white;
+        background: white !important;
         box-shadow: none;
     }
     
-    h1, h2 {
+    .rich_media_content h1, 
+    .rich_media_content h2 {
         background: none !important;
         color: var(--text-primary) !important;
         box-shadow: none;
         border: 2px solid var(--primary-color);
     }
     
-    img {
+    .rich_media_content img {
         box-shadow: none;
         border: 1px solid var(--border-color);
-    }
-}
-
-/* === 暗色模式支持 === */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background-primary: rgb(30, 30, 30);
-        --background-secondary: rgb(40, 40, 40);
-        --background-tertiary: rgb(50, 50, 50);
-        --text-primary: rgb(220, 220, 220);
-        --text-secondary: rgb(180, 180, 180);
-        --text-tertiary: rgb(140, 140, 140);
-        --border-color: rgb(60, 60, 60);
     }
 }

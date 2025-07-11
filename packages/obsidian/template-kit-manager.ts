@@ -116,6 +116,10 @@ export default class TemplateKitManager extends Component implements ITemplateKi
 			const templateManager = TemplateManager.getInstance();
 			const assetsManager = AssetsManager.getInstance();
 
+			// 确保模板文件存在并重新加载
+			await assetsManager.loadTemplates();
+			await templateManager.loadTemplates();
+
 			// 应用样式配置
 			if (options.applyStyles) {
 				await this.applyStyleConfig(kit, settingsManager, assetsManager);
@@ -544,7 +548,10 @@ export default class TemplateKitManager extends Component implements ITemplateKi
 		// 应用模板设置
 		settingsManager.useTemplate = templateConfig.useTemplate;
 		if (templateConfig.templateFileName) {
-			settingsManager.defaultTemplate = templateConfig.templateFileName;
+			// 去掉.html扩展名，因为TemplateManager中存储的key不包含扩展名
+			const templateName = templateConfig.templateFileName.replace('.html', '');
+			settingsManager.defaultTemplate = templateName;
+			logger.info(`[TemplateKitManager] Set template to: ${templateName}`);
 		}
 
 		logger.info('[TemplateKitManager] Applied template configuration');

@@ -225,11 +225,12 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 			logger.info('[TemplateKitSelector] Applying kit:', kit.basicInfo.name);
 
 			// 应用套装设置
+			const templateName = kit.templateConfig.templateFileName.replace('.html', '');
 			const newSettings: Partial<ViteReactSettings> = {
 				defaultStyle: kit.styleConfig.theme,
 				defaultHighlight: kit.styleConfig.codeHighlight,
 				useTemplate: kit.templateConfig.useTemplate,
-				defaultTemplate: kit.templateConfig.templateFileName,
+				defaultTemplate: templateName,
 				enableThemeColor: kit.styleConfig.enableCustomThemeColor,
 				themeColor: kit.styleConfig.customThemeColor || ''
 			};
@@ -269,7 +270,9 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 
 	const getKitStatusBadge = (kit: TemplateKit) => {
 		const isCurrentTheme = settings.defaultStyle === kit.styleConfig.theme;
-		const isCurrentTemplate = settings.defaultTemplate === kit.templateConfig.templateFileName;
+		// 模板名称需要去掉.html扩展名来比较
+		const templateName = kit.templateConfig.templateFileName.replace('.html', '');
+		const isCurrentTemplate = settings.defaultTemplate === templateName;
 		
 		if (isCurrentTheme && isCurrentTemplate) {
 			return <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">当前使用</Badge>;

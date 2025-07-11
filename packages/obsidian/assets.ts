@@ -131,13 +131,20 @@ export default class AssetsManager {
 
 	async loadTemplates() {
 		try {
+			console.log('[AssetsManager] 开始加载模板，目标路径:', this.templatesPath);
+			
 			// 确保模板目录存在
 			if (!await this.app.vault.adapter.exists(this.templatesPath)) {
+				console.log('[AssetsManager] 创建模板目录:', this.templatesPath);
 				await this.app.vault.adapter.mkdir(this.templatesPath);
 			}
 
 			// 从开发目录复制模板文件到运行目录
 			await this.copyTemplatesFromSource();
+			
+			// 检查复制结果
+			const files = await this.app.vault.adapter.list(this.templatesPath);
+			console.log('[AssetsManager] 模板目录中的文件:', files.files);
 		} catch (error) {
 			console.error('[AssetsManager] Error loading templates:', error);
 			new Notice('模板加载失败！');
@@ -146,14 +153,32 @@ export default class AssetsManager {
 
 	async copyTemplatesFromSource() {
 		try {
-			// 开发环境中的模板文件路径
-			const sourcePath = this.manifest.dir + '/assets/templates/';
+			// 开发环境中的模板文件路径 - 尝试多种可能的路径
+			const possibleSourcePaths = [
+				this.manifest.dir + '/assets/templates/',
+				this.manifest.dir + '/../assets/templates/',
+				this.manifest.dir + '/packages/assets/templates/'
+			];
 			
-			// 检查源路径是否存在
-			if (!await this.app.vault.adapter.exists(sourcePath)) {
-				console.warn('[AssetsManager] Source templates path not found:', sourcePath);
-				return;
+			let sourcePath = '';
+			for (const path of possibleSourcePaths) {
+				if (await this.app.vault.adapter.exists(path)) {
+					sourcePath = path;
+					break;
+				}
 			}
+			
+			if (!sourcePath) {
+				console.warn('[AssetsManager] No valid source templates path found. Tried:', possibleSourcePaths);
+				// 创建默认的Claude Style模板
+				await this.createDefaultClaudeStyleTemplate();
+				return;
+			} else {
+				// 无论是否找到源文件，都确保创建Claude Style模板
+				await this.createDefaultClaudeStyleTemplate();
+			}
+
+			console.log('[AssetsManager] Using templates source path:', sourcePath);
 
 			// 获取源目录中的所有文件
 			const files = await this.app.vault.adapter.list(sourcePath);
@@ -174,10 +199,23 @@ export default class AssetsManager {
 			}
 
 			// 复制Claude Style.css主题文件
-			const claudeStyleSource = this.manifest.dir + '/assets/themes/claude-style.css';
-			const claudeStyleTarget = this.themesPath + 'claude-style.css';
+			const possibleThemePaths = [
+				this.manifest.dir + '/assets/themes/claude-style.css',
+				this.manifest.dir + '/../assets/themes/claude-style.css',
+				this.manifest.dir + '/packages/assets/themes/claude-style.css'
+			];
 			
-			if (await this.app.vault.adapter.exists(claudeStyleSource)) {
+			let claudeStyleSource = '';
+			for (const path of possibleThemePaths) {
+				if (await this.app.vault.adapter.exists(path)) {
+					claudeStyleSource = path;
+					break;
+				}
+			}
+			
+			if (claudeStyleSource) {
+				const claudeStyleTarget = this.themesPath + 'claude-style.css';
+				
 				// 确保themes目录存在
 				if (!await this.app.vault.adapter.exists(this.themesPath)) {
 					await this.app.vault.adapter.mkdir(this.themesPath);
@@ -191,6 +229,66 @@ export default class AssetsManager {
 			console.log('[AssetsManager] Templates copied successfully');
 		} catch (error) {
 			console.error('[AssetsManager] Error copying templates:', error);
+		}
+	}
+
+	async createDefaultClaudeStyleTemplate() {
+		try {
+			const targetFile = this.templatesPath + 'Claude Style.html';
+			
+			// 检查文件是否已存在
+			if (await this.app.vault.adapter.exists(targetFile)) {
+				console.log('[AssetsManager] Claude Style template already exists');
+				return;
+			}
+			
+			console.log('[AssetsManager] Creating default Claude Style template at:', targetFile);
+			const defaultTemplate = `<div class="rich_media_content js_underline_content autoTypeSetting24psection fix_apple_default_style" id="js_content">
+	<section class="claude-main-content">
+		{{#if articleTitle}}
+		<h1>{{articleTitle}}</h1>
+		{{/if}}
+
+		{{{content}}}
+	</section>
+</div>
+
+<style>
+.rich_media_content {
+	background: rgb(250, 249, 245) !important;
+	border-radius: 12px;
+	padding: 8px;
+	font-family: "PingFang SC", -apple-system-font, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+	font-size: 15px;
+	line-height: 1.75;
+	color: rgb(34, 34, 34);
+}
+
+.claude-main-content h1 {
+	font-size: 1.6em;
+	font-weight: bold;
+	margin: 4em auto 2em;
+	text-align: center;
+	display: table;
+	padding: 0.3em 1em;
+	background: rgb(200, 100, 66);
+	border-radius: 8px;
+	color: white !important;
+}
+
+.claude-main-content strong, .claude-main-content b {
+	color: rgb(200, 100, 66);
+}
+</style>`;
+
+			await this.app.vault.adapter.write(targetFile, defaultTemplate);
+			console.log('[AssetsManager] Successfully created default Claude Style template');
+			
+			// 验证文件是否创建成功
+			const exists = await this.app.vault.adapter.exists(targetFile);
+			console.log('[AssetsManager] File exists after creation:', exists);
+		} catch (error) {
+			console.error('[AssetsManager] Error creating default template:', error);
 		}
 	}
 

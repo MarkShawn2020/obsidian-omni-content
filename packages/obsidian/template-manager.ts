@@ -46,11 +46,16 @@ export default class TemplateManager {
 	public async loadTemplates(): Promise<void> {
 		try {
 			const adapter = this.app.vault.adapter;
+			logger.info('[TemplateManager] 检查模板目录:', this.templateDir);
 			const templateExists = await adapter.exists(this.templateDir);
 
-			if (!templateExists) throw new Error('模板目录不存在');
+			if (!templateExists) {
+				logger.warn('[TemplateManager] 模板目录不存在，尝试创建:', this.templateDir);
+				await adapter.mkdir(this.templateDir);
+			}
 
 			const files = await adapter.list(this.templateDir);
+			logger.info('[TemplateManager] 发现文件:', files.files);
 			this.templates.clear();
 
 			for (const file of files.files) {
@@ -63,12 +68,15 @@ export default class TemplateManager {
 						path: file,
 						content: content
 					});
+					
+					logger.info('[TemplateManager] 加载模板:', fileName, '路径:', file);
 				}
 			}
 
-			logger.info('模板加载完成，共加载', this.templates.size, '个模板');
+			logger.info('[TemplateManager] 模板加载完成，共加载', this.templates.size, '个模板');
+			logger.info('[TemplateManager] 可用模板列表:', Array.from(this.templates.keys()));
 		} catch (error) {
-			console.error('Error loading templates:', error);
+			logger.error('[TemplateManager] Error loading templates:', error);
 			new Notice('加载模板失败！');
 		}
 	}
@@ -85,11 +93,28 @@ export default class TemplateManager {
 
 	// 应用模板到内容
 	public applyTemplate(content: string, templateName: string, meta: TemplateData = {}): string {
-		const template = this.templates.get(templateName);
+		logger.info(`[TemplateManager] 尝试应用模板: "${templateName}"`);
+		logger.info(`[TemplateManager] 当前可用模板:`, Array.from(this.templates.keys()));
+		logger.info(`[TemplateManager] 模板数量:`, this.templates.size);
+		
+		// 容错处理：尝试去掉可能的扩展名
+		const cleanTemplateName = templateName.replace('.html', '');
+		
+		// 先尝试原始名称，再尝试清理后的名称
+		let template = this.templates.get(templateName);
+		if (!template && templateName !== cleanTemplateName) {
+			logger.info(`[TemplateManager] 尝试使用清理后的模板名称: "${cleanTemplateName}"`);
+			template = this.templates.get(cleanTemplateName);
+		}
+		
 		if (!template) {
-			logger.warn(`未找到模板 ${templateName}`);
+			logger.warn(`[TemplateManager] 未找到模板 "${templateName}"`);
+			logger.warn(`[TemplateManager] 可用的模板列表:`, Array.from(this.templates.keys()));
 			return content;
 		}
+		
+		logger.info(`[TemplateManager] 成功找到模板: "${template.name}"`);
+		
 
 		// 确保 meta 中有 epigraph，默认为 ["这篇文章写地贼累！"]
 		if (!meta.epigraph) {
