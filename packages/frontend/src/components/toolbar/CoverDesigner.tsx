@@ -298,35 +298,8 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 	}, [articleHTML, extractImagesFromHTML]);
 
 
-	const createCover = useCallback(async (imageUrl: string, source: CoverImageSource, coverNum: 1 | 2) => {
-		logger.info(`[CoverDesigner] 开始创建封面${coverNum}`, {imageUrl: imageUrl.substring(0, 100), source});
-
-		const dimensions = getDimensions(coverNum);
-
-		// 直接创建封面数据，使用原始图片URL进行预览
-		const coverData: CoverData = {
-			id: `cover${coverNum}-${Date.now()}-${Math.random()}`,
-			imageUrl: imageUrl, // 直接使用原始图片URL
-			aspectRatio: dimensions.aspectRatio,
-			width: dimensions.width,
-			height: dimensions.height,
-			title: '',
-			description: ''
-		};
-
-		logger.info(`[CoverDesigner] 封面${coverNum}创建成功（使用原始图片预览）`, {
-			originalUrl: imageUrl.substring(0, 100),
-			aspectRatio: dimensions.aspectRatio,
-			dimensions: `${dimensions.width}x${dimensions.height}`
-		});
-
-		if (coverNum === 1) {
-			setCover1PreviewCovers([coverData]);
-		} else {
-			setCover2PreviewCovers([coverData]);
-		}
-
-		// 保存封面预览持久化数据
+	// 通用的保存封面持久化数据函数
+	const saveCoverData = useCallback(async (coverNum: 1 | 2, coverData: CoverData, source: CoverImageSource, imageUrl: string) => {
 		try {
 			const storageKey = `cover-designer-preview-${coverNum}`;
 			let originalFileName = '';
@@ -360,7 +333,42 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		} catch (error) {
 			logger.error(`[CoverDesigner] 保存封面${coverNum}预览持久化数据失败:`, error);
 		}
-	}, [getDimensions]);
+	}, []);
+
+	// 通用的设置封面预览函数
+	const setCoverPreview = useCallback((coverNum: 1 | 2, coverData: CoverData) => {
+		if (coverNum === 1) {
+			setCover1PreviewCovers([coverData]);
+		} else {
+			setCover2PreviewCovers([coverData]);
+		}
+	}, []);
+
+	const createCover = useCallback(async (imageUrl: string, source: CoverImageSource, coverNum: 1 | 2) => {
+		logger.info(`[CoverDesigner] 开始创建封面${coverNum}`, {imageUrl: imageUrl.substring(0, 100), source});
+
+		const dimensions = getDimensions(coverNum);
+
+		// 直接创建封面数据，使用原始图片URL进行预览
+		const coverData: CoverData = {
+			id: `cover${coverNum}-${Date.now()}-${Math.random()}`,
+			imageUrl: imageUrl, // 直接使用原始图片URL
+			aspectRatio: dimensions.aspectRatio,
+			width: dimensions.width,
+			height: dimensions.height,
+			title: '',
+			description: ''
+		};
+
+		logger.info(`[CoverDesigner] 封面${coverNum}创建成功（使用原始图片预览）`, {
+			originalUrl: imageUrl.substring(0, 100),
+			aspectRatio: dimensions.aspectRatio,
+			dimensions: `${dimensions.width}x${dimensions.height}`
+		});
+
+		setCoverPreview(coverNum, coverData);
+		await saveCoverData(coverNum, coverData, source, imageUrl);
+	}, [getDimensions, setCoverPreview, saveCoverData]);
 
 	const handleDownloadCovers = useCallback(async () => {
 		const covers = [...cover1PreviewCovers, ...cover2PreviewCovers];
@@ -385,8 +393,9 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		}
 	}, []);
 
-	// 清空单个封面预览的功能
-	const handleClearPreviews = useCallback((coverNumber: 1 | 2) => {
+	// 通用的清空封面预览函数
+	const clearCoverPreview = useCallback((coverNumber: 1 | 2) => {
+		// 清空状态
 		if (coverNumber === 1) {
 			setCover1PreviewCovers([]);
 		} else {
@@ -404,6 +413,18 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 		
 		logger.info(`[CoverDesigner] 清空封面${coverNumber}预览`);
 	}, []);
+
+	// 清空单个封面预览的功能
+	const handleClearPreviews = useCallback((coverNumber: 1 | 2) => {
+		clearCoverPreview(coverNumber);
+	}, [clearCoverPreview]);
+
+	// 清空全部封面预览
+	const clearAllPreviews = useCallback(() => {
+		clearCoverPreview(1);
+		clearCoverPreview(2);
+		logger.debug('[CoverDesigner] 清空全部封面持久化数据');
+	}, [clearCoverPreview]);
 
 	return (
 		<div className="space-y-6">
@@ -472,18 +493,7 @@ export const CoverDesigner: React.FC<CoverDesignerProps> = ({
 						</button>
 						<button
 							disabled={cover1PreviewCovers.length === 0 && cover2PreviewCovers.length === 0}
-							onClick={() => {
-								setCover1PreviewCovers([]);
-								setCover2PreviewCovers([]);
-								// 清空持久化数据
-								try {
-									localStorage.removeItem('cover-designer-preview-1');
-									localStorage.removeItem('cover-designer-preview-2');
-									logger.debug('[CoverDesigner] 清空全部封面持久化数据');
-								} catch (error) {
-									logger.error('[CoverDesigner] 清空全部封面持久化数据失败:', error);
-								}
-							}}
+							onClick={clearAllPreviews}
 							className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<RotateCcw className="h-4 w-4" />
