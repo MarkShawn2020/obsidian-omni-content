@@ -231,7 +231,7 @@ export abstract class HtmlPlugin extends UnifiedPlugin implements IHtmlPlugin {
 			try {
 				const testElement = document.createElement("div");
 				testElement.style.display = "none";
-				testElement.className = "note-to-mp";
+				testElement.className = "lovpen";
 				document.body.appendChild(testElement);
 				
 				const computedStyle = window.getComputedStyle(testElement);

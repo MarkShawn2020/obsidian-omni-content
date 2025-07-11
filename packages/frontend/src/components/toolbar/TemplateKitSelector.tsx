@@ -11,7 +11,6 @@ import {
 	Plus,
 	Eye,
 	Settings,
-	Check,
 	AlertCircle,
 	Loader,
 	Trash2,
@@ -75,7 +74,6 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 	const [kits, setKits] = useState<TemplateKit[]>([]);
 	const [selectedKitId, setSelectedKitId] = useState<string>('');
 	const [loading, setLoading] = useState(true);
-	const [applying, setApplying] = useState(false);
 	const [error, setError] = useState<string>('');
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [previewKit, setPreviewKit] = useState<TemplateKit | null>(null);
@@ -112,56 +110,22 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 		if (kit) {
 			setPreviewKit(kit);
 			
-			// 立即预览套装效果
+			// 直接应用套装
 			try {
-				const templateName = kit.templateConfig.templateFileName.replace('.html', '');
-				const newSettings: Partial<ViteReactSettings> = {
-					defaultStyle: kit.styleConfig.theme,
-					defaultHighlight: kit.styleConfig.codeHighlight,
-					useTemplate: kit.templateConfig.useTemplate,
-					defaultTemplate: templateName,
-					enableThemeColor: kit.styleConfig.enableCustomThemeColor,
-					themeColor: kit.styleConfig.customThemeColor || ''
-				};
-
-				// 立即应用设置预览，不保存到配置
-				if (onSettingsChange) {
-					onSettingsChange(newSettings);
+				logger.info('[TemplateKitSelector] Applying kit directly:', kit.basicInfo.name);
+				
+				// 调用后端套装应用逻辑
+				if (window.lovpenReactAPI && window.lovpenReactAPI.onKitApply) {
+					await window.lovpenReactAPI.onKitApply(kitId);
 				}
 				
-				logger.info('[TemplateKitSelector] Applied kit preview:', kit.basicInfo.name);
+				logger.info('[TemplateKitSelector] Kit applied directly:', kit.basicInfo.name);
 			} catch (error) {
-				logger.error('[TemplateKitSelector] Error applying kit preview:', error);
+				logger.error('[TemplateKitSelector] Error applying kit directly:', error);
 			}
 		}
 	};
 
-	const handleKitApply = async () => {
-		if (!selectedKitId) return;
-
-		try {
-			setApplying(true);
-			const kit = kits.find(k => k.basicInfo.id === selectedKitId);
-			if (!kit) {
-				throw new Error('Selected kit not found');
-			}
-
-			logger.info('[TemplateKitSelector] Permanently applying kit:', kit.basicInfo.name);
-
-			// 调用后端套装应用逻辑（复制模板文件、保存配置等）
-			if (window.lovpenReactAPI && window.lovpenReactAPI.onKitApply) {
-				await window.lovpenReactAPI.onKitApply(selectedKitId);
-			}
-
-			// 显示成功消息
-			logger.info('[TemplateKitSelector] Kit applied and saved successfully:', kit.basicInfo.name);
-		} catch (error) {
-			logger.error('[TemplateKitSelector] Error applying kit:', error);
-			setError((error as Error).message || 'Failed to apply template kit');
-		} finally {
-			setApplying(false);
-		}
-	};
 
 	const handleCreateKit = () => {
 		setShowCreateDialog(true);
@@ -264,26 +228,7 @@ export const TemplateKitSelector: React.FC<TemplateKitSelectorProps> = ({
 					</Select>
 				</div>
 
-				{/* 应用按钮 */}
-				{selectedKitId && (
-					<Button 
-						onClick={handleKitApply} 
-						disabled={applying}
-						className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-					>
-						{applying ? (
-							<>
-								<Loader className="animate-spin w-4 h-4 mr-2" />
-								保存中...
-							</>
-						) : (
-							<>
-								<Check className="w-4 h-4 mr-2" />
-								保存套装
-							</>
-						)}
-					</Button>
-				)}
+				{/* 套装已在选择时直接应用 */}
 			</div>
 
 			{/* 套装预览 */}

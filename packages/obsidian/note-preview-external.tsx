@@ -317,15 +317,15 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	updateCSSVariables() {
 		// 在React组件中处理CSS变量更新
 		// 首先尝试在React容器中查找
-		let noteContainer = this.reactContainer?.querySelector(".note-to-mp") as HTMLElement;
+		let noteContainer = this.reactContainer?.querySelector(".lovpen") as HTMLElement;
 		
 		// 如果React容器中没有找到，则在整个document中查找
 		if (!noteContainer) {
-			noteContainer = document.querySelector(".note-to-mp") as HTMLElement;
+			noteContainer = document.querySelector(".lovpen") as HTMLElement;
 		}
 		
 		if (!noteContainer) {
-			logger.warn("找不到 .note-to-mp 容器，无法更新CSS变量");
+			logger.warn("找不到容器，无法更新CSS变量");
 			return;
 		}
 
@@ -351,7 +351,7 @@ export class NotePreviewExternal extends ItemView implements MDRendererCallback 
 	}
 
 	wrapArticleContent(article: string): string {
-		let className = "note-to-mp";
+		let className = "lovpen";
 		let html = `<section class="${className}" id="article-section">${article}</section>`;
 
 		if (this.settings.useTemplate) {

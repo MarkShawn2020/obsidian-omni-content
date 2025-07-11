@@ -2,7 +2,7 @@ const css = `
 /* =========================================================== */
 /* Obsidian的默认样式                                            */
 /* =========================================================== */
-.note-to-mp {
+.lovpen {
     padding: 20px 20px;
     user-select: text;
     -webkit-user-select: text;
@@ -11,15 +11,15 @@ const css = `
     font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Microsoft YaHei Light", sans-serif;
 }
 
-.note-to-mp:last-child {
+.lovpen:last-child {
     margin-bottom: 0;
 }
 
-.note-to-mp .fancybox-img {
+.lovpen .fancybox-img {
     border: none;
 }
 
-.note-to-mp .fancybox-img:hover {
+.lovpen .fancybox-img:hover {
     opacity: none;
     border: none;
 }
@@ -29,7 +29,7 @@ const css = `
 Heading 
 ==================================
 */
-.note-to-mp h1 {
+.lovpen h1 {
     color: #222;
     font-weight: 700;
     font-size: 1.802em;
@@ -38,7 +38,7 @@ Heading
     margin-block-end: 0;
 }
 
-.note-to-mp h2 {
+.lovpen h2 {
     color: inherit;
     font-weight: 600;
     font-size: 1.602em;
@@ -47,7 +47,7 @@ Heading
     margin-block-end: 0;
 }
 
-.note-to-mp h3 {
+.lovpen h3 {
     color: inherit;
     font-weight: 600;
     font-size: 1.424em;
@@ -56,7 +56,7 @@ Heading
     margin-block-end: 0;
 }
 
-.note-to-mp h4 {
+.lovpen h4 {
     color: inherit;
     font-weight: 600;
     font-size: 1.266em;
@@ -65,13 +65,13 @@ Heading
     margin-block-end: 0;
 }
 
-.note-to-mp h5 {
+.lovpen h5 {
     color: inherit;
     margin-block-start: 1em;
     margin-block-end: 0;
 }
 
-.note-to-mp h6 {
+.lovpen h6 {
     color: inherit;
     margin-block-start: 1em;
     margin-block-end: 0;
@@ -82,7 +82,7 @@ Heading
 Horizontal Rules
 ==================================
     */
-.note-to-mp hr {
+.lovpen hr {
     border-color: #e0e0e0;
     margin-top: 3em;
     margin-bottom: 3em;
@@ -93,7 +93,7 @@ Horizontal Rules
 Paragraphs
 ==================================
     */
-.note-to-mp p {
+.lovpen p {
     line-height: 1.6em;
     margin: 1em 0;
 }
@@ -103,17 +103,17 @@ Paragraphs
 Emphasis
 ==================================
     */
-.note-to-mp strong {
+.lovpen strong {
     color: var(--strong-color);
     font-weight: 600;
 }
 
-.note-to-mp em {
+.lovpen em {
     color: inherit;
     font-style: italic;
 }
 
-.note-to-mp s {
+.lovpen s {
     color: inherit;
 }
 
@@ -122,7 +122,7 @@ Emphasis
     Blockquotes
 ==================================
     */
-.note-to-mp blockquote {
+.lovpen blockquote {
     font-size: 1rem;
     display: block;
     margin: 2em 0;
@@ -132,15 +132,15 @@ Emphasis
     border-left: 0.15rem solid #7852ee;
 }
 
-.note-to-mp blockquote blockquote {
+.lovpen blockquote blockquote {
     margin: 0 0;
 }
 
-.note-to-mp blockquote p {
+.lovpen blockquote p {
     margin: 0;
 }
 
-.note-to-mp blockquote footer strong {
+.lovpen blockquote footer strong {
     margin-right: 0.5em;
 }
 
@@ -149,29 +149,29 @@ Emphasis
 List
 ==================================
 */
-.note-to-mp ul {
+.lovpen ul {
     margin: 0;
     margin-top: 1.25em;
     margin-bottom: 1.25em;
 }
 
-.note-to-mp ul>li {
+.lovpen ul>li {
     /* position: relative; */
     /* padding-left: 1.75rem; */
     margin-top: 0.1em;
     margin-bottom: 0.1em;
 }
 
-.note-to-mp ul>li::marker {
+.lovpen ul>li::marker {
     color: #ababab;
     /* font-size: 1.5em; */
 }
 
-.note-to-mp li>p {
+.lovpen li>p {
     margin: 0;
 }
 
-.note-to-mp ol {
+.lovpen ol {
     margin: 0;
     padding: 0;
     margin-top: 1.25em;
@@ -179,7 +179,7 @@ List
     list-style-type: decimal;
 }
 
-.note-to-mp ol>li {
+.lovpen ol>li {
     position: relative;
     padding-left: 0.1em;
     margin-left: 2em;
@@ -192,7 +192,7 @@ List
 Link
 ==================================
 */
-.note-to-mp a {
+.lovpen a {
     color: #7852ee;
     text-decoration: none;
     font-weight: 500;
@@ -201,7 +201,7 @@ Link
     transition: border 0.3s ease-in-out;
 }
 
-.note-to-mp a:hover {
+.lovpen a:hover {
     color: #7952eebb;
     border-bottom: 1px solid #7952eebb;
 }
@@ -211,7 +211,7 @@ Link
 Table
 ==================================
 */
-.note-to-mp table {
+.lovpen table {
     width: 100%;
     table-layout: auto;
     text-align: left;
@@ -224,13 +224,13 @@ Table
     text-indent: 0;
 }
 
-.note-to-mp table thead {
+.lovpen table thead {
     color: #000;
     font-weight: 600;
     border: #e0e0e0 1px solid;
 }
 
-.note-to-mp table thead th {
+.lovpen table thead th {
     vertical-align: bottom;
     padding-right: 0.5714286em;
     padding-bottom: 0.5714286em;
@@ -238,24 +238,24 @@ Table
     border: #e0e0e0 1px solid;
 }
 
-.note-to-mp table thead th:first-child {
+.lovpen table thead th:first-child {
     padding-left: 0.5em;
 }
 
-.note-to-mp table thead th:last-child {
+.lovpen table thead th:last-child {
     padding-right: 0.5em;
 }
 
-.note-to-mp table tbody tr {
+.lovpen table tbody tr {
     border-style: solid;
     border: #e0e0e0 1px solid;
 }
 
-.note-to-mp table tbody tr:last-child {
+.lovpen table tbody tr:last-child {
     border-bottom-width: 0;
 }
 
-.note-to-mp table tbody td {
+.lovpen table tbody td {
     vertical-align: top;
     padding-top: 0.5714286em;
     padding-right: 0.5714286em;
@@ -264,11 +264,11 @@ Table
     border: #e0e0e0 1px solid;
 }
 
-.note-to-mp table tbody td:first-child {
+.lovpen table tbody td:first-child {
     padding-left: 0;
 }
 
-.note-to-mp table tbody td:last-child {
+.lovpen table tbody td:last-child {
     padding-right: 0;
 }
 
@@ -277,12 +277,12 @@ Table
 Images
 ==================================
 */
-.note-to-mp img {
+.lovpen img {
     margin-top: 2em;
     margin-bottom: 2em;
 }
 
-.note-to-mp .footnotes hr {
+.lovpen .footnotes hr {
     margin-top: 4em;
     margin-bottom: 0.5em;
 }
@@ -292,13 +292,13 @@ Images
 Code
 ==================================
 */
-.note-to-mp .code-section {
+.lovpen .code-section {
     display: flex;
     background-color: rgb(250, 250, 250);
     border: rgb(240, 240, 240) 1px solid;
 }
 
-.note-to-mp .code-section ul {
+.lovpen .code-section ul {
     flex-shrink: 0;
     counter-reset: line;
     margin: 0;
@@ -307,7 +307,7 @@ Code
     width: fit-content;
 }
 
-.note-to-mp .code-section ul>li {
+.lovpen .code-section ul>li {
     font-family: Consolas, ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", "Courier New", monospace;
     position: relative;
     margin: 0;
@@ -322,13 +322,13 @@ Code
     text-wrap: nowrap;
 }
 
-.note-to-mp .code-section pre {
+.lovpen .code-section pre {
     margin: 0;
     padding: 0;
     overflow: auto;
 }
 
-.note-to-mp .code-section code {
+.lovpen .code-section code {
     font-family: Consolas, ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", "Courier New", monospace;
     color: #5c5c5c;
     background-color: #fafafa;
@@ -337,7 +337,7 @@ Code
     padding: 0 0.5em;
 }    
 
-.note-to-mp .code-section pre code {
+.lovpen .code-section pre code {
     display: block;
     text-wrap: nowrap;
     line-height: 1.75em;
